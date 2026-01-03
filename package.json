@@ -1,0 +1,15 @@
+{
+  "name": "@klivcore/workbench",
+  "private": true,
+  "version": "1.0.0",
+  "keywords": [],
+  "author": "Rick Love",
+  "license": "UNLICENSED",
+  "description": "Klivcore Workbench",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "setup:config": "klivcore-standards --version v1"
+  }
+}

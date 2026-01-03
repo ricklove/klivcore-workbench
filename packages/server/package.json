@@ -1,0 +1,11 @@
+{
+  "name": "@klivcore/unknown-server",
+  "version": "1.0.0",
+  "keywords": [],
+  "author": "Rick Love",
+  "license": "UNLICENSED",
+  "description": "Klivcore Unknown",
+  "scripts": {
+    "setup:config": "klivcore-standards --version v1"
+  }
+}
