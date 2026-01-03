@@ -1,6 +1,6 @@
 # No License Granted
 
-Copyright (c) 2025 Rick Love
+Copyright (c) 2026 Rick Love
 
 This is a proprietary work. All rights are reserved.
 
