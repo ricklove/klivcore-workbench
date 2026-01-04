@@ -50,6 +50,7 @@ export const reactNodeStore = {
   }[],
   edges: [] as {
     id: string;
+    type: `custom`;
     source: string;
     sourceHandle: string;
     target: string;
@@ -86,6 +87,33 @@ reactNodeStore.nodes = [
     id: "n2",
     type: `string`,
     position: { x: 0, y: 100 },
+    width: 100,
+    height: 50,
+    data: {
+      typeName: `string`,
+      inputs: {
+        value: {
+          id: "n1-a",
+          lastValue: `test`,
+          source: {
+            nodeId: "n1",
+            handleId: "value",
+          },
+          hasSubscribers: true,
+        },
+      },
+      outputs: {
+        value: {
+          id: "n2-a",
+          lastValue: `test2`,
+        }
+      }
+    },
+  },
+  {
+    id: "n2b",
+    type: `string`,
+    position: { x: -200, y: 300 },
     width: 100,
     height: 50,
     data: {
@@ -151,13 +179,23 @@ reactNodeStore.nodes = [
 reactNodeStore.edges = [
   {
     id: "n1-n2",
+    type: `custom`,
     source: "n1",
     sourceHandle: "value",
     target: "n2",
     targetHandle: "value",
   },
   {
+    id: "n1-n2b",
+    type: `custom`,
+    source: "n1",
+    sourceHandle: "value",
+    target: "n2b",
+    targetHandle: "value",
+  },
+  {
     id: "n3-temp1",
+    type: `custom`,
     source: "n3",
     sourceHandle: "value",
     target: "temp1",
