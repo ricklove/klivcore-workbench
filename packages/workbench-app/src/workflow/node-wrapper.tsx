@@ -1,5 +1,5 @@
 import { Handle, NodeResizer, Position, useReactFlow } from "@xyflow/react";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import type { ReactNodeDataBase } from "./store";
 
 export const NodeDefault = (props: {
@@ -48,7 +48,7 @@ const NodeWrapper = ({
   data: ReactNodeDataBase;
 }) => {
   // console.log(`[NodeWrapper] rendering node ${id}`, { data });
-  const { deleteElements } = useReactFlow();
+  const { deleteElements, fitView } = useReactFlow();
 
   const handleDisplayNameChange = (value: string) => {
     console.log(`[NodeWrapper] handleDisplayNameChange`, { value });
@@ -58,6 +58,11 @@ const NodeWrapper = ({
     console.log(`[NodeWrapper] handleDeleteNode`, { id });
     deleteElements({ nodes: [{ id }] });
   };
+
+  const moveToNode = useCallback(
+    (id: string) => fitView({ nodes: [{ id }] }),
+    [fitView]
+  );
 
   const displayName = id;
 
@@ -197,8 +202,19 @@ const NodeWrapper = ({
             // className="hover:top-0"
           >
             <div className="absolute right-0 opacity-0 hover:opacity-100">
-              <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 right-4">
-                {key}
+              <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
+                {value.source?.nodeId && (
+                  <div
+                    className="pointer-events-auto cursor-pointer"
+                    onClick={() =>
+                      value.source?.nodeId && moveToNode(value.source.nodeId)
+                    }
+                    title={`Go to '${value.source?.nodeId}'`}
+                  >
+                    🔗
+                  </div>
+                )}
+                <div>{key}</div>
               </div>
             </div>
           </Handle>
