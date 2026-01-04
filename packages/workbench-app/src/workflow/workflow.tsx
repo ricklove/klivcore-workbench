@@ -73,6 +73,7 @@ export const CustomEdge = (props: {
   targetY: number;
   source: string;
   target: string;
+  selected?: boolean;
 }) => {
   const [edgePath] = getBezierPath({
     sourceX: props.sourceX,
@@ -84,7 +85,7 @@ export const CustomEdge = (props: {
 
   const { fitView } = useReactFlow();
   const moveToNode = useCallback(
-    (id: string) => fitView({ nodes: [{ id }] }),
+    (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
     [fitView]
   );
   // const moveToPosition = useCallback(
@@ -122,24 +123,36 @@ export const CustomEdge = (props: {
       <BaseEdge id={id} path={edgePath} />
       <EdgeLabelRenderer>
         <button
-          className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-10"
+          className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
           style={{
             position: "absolute",
             transform: `translate(-50%, -50%) translate(${startX}px, ${startY}px)`,
           }}
           onClick={() => moveToNode(props.target)}
         >
-          <div className="rounded-full border-[0.25px] border-gray-600 bg-gray-900 w-1 h-1 hover:scale-200"></div>
+          <div
+            className={`rounded-full   hover:scale-200 ${
+              props.selected
+                ? `w-3 h-3 border border-blue-600 bg-blue-900`
+                : `w-1 h-1 border-[0.25px] border-gray-600 bg-gray-900`
+            }`}
+          ></div>
         </button>
         <button
-          className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-10"
+          className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
           style={{
             position: "absolute",
             transform: `translate(-50%, -50%) translate(${endX}px, ${endY}px)`,
           }}
           onClick={() => moveToNode(props.source)}
         >
-          <div className="rounded-full border-[0.25px] border-gray-600 bg-gray-900 w-1 h-1 hover:scale-200"></div>
+          <div
+            className={`rounded-full   hover:scale-200 ${
+              props.selected
+                ? `w-3 h-3 border border-blue-600 bg-blue-900`
+                : `w-1 h-1 border-[0.25px] border-gray-600 bg-gray-900`
+            }`}
+          ></div>
         </button>
       </EdgeLabelRenderer>
     </>

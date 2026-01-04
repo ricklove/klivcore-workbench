@@ -60,7 +60,7 @@ const NodeWrapper = ({
   };
 
   const moveToNode = useCallback(
-    (id: string) => fitView({ nodes: [{ id }] }),
+    (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
     [fitView]
   );
 
