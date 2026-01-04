@@ -1,3 +1,9 @@
+import { WorkflowView } from "./workflow/workflow";
+
 export const App = () => {
-  return <>test</>;
+  return (
+    <div className="w-screen h-screen">
+      <WorkflowView />
+    </div>
+  );
 };
