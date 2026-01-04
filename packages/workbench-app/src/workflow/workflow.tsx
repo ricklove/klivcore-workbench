@@ -7,7 +7,6 @@ import {
   type NodeChange,
   type EdgeChange,
   type Connection,
-  Background,
   MiniMap,
   Controls,
 } from "@xyflow/react";

@@ -1,6 +1,6 @@
 import type { NodeTypes } from "@xyflow/react";
 import { NodeDefault } from "./node-wrapper";
-import { TempWrapper } from "./temp-wrapper";
+import { TempWrapper } from "./node-temp-wrapper";
 import { StringNodeComponent } from "./nodes";
 
 // const initialNodes = [
@@ -77,6 +77,7 @@ reactNodeStore.nodes = [
         value: {
           id: "n1-a",
           lastValue: `test`,
+          hasSubscribers: true,
         },
       }
     },
@@ -109,6 +110,24 @@ reactNodeStore.nodes = [
     },
   },
   {
+    id: "n3",
+    type: `string`,
+    position: { x: 200, y: -100 },
+    width: 100,
+    height: 50,
+    data: {
+      typeName: `string`,
+      inputs: {},
+      outputs: {
+        value: {
+          id: "n3-value",
+          lastValue: `../temp/temp-01.tsx`,
+          hasSubscribers: true,
+        }
+      }
+    },
+  },
+  {
     id: "temp1",
     type: `tempWrapper`,
     position: { x: 200, y: 0 }, width: 200, height: 200, data: {
@@ -117,6 +136,11 @@ reactNodeStore.nodes = [
         importPath: {
           id: "temp1-inp-1",
           lastValue: `../temp/temp-01.tsx`,
+          source: {
+            nodeId: "n3",
+            handleId: "value",
+          },
+          hasSubscribers: true,
         }
       },
       outputs: {},
@@ -132,4 +156,11 @@ reactNodeStore.edges = [
     target: "n2",
     targetHandle: "value",
   },
+  {
+    id: "n3-temp1",
+    source: "n3",
+    sourceHandle: "value",
+    target: "temp1",
+    targetHandle: "importPath",
+  }
 ];

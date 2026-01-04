@@ -1,6 +1,8 @@
 // import { TempComponent } from "./temp-01";
 
 import { Component, useEffect, useState } from "react";
+import { NodeWrapperSimple } from "./node-wrapper";
+import type { ReactNodeData } from "./store";
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode; message: string },
@@ -23,7 +25,7 @@ class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-full p-2 whitespace-pre-wrap bg-red-200 rounded">
+        <div className="w-full h-full p-1 whitespace-pre-wrap bg-red-400 text-white rounded">
           {this.props.message}
         </div>
       );
@@ -34,7 +36,9 @@ class ErrorBoundary extends Component<
 }
 
 export const TempWrapper = (props: {
-  data: { inputs: { importPath: { lastValue: string } } };
+  id: string;
+  selected: boolean;
+  data: ReactNodeData<{ importPath: string }, unknown>;
 }) => {
   const [ComponentObj, setComponentObj] = useState(
     undefined as
@@ -58,18 +62,19 @@ export const TempWrapper = (props: {
 
   return (
     <>
-      <div>Temp Component</div>
-      <div>
-        {ComponentObj && "Component" in ComponentObj && (
-          <ErrorBoundary message={`Error rendering Component`}>
-            <ComponentObj.Component />
-          </ErrorBoundary>
-        )}
-        {ComponentObj && "error" in ComponentObj && (
-          <div>Error loading component: {ComponentObj.error.message}</div>
-        )}
-        {!ComponentObj && <div>Loading component...</div>}
-      </div>
+      <NodeWrapperSimple {...props}>
+        <div>
+          {ComponentObj && "Component" in ComponentObj && (
+            <ErrorBoundary message={`Error rendering Component`}>
+              <ComponentObj.Component />
+            </ErrorBoundary>
+          )}
+          {ComponentObj && "error" in ComponentObj && (
+            <div>Error loading component: {ComponentObj.error.message}</div>
+          )}
+          {!ComponentObj && <div>Loading component...</div>}
+        </div>
+      </NodeWrapperSimple>
     </>
   );
 };
