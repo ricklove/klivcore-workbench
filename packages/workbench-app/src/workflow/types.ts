@@ -1,15 +1,14 @@
-import type { NodeTypes } from "@xyflow/react";
-
 type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 type JsonObject = { [key: string]: JsonValue };
 type JsonArray = JsonValue[];
 
+type WorkflowNodeTypeName = string & { __brand: "WorkflowNodeTypeName" };
 type WorkflowValueType = string & { __brand: "WorkflowValueType" };
 
 export type WorkflowDocumentData = {
     nodes: {
         id: string;
-        type: string;
+        type: WorkflowNodeTypeName;
         position: {
             x: number;
             y: number,
@@ -33,13 +32,15 @@ export type WorkflowDocumentData = {
 };
 
 export type ReactFlowStore = {
-    types: NodeTypes;
+    nodeTypes: Record<WorkflowNodeTypeName, React.ComponentType>;
     nodes: {
         id: string;
-        type: string;
+        type: WorkflowNodeTypeName;
         position: { x: number; y: number };
         width: number;
         height: number;
+        parentId?: string;
+        extent?: 'parent',
         data: {
             node: WorkflowRuntimeNode;
         };
@@ -57,34 +58,16 @@ export type ReactFlowStore = {
     }[];
 };
 
-export type WorkflowComponentSimpleProps<TInputs extends Record<string, unknown> = Record<string, never>, TOutputs extends Record<string, unknown> = Record<string, never>, TData extends undefined | JsonObject = undefined> = {
-    store: WorkflowRuntimeStore;
-    node: WorkflowRuntimeNode;
-    inputs: TInputs;
-    // onInputsChange: (newInputs: Partial<TInputs>) => void;
-    data: TData;
-    onDataChange: (newData: Partial<TData>) => void;
-    outputs: TOutputs;
-    onOutputsChange: (newOutputs: Partial<TOutputs>) => void;
-};
-
-// export type WorkflowComponentValtioProps<TInputs extends Record<string, unknown> = Record<string, never>, TOutputs extends Record<string, unknown> = Record<string, never>, TData extends undefined | JsonObject = undefined> = {
-//     /** Uses valtio, so can write to any value and mutate it directly, useSnapshot to get precise re-rendering of deeply nested data */
-//     state: {
-//         inputs: TInputs;
-//         data: TData;
-//         outputs: TOutputs;
-//     };
-// };
-
 export type WorkflowRuntimeNode = {
     id: string;
-    type: string;
+    type: WorkflowNodeTypeName;
     position: {
         x: number;
         y: number,
         width: number;
         height: number;
+        parentId?: string;
+        extent?: 'parent',
     };
     inputs: {
         name: string;
@@ -99,51 +82,116 @@ export type WorkflowRuntimeNode = {
         edges?: WorkflowRuntimeEdge[];
     }[];
     data: JsonObject;
-    /** Lazy getters to allow getting various styles of props */
-    props: {
-        subscribeSimpleProps<TInputs extends Record<string, unknown>, TOutputs extends Record<string, unknown>, TData extends undefined | JsonObject = undefined>(callback: (props: WorkflowComponentSimpleProps<TInputs, TOutputs, TData>) => void): void;
-        // getValtioProps<TInputs extends Record<string, unknown>, TOutputs extends Record<string, unknown>, TData extends undefined | JsonObject = undefined>(): WorkflowComponentValtioProps<TInputs, TOutputs, TData>;
-    };
-    actions: {
-        updatePosition: (newPosition: { x: number; y: number, width: number, height: number }) => void;
-        updateInputs: (newInputs: Partial<WorkflowRuntimeNode[`inputs`]>) => void;
-        updateOutputs: (newOutputs: Partial<WorkflowRuntimeNode[`outputs`]>) => void;
-        updateData: (newData: undefined | Partial<JsonObject>) => void;
-        // refresh: () => void;
-        delete: () => void;
-        addInput: (args: { name: string, type: WorkflowValueType }) => void;
-        addOutput: (args: { name: string, type: WorkflowValueType }) => void;
-        addInputEdge: (args: {
-            name: string,
-            source: {
-                nodeId: string;
-                name: string;
-            };
-        }) => void;
+    mode?: `passthrough` | `disabled`;
+    executionState?: WorkflowRuntimeExecutionState;
+    graphErrorState?: {
+        kind: `missing-type-definition`;
+        message: string;
     };
 };
 
 export type WorkflowRuntimeEdge = {
     id: string;
-    type: string;
     value: unknown;
     source: {
-        node: WorkflowRuntimeNode;
+        nodeId: string;
         outputName: string;
+        node?: WorkflowRuntimeNode;
     };
     target: {
-        node: WorkflowRuntimeNode;
+        nodeId: string;
         inputName: string;
+        node?: WorkflowRuntimeNode;
     };
-    actions: {
-        delete: () => void;
+    graphErrorState?: {
+        kind: `missing-node`;
+        message: string;
     };
 }
 
+/** This whole store is a valtio object, just change it directly */
 export type WorkflowRuntimeStore = {
-    nodes: WorkflowRuntimeNode[];
-    edges: WorkflowRuntimeEdge[];
-    actions: {
-        addNode: (args: WorkflowDocumentData[`nodes`][number]) => WorkflowRuntimeNode;
-    };
+    nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
+    nodes: Record<string, WorkflowRuntimeNode>;
+    edges: Record<string, WorkflowRuntimeEdge>;
+    actions: WorkflowRuntimeStoreActions;
+};
+
+/** helpers to simplify some actions */
+export type WorkflowRuntimeStoreActions = {
+    registerNodeType: (args: WorkflowRuntimeNodeTypeDefinition) => void;
+    createNode: (node: {
+        id: string;
+        type: string;
+        position: {
+            x: number;
+            y: number,
+            width: number;
+            height: number;
+        };
+    }) => void;
+    createEdge: (edge: {
+        source: {
+            nodeId: string;
+            outputName: string;
+        };
+        target: {
+            nodeId: string;
+            inputName: string;
+        };
+    }) => void;
+    deleteNode: (nodeId: string) => void;
+    deleteEdge: (edgeId: string) => void;
+};
+
+export type WorkflowExecutionController = {
+    abortSignal: AbortSignal;
+    setProgress: (valueOrSetter: { progressRatio: number, message?: string } | ((prev: { progressRatio: number, message?: string }) => { progressRatio: number, message?: string })) => void;
+};
+
+export type WorkflowRuntimeNodeTypeDefinition = {
+    type: WorkflowNodeTypeName,
+    component: React.ComponentType,
+    inputs: {
+        name: string;
+        type: WorkflowValueType;
+    }[];
+    outputs: {
+        name: string;
+        type: WorkflowValueType;
+    }[];
+    execute: (args: {
+        inputs: Record<string, unknown>,
+        data: JsonObject,
+        controller: WorkflowExecutionController,
+        node: WorkflowRuntimeNode,
+        store: WorkflowRuntimeStore,
+    }) => Promise<{ outputs: Record<string, unknown>, data?: JsonObject }>;
+}
+
+export type WorkflowRuntimeExecutionState = {
+    status: `initial` | `running` | `success` | `error` | `aborted`;
+    startTimestamp?: number;
+    endTimestamp?: number;
+    progressRatio?: number;
+    progressMessage?: string;
+    errorMessage?: string;
+
+    /** Completed execution states */
+    history: {
+        status: `success` | `error` | `aborted`;
+        startTimestamp: number;
+        endTimestamp: number;
+        errorMessage?: string;
+    }[];
+}
+
+export type WorkflowRuntimeEngine = {
+    setup: (store: WorkflowRuntimeStore) => void;
+    /** start running the nodes, based on the engines scheduling logic */
+    start: () => void;
+    /** stop running the nodes, optionally abort current node executions */
+    stop: (args: { shouldAbort: boolean }) => void;
+    /** manually trigger a node to execute */
+    queueNode: (nodeId: string) => void;
 };
