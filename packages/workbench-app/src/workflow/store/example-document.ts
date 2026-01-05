@@ -26,7 +26,11 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
             inputs: [
                 {
                     name: I`value`,
-                    type: V`string`
+                    type: V`string`,
+                    source: {
+                        nodeId: N`n1`,
+                        name: O`value`,
+                    },
                 },
             ],
             outputs: [
@@ -46,7 +50,11 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
             inputs: [
                 {
                     name: I`value`,
-                    type: V`string`
+                    type: V`string`,
+                    source: {
+                        nodeId: N`n1`,
+                        name: O`value`,
+                    },
                 },
             ],
             outputs: [
@@ -78,7 +86,11 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
             inputs: [
                 {
                     name: I`importPath`,
-                    type: V`string`
+                    type: V`string`,
+                    source: {
+                        nodeId: N`n3`,
+                        name: O`value`,
+                    },
                 },
             ],
             outputs: [],

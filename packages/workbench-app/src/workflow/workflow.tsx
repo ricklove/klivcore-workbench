@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -13,6 +13,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import { reactStore } from "./temp-store";
 import { CustomEdge } from "./edge";
+import { exampleWorkflowDocument } from "./store/example-document";
+import { createWorkflowStoreFromDocument } from "./store/load-document";
 
 const edgeTypes = {
   custom: CustomEdge,
@@ -20,6 +22,13 @@ const edgeTypes = {
 
 export const WorkflowView = () => {
   const store = reactStore;
+
+  useEffect(() => {
+    const runtimeStore = createWorkflowStoreFromDocument(
+      exampleWorkflowDocument
+    );
+    console.log(`[WorkflowView] TEMP load store`, { runtimeStore });
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [nodeTypes, setNodeTypes] = useState(store.types);

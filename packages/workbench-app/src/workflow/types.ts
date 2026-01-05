@@ -23,7 +23,7 @@ export const WorkflowBrandedTypes = {
     nodeId: (value: string) => value as unknown as WorkflowNodeId,
     N: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowNodeId,
     edgeId: (sourceNodeId: string, sourceOutputName: string, targetNodeId: string, targetInputName: string): WorkflowEdgeId => {
-        return `e-${sourceNodeId}-${sourceOutputName}-to-${targetNodeId}-${targetInputName}` as unknown as WorkflowEdgeId;
+        return `${sourceNodeId}:${sourceOutputName}=>${targetNodeId}:${targetInputName}` as unknown as WorkflowEdgeId;
     },
 
     now: () => performance.timeOrigin + performance.now() as unknown as WorkflowTimestamp,
@@ -58,7 +58,7 @@ export type WorkflowDocumentData = {
     }[];
 };
 
-export type ReactFlowStore = {
+export type WorkflowReactFlowStore = {
     nodeTypes: Record<WorkflowNodeTypeName, React.ComponentType>;
     nodes: {
         id: WorkflowNodeId;

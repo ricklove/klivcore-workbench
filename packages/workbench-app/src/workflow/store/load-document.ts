@@ -1,5 +1,5 @@
 import { WorkflowBrandedTypes, type WorkflowDocumentData, type WorkflowRuntimeEdge, type WorkflowRuntimeNode, type WorkflowRuntimeNodeTypeDefinition, type WorkflowRuntimeStore, } from "../types";
-import { proxy } from 'valtio';
+import { proxy, ref } from 'valtio';
 
 
 
@@ -153,6 +153,31 @@ export const createWorkflowStoreFromDocument = (document: WorkflowDocumentData):
             },
         }
     });
+
+    // prevent cascading subscriptions
+    for (const node of Object.values(store.nodes)) {
+        for (const input of node.inputs) {
+            if (!input.edge) { continue; }
+            input.edge = ref(input.edge);
+        }
+        for (const output of node.outputs) {
+            const edges = output.edges;
+            if (!edges) { continue; }
+
+            edges.forEach((e, index) => {
+                if (!e) { return; }
+                edges[index] = ref(e);
+            });
+        }
+    }
+    for (const edge of Object.values(store.edges)) {
+        if (!edge.source.error && edge.source.node) {
+            edge.source.node = ref(edge.source.node);
+        }
+        if (edge.target.node) {
+            edge.target.node = ref(edge.target.node);
+        }
+    }
 
     return store;
 }
