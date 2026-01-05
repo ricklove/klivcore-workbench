@@ -10,7 +10,7 @@ import { StringNodeComponent } from "./nodes";
 // const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 // TEMP
-type WorkflowEdgeBase = {
+type ReactHandleDataBase = {
   id: string;
   lastValue: unknown;
   source?: {
@@ -20,25 +20,25 @@ type WorkflowEdgeBase = {
   hasSubscribers?: boolean;
 };
 
+type ReactHandleDataOf<T> = {
+  [K in keyof T]: ReactHandleDataBase & { lastValue: T[K] };
+}
+
 export type ReactNodeDataBase = {
   typeName: string;
   refresh?: () => void;
-  inputs: Record<string, WorkflowEdgeBase>;
-  outputs: Record<string, WorkflowEdgeBase>;
-}
-
-type WorkflowEdgeOf<T> = {
-  [K in keyof T]: WorkflowEdgeBase & { lastValue: T[K] };
+  inputs: Record<string, ReactHandleDataBase>;
+  outputs: Record<string, ReactHandleDataBase>;
 }
 
 export type ReactNodeData<TInput = unknown, TOutput = unknown> = {
   typeName: string;
   refresh?: () => void;
-  inputs: WorkflowEdgeOf<TInput>;
-  outputs: WorkflowEdgeOf<TOutput>;
+  inputs: ReactHandleDataOf<TInput>;
+  outputs: ReactHandleDataOf<TOutput>;
 }
 
-export const reactNodeStore = {
+export const reactStore = {
   types: {} as NodeTypes,
   nodes: [] as {
     id: string;
@@ -58,13 +58,13 @@ export const reactNodeStore = {
   }[],
 };
 
-reactNodeStore.types = {
+reactStore.types = {
   default: NodeDefault,
   string: StringNodeComponent,
   tempWrapper: TempWrapper,
 };
 
-reactNodeStore.nodes = [
+reactStore.nodes = [
   {
     id: "n1",
     type: `string`,
@@ -176,7 +176,7 @@ reactNodeStore.nodes = [
   },
 ];
 
-reactNodeStore.edges = [
+reactStore.edges = [
   {
     id: "n1-n2",
     type: `custom`,
