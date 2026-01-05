@@ -4,11 +4,13 @@ type JsonArray = JsonValue[];
 
 type WorkflowNodeTypeName = string & { __brand: "WorkflowNodeTypeName" };
 type WorkflowValueType = string & { __brand: "WorkflowValueType" };
+type WorkflowTimestamp = number & { __brand: "WorkflowTimestamp", __kind: `performance.now()` };
 
 export type WorkflowDocumentData = {
     nodes: {
         id: string;
         type: WorkflowNodeTypeName;
+        parentId?: string;
         position: {
             x: number;
             y: number,
@@ -61,24 +63,24 @@ export type ReactFlowStore = {
 export type WorkflowRuntimeNode = {
     id: string;
     type: WorkflowNodeTypeName;
+    parentId?: string;
     position: {
         x: number;
         y: number,
         width: number;
         height: number;
-        parentId?: string;
         extent?: 'parent',
     };
     inputs: {
         name: string;
         type: WorkflowValueType;
-        value?: unknown;
+        value?: WorkflowRuntimeValue;
         edge?: WorkflowRuntimeEdge;
     }[];
     outputs: {
         name: string;
         type: WorkflowValueType;
-        value?: unknown;
+        value?: WorkflowRuntimeValue;
         edges?: WorkflowRuntimeEdge[];
     }[];
     data: JsonObject;
@@ -92,22 +94,30 @@ export type WorkflowRuntimeNode = {
 
 export type WorkflowRuntimeEdge = {
     id: string;
-    value: unknown;
+    value: WorkflowRuntimeValue;
     source: {
-        nodeId: string;
+        node: WorkflowRuntimeNode;
         outputName: string;
-        node?: WorkflowRuntimeNode;
     };
     target: {
-        nodeId: string;
+        node: WorkflowRuntimeNode;
         inputName: string;
-        node?: WorkflowRuntimeNode;
     };
-    graphErrorState?: {
-        kind: `missing-node`;
-        message: string;
+};
+
+export type WorkflowRuntimeValue<T = unknown> = {
+    /** valtio ref() */
+    data: T;
+    /** valtio ref() */
+    meta: {
+        type: WorkflowValueType;
+        source: {
+            nodeId: string;
+            outputName: string;
+            timestamp: WorkflowTimestamp;
+        };
     };
-}
+};
 
 /** This whole store is a valtio object, just change it directly */
 export type WorkflowRuntimeStore = {
@@ -119,10 +129,13 @@ export type WorkflowRuntimeStore = {
 
 /** helpers to simplify some actions */
 export type WorkflowRuntimeStoreActions = {
-    registerNodeType: (args: WorkflowRuntimeNodeTypeDefinition) => void;
+    createNodeType: (args: WorkflowRuntimeNodeTypeDefinition) => void;
+    deleteNodeType: (nodeType: WorkflowNodeTypeName) => void;
+
     createNode: (node: {
         id: string;
         type: string;
+        parentId?: string;
         position: {
             x: number;
             y: number,
@@ -130,6 +143,8 @@ export type WorkflowRuntimeStoreActions = {
             height: number;
         };
     }) => void;
+    deleteNode: (nodeId: string) => void;
+
     createEdge: (edge: {
         source: {
             nodeId: string;
@@ -140,7 +155,6 @@ export type WorkflowRuntimeStoreActions = {
             inputName: string;
         };
     }) => void;
-    deleteNode: (nodeId: string) => void;
     deleteEdge: (edgeId: string) => void;
 };
 
@@ -171,8 +185,8 @@ export type WorkflowRuntimeNodeTypeDefinition = {
 
 export type WorkflowRuntimeExecutionState = {
     status: `initial` | `running` | `success` | `error` | `aborted`;
-    startTimestamp?: number;
-    endTimestamp?: number;
+    startTimestamp?: WorkflowTimestamp;
+    endTimestamp?: WorkflowTimestamp;
     progressRatio?: number;
     progressMessage?: string;
     errorMessage?: string;
@@ -180,8 +194,8 @@ export type WorkflowRuntimeExecutionState = {
     /** Completed execution states */
     history: {
         status: `success` | `error` | `aborted`;
-        startTimestamp: number;
-        endTimestamp: number;
+        startTimestamp: WorkflowTimestamp;
+        endTimestamp: WorkflowTimestamp;
         errorMessage?: string;
     }[];
 }
