@@ -1,6 +1,6 @@
 import { Handle, NodeResizer, Position, useReactFlow } from "@xyflow/react";
 import React, { useCallback, useState } from "react";
-import type { ReactNodeDataBase } from "./store";
+import type { ReactNodeDataBase } from "./temp-store";
 
 export const NodeDefault = (props: {
   id: string;

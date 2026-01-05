@@ -11,7 +11,7 @@ import {
   Controls,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { reactStore } from "./store";
+import { reactStore } from "./temp-store";
 import { CustomEdge } from "./edge";
 
 const edgeTypes = {

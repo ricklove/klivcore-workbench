@@ -4,13 +4,37 @@ type JsonArray = JsonValue[];
 
 type WorkflowNodeTypeName = string & { __brand: "WorkflowNodeTypeName" };
 type WorkflowValueType = string & { __brand: "WorkflowValueType" };
-type WorkflowTimestamp = number & { __brand: "WorkflowTimestamp", __kind: `performance.now()` };
+type WorkflowTimestamp = number & { __brand: "WorkflowTimestamp", __kind: `performance.timeOrigin+performance.now()` };
+
+type WorkflowNodeId = string & { __brand: "WorkflowNodeId" };
+type WorkflowEdgeId = string & { __brand: "WorkflowEdgeId" };
+type WorkflowOutputName = string & { __brand: "WorkflowOutputName" };
+type WorkflowInputName = string & { __brand: "WorkflowInputName" };
+
+export const WorkflowBrandedTypes = {
+    typeName: (value: string) => value as unknown as WorkflowNodeTypeName,
+    T: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowNodeTypeName,
+    valueType: (value: string) => value as unknown as WorkflowValueType,
+    V: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowValueType,
+    inputName: (value: string) => value as unknown as WorkflowInputName,
+    I: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowInputName,
+    outputName: (value: string) => value as unknown as WorkflowOutputName,
+    O: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowOutputName,
+    nodeId: (value: string) => value as unknown as WorkflowNodeId,
+    N: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowNodeId,
+    edgeId: (sourceNodeId: string, sourceOutputName: string, targetNodeId: string, targetInputName: string): WorkflowEdgeId => {
+        return `e-${sourceNodeId}-${sourceOutputName}-to-${targetNodeId}-${targetInputName}` as unknown as WorkflowEdgeId;
+    },
+
+    now: () => performance.timeOrigin + performance.now() as unknown as WorkflowTimestamp,
+
+};
 
 export type WorkflowDocumentData = {
     nodes: {
-        id: string;
+        id: WorkflowNodeId;
         type: WorkflowNodeTypeName;
-        parentId?: string;
+        parentId?: WorkflowNodeId;
         position: {
             x: number;
             y: number,
@@ -18,42 +42,43 @@ export type WorkflowDocumentData = {
             height: number;
         };
         inputs: {
-            name: string;
+            name: WorkflowInputName;
             type: WorkflowValueType;
             source?: {
-                nodeId: string;
-                name: string;
+                nodeId: WorkflowNodeId;
+                name: WorkflowOutputName;
             };
         }[];
         outputs: {
-            name: string;
+            name: WorkflowOutputName;
             type: WorkflowValueType;
         }[];
-        data: JsonObject;
+        data?: JsonObject;
+        mode?: `passthrough` | `disabled`;
     }[];
 };
 
 export type ReactFlowStore = {
     nodeTypes: Record<WorkflowNodeTypeName, React.ComponentType>;
     nodes: {
-        id: string;
+        id: WorkflowNodeId;
         type: WorkflowNodeTypeName;
         position: { x: number; y: number };
         width: number;
         height: number;
-        parentId?: string;
+        parentId?: WorkflowNodeId;
         extent?: 'parent',
         data: {
             node: WorkflowRuntimeNode;
         };
     }[];
     edges: {
-        id: string;
+        id: WorkflowEdgeId;
         type: `custom`;
-        source: string;
-        sourceHandle: string;
-        target: string;
-        targetHandle: string;
+        source: WorkflowNodeId;
+        sourceHandle: WorkflowOutputName;
+        target: WorkflowNodeId;
+        targetHandle: WorkflowInputName;
         data: {
             edge: WorkflowRuntimeEdge;
         };
@@ -61,9 +86,9 @@ export type ReactFlowStore = {
 };
 
 export type WorkflowRuntimeNode = {
-    id: string;
+    id: WorkflowNodeId;
     type: WorkflowNodeTypeName;
-    parentId?: string;
+    parentId?: WorkflowNodeId;
     position: {
         x: number;
         y: number,
@@ -72,13 +97,13 @@ export type WorkflowRuntimeNode = {
         extent?: 'parent',
     };
     inputs: {
-        name: string;
+        name: WorkflowInputName;
         type: WorkflowValueType;
         value?: WorkflowRuntimeValue;
         edge?: WorkflowRuntimeEdge;
     }[];
     outputs: {
-        name: string;
+        name: WorkflowOutputName;
         type: WorkflowValueType;
         value?: WorkflowRuntimeValue;
         edges?: WorkflowRuntimeEdge[];
@@ -86,23 +111,30 @@ export type WorkflowRuntimeNode = {
     data: JsonObject;
     mode?: `passthrough` | `disabled`;
     executionState?: WorkflowRuntimeExecutionState;
-    graphErrorState?: {
+    graphErrors?: {
         kind: `missing-type-definition`;
-        message: string;
-    };
+    }[];
 };
 
 export type WorkflowRuntimeEdge = {
-    id: string;
-    value: WorkflowRuntimeValue;
+    id: WorkflowEdgeId;
+    value?: WorkflowRuntimeValue;
     source: {
         node: WorkflowRuntimeNode;
-        outputName: string;
+        outputName: WorkflowOutputName;
+        error?: undefined;
+    } | {
+        nodeId: WorkflowNodeId;
+        outputName: WorkflowOutputName;
+        error: `missing-source-node`;
     };
     target: {
         node: WorkflowRuntimeNode;
-        inputName: string;
+        inputName: WorkflowInputName;
     };
+    graphErrors?: {
+        kind: `missing-source-node` | `missing-source-output` | `missing-target-input`;
+    }[];
 };
 
 export type WorkflowRuntimeValue<T = unknown> = {
@@ -112,8 +144,8 @@ export type WorkflowRuntimeValue<T = unknown> = {
     meta: {
         type: WorkflowValueType;
         source: {
-            nodeId: string;
-            outputName: string;
+            nodeId: WorkflowNodeId;
+            outputName: WorkflowOutputName;
             timestamp: WorkflowTimestamp;
         };
     };
@@ -122,8 +154,8 @@ export type WorkflowRuntimeValue<T = unknown> = {
 /** This whole store is a valtio object, just change it directly */
 export type WorkflowRuntimeStore = {
     nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
-    nodes: Record<string, WorkflowRuntimeNode>;
-    edges: Record<string, WorkflowRuntimeEdge>;
+    nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
+    edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;
     actions: WorkflowRuntimeStoreActions;
 };
 
@@ -134,8 +166,8 @@ export type WorkflowRuntimeStoreActions = {
 
     createNode: (node: {
         id: string;
-        type: string;
-        parentId?: string;
+        type: WorkflowNodeTypeName;
+        parentId?: WorkflowNodeId;
         position: {
             x: number;
             y: number,
@@ -143,19 +175,19 @@ export type WorkflowRuntimeStoreActions = {
             height: number;
         };
     }) => void;
-    deleteNode: (nodeId: string) => void;
+    deleteNode: (nodeId: WorkflowNodeId) => void;
 
     createEdge: (edge: {
         source: {
-            nodeId: string;
-            outputName: string;
+            nodeId: WorkflowNodeId;
+            outputName: WorkflowOutputName;
         };
         target: {
-            nodeId: string;
-            inputName: string;
+            nodeId: WorkflowNodeId;
+            inputName: WorkflowInputName;
         };
     }) => void;
-    deleteEdge: (edgeId: string) => void;
+    deleteEdge: (edgeId: WorkflowEdgeId) => void;
 };
 
 export type WorkflowExecutionController = {
@@ -167,11 +199,11 @@ export type WorkflowRuntimeNodeTypeDefinition = {
     type: WorkflowNodeTypeName,
     component: React.ComponentType,
     inputs: {
-        name: string;
+        name: WorkflowInputName;
         type: WorkflowValueType;
     }[];
     outputs: {
-        name: string;
+        name: WorkflowOutputName;
         type: WorkflowValueType;
     }[];
     execute: (args: {
@@ -207,5 +239,5 @@ export type WorkflowRuntimeEngine = {
     /** stop running the nodes, optionally abort current node executions */
     stop: (args: { shouldAbort: boolean }) => void;
     /** manually trigger a node to execute */
-    queueNode: (nodeId: string) => void;
+    queueNode: (nodeId: WorkflowNodeId) => void;
 };

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { NodeWrapperSimple } from "./node-wrapper";
-import type { ReactNodeData } from "./store";
+import type { ReactNodeData } from "./temp-store";
 
 export const StringNodeComponent = (props: {
   id: string;

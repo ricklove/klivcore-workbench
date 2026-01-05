@@ -2,7 +2,7 @@
 
 import { Component, useEffect, useState } from "react";
 import { NodeWrapperSimple } from "./node-wrapper";
-import type { ReactNodeData } from "./store";
+import type { ReactNodeData } from "./temp-store";
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode; message: string },
