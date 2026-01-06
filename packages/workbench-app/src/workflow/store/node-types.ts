@@ -17,8 +17,18 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   string: {
     type: WorkflowBrandedTypes.typeName(`string`),
     component: ref({ Component: StringNodeComponent }),
-    inputs: [],
-    outputs: [],
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
     execute: async ({ inputs, data }) => {
       return {
         outputs: { value: inputs.value ?? data.value },

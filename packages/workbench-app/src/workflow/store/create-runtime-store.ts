@@ -218,6 +218,50 @@ const createRuntimeValue = <T = Record<string, unknown>>({
   return v as WorkflowRuntimeValue<T>;
 };
 
+const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode) => {
+  const typeDef = store.nodeTypes[node.type];
+  if (!typeDef) {
+    console.error(
+      `[createWorkflowStoreFromDocument] Missing node type definition for type ${node.type}`,
+    );
+    return;
+  }
+
+  console.log(`Populating node ${node.id} of type ${node.type}`, { node, typeDef, store });
+
+  // add type input and outputs
+  for (const typeInput of typeDef.inputs) {
+    if (node.inputs.find((i) => i.name === typeInput.name)) {
+      // skip existing inputs
+      continue;
+    }
+
+    node.inputs.push({
+      name: typeInput.name,
+      type: typeInput.type,
+      edgeId: undefined,
+      getEdge() {
+        return getters.node.inputs.getEdge(store, this);
+      },
+    });
+  }
+  for (const typeOutput of typeDef.outputs) {
+    if (node.outputs.find((o) => o.name === typeOutput.name)) {
+      // skip existing outputs
+      continue;
+    }
+
+    node.outputs.push({
+      name: typeOutput.name,
+      type: typeOutput.type,
+      edgeIds: undefined,
+      getEdges() {
+        return getters.node.outputs.getEdges(store, this);
+      },
+    });
+  }
+};
+
 export const createWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
 ): WorkflowRuntimeStore => {
@@ -225,12 +269,19 @@ export const createWorkflowStoreFromDocument = (
   const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
     ...builtinNodeTypes,
   };
+
   const store: WorkflowRuntimeStore = proxy({
     ...storeObj,
     nodeTypes,
     actions: {
       createNodeType: (definition) => {
         store.nodeTypes[definition.type] = definition;
+        // populate existing nodes of this type
+        for (const node of Object.values(store.nodes)) {
+          if (node.type === definition.type) {
+            populateNodeType(store, node);
+          }
+        }
       },
       deleteNodeType: (typeName: string) => {
         delete store.nodeTypes[WorkflowBrandedTypes.typeName(typeName)];
@@ -378,6 +429,11 @@ export const createWorkflowStoreFromDocument = (
       },
     },
   });
+
+  // populate all nodes with their type definitions
+  for (const node of Object.values(store.nodes)) {
+    populateNodeType(store, node);
+  }
 
   return store;
 };
