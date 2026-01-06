@@ -153,7 +153,7 @@ const loadWorkflowStoreFromDocument = (
         n.id,
         input.name,
       );
-      //   const sourceNode = storeObj.nodes[input.source.nodeId];
+      const sourceNode = storeObj.nodes[input.source.nodeId];
       const targetNode = storeObj.nodes[n.id]!;
       const edge: WorkflowRuntimeEdge = {
         id: edgeId,
@@ -177,40 +177,22 @@ const loadWorkflowStoreFromDocument = (
       };
       storeObj.edges[edgeId] = edge;
 
-      //   // add edges to nodes
-      //   const targetInput = targetNode.inputs.find((i) => i.name === input.name);
-      //   if (targetInput) {
-      //     targetInput.edge = edge;
-      //   } else {
-      //     edge.graphErrors = edge.graphErrors || [];
-      //     edge.graphErrors.push({ kind: `missing-target-input` });
-      //     console.error(`Edge ${edgeId} has missing target input ${input.name} on node ${n.id}`);
-      //   }
+      // add edges to nodes
+      const targetInput = targetNode.inputs.find((i) => i.name === input.name);
+      if (targetInput) {
+        targetInput.edgeId = edge.id;
+      }
 
-      //   const sourceOutput = sourceNode?.outputs.find((o) => o.name === input.source!.name);
-      //   if (sourceOutput) {
-      //     sourceOutput.edges = sourceOutput.edges || [];
-      //     sourceOutput.edges.push(edge);
-      //   } else {
-      //     edge.graphErrors = edge.graphErrors || [];
-      //     edge.graphErrors.push({ kind: `missing-source-output` });
-      //     console.error(
-      //       `Edge ${edgeId} has missing source output ${input.source!.name} on node ${input.source!.nodeId}`,
-      //     );
-      //   }
+      const sourceOutput = sourceNode?.outputs.find((o) => o.name === input.source!.name);
+      if (sourceOutput) {
+        sourceOutput.edgeIds = sourceOutput.edgeIds || [];
+        sourceOutput.edgeIds.push(edge.id);
+      }
     }
   }
 
   return storeObj;
 };
-
-// type Subscribable<T> = {
-//     subscribe: (callback: (data: T) => void) => { unsubscribe: () => void };
-// };
-
-// const persistStore = (store: WorkflowRuntimeStore): Subscribable<WorkflowDocumentData> => {
-
-// }
 
 export const createWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
@@ -275,6 +257,28 @@ export const createWorkflowStoreFromDocument = (
         delete store.nodes[nodeId];
       },
       createEdge: (args) => {
+        const targetNode = store.nodes[args.target.nodeId];
+        const targetInput = targetNode?.inputs.find((i) => i.name === args.target.inputName);
+
+        const sourceNode = store.nodes[args.source.nodeId];
+        const sourceOutput = sourceNode?.outputs.find((o) => o.name === args.source.outputName);
+
+        if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
+          console.warn(`[createEdge] Cannot create edge, missing source or target`, {
+            args,
+            targetNode,
+            targetInput,
+            sourceNode,
+            sourceOutput,
+          });
+          return;
+        }
+
+        if (targetInput.edgeId) {
+          // remove existing edge
+          delete store.edges[targetInput.edgeId];
+        }
+
         const edgeId = WorkflowBrandedTypes.edgeId(
           args.source.nodeId,
           args.source.outputName,
@@ -301,6 +305,16 @@ export const createWorkflowStoreFromDocument = (
             return getters.edge.getGraphErrors(store, this);
           },
         };
+
+        // update nodes
+        if (targetInput) {
+          targetInput.edgeId = edgeId;
+        }
+
+        if (sourceOutput) {
+          sourceOutput.edgeIds = sourceOutput.edgeIds || [];
+          sourceOutput.edgeIds.push(edgeId);
+        }
       },
       deleteEdge: (edgeId) => {
         delete store.edges[edgeId];

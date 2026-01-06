@@ -42,7 +42,7 @@ export type WorkflowDocumentData = {
   nodes: {
     id: WorkflowNodeId;
     type: WorkflowNodeTypeName;
-    parentId?: WorkflowNodeId;
+    parentId: undefined | WorkflowNodeId;
     position: {
       x: number;
       y: number;
@@ -52,17 +52,19 @@ export type WorkflowDocumentData = {
     inputs: {
       name: WorkflowInputName;
       type: WorkflowValueType;
-      source?: {
-        nodeId: WorkflowNodeId;
-        name: WorkflowOutputName;
-      };
+      source:
+        | undefined
+        | {
+            nodeId: WorkflowNodeId;
+            name: WorkflowOutputName;
+          };
     }[];
     outputs: {
       name: WorkflowOutputName;
       type: WorkflowValueType;
     }[];
-    data?: JsonObject;
-    mode?: `passthrough` | `disabled`;
+    data: undefined | JsonObject;
+    mode: undefined | `passthrough` | `disabled`;
   }[];
 };
 
@@ -75,8 +77,8 @@ export type WorkflowReactFlowStore = {
     width: number;
     height: number;
     selected: boolean;
-    parentId?: WorkflowNodeId;
-    extent?: 'parent';
+    parentId: undefined | WorkflowNodeId;
+    extent: undefined | 'parent';
     data: {
       node: WorkflowRuntimeNode;
     };

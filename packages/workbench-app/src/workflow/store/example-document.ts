@@ -18,6 +18,8 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
       data: {
         value: 'test',
       },
+      mode: undefined,
+      parentId: undefined,
     },
     {
       id: N`n2`,
@@ -42,6 +44,8 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
       data: {
         value: 'test2',
       },
+      mode: undefined,
+      parentId: undefined,
     },
     {
       id: N`n2b`,
@@ -66,6 +70,8 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
       data: {
         value: 'test2',
       },
+      mode: undefined,
+      parentId: undefined,
     },
     {
       id: N`n3`,
@@ -81,6 +87,8 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
       data: {
         value: `../temp/temp-01.tsx`,
       },
+      mode: undefined,
+      parentId: undefined,
     },
     {
       id: N`temp1`,
@@ -97,6 +105,9 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
         },
       ],
       outputs: [],
+      data: undefined,
+      mode: undefined,
+      parentId: undefined,
     },
   ],
 };

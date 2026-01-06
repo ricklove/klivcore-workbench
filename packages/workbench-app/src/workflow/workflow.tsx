@@ -2,20 +2,49 @@ import { ReactFlow, MiniMap, Controls, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
 import { exampleWorkflowDocument } from './store/example-document';
-import { createWorkflowStoreFromDocument } from './store/load-document';
+import { createWorkflowStoreFromDocument } from './store/create-runtime-store';
 import { useReactFlowStore } from './store/create-react-flow-store';
+import { useEffect } from 'react';
+import { persistStoreToDocument } from './store/save-document';
+import type { WorkflowDocumentData } from './types';
 
 const edgeTypes = {
   custom: CustomEdge,
 };
 
-const runtimeStore = createWorkflowStoreFromDocument(exampleWorkflowDocument);
+const runtimeStore = createWorkflowStoreFromDocument(
+  (() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem(`klivcore-workflow-document`) || ``,
+      ) as WorkflowDocumentData;
+    } catch (err) {
+      console.error(`[WorkflowView] Error parsing stored workflow document`, { err });
+    }
+
+    return exampleWorkflowDocument;
+  })(),
+);
+const storePersistance = persistStoreToDocument(runtimeStore);
+
 export const WorkflowView = () => {
   // const store = reactStore;
 
   // const runtimeStore = useMemo(() => createWorkflowStoreFromDocument(exampleWorkflowDocument), []);
   const reactFlowStore = useReactFlowStore(runtimeStore);
   const store = reactFlowStore;
+
+  useEffect(() => {
+    const { unsubscribe } = storePersistance.subscribe((x) => {
+      console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore, store });
+      localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x, null, 2));
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [runtimeStore]);
+
   // console.log(`[WorkflowView:RENDER] reactFlowStore`, {
   //   reactFlowStore,
   //   runtimeStore,

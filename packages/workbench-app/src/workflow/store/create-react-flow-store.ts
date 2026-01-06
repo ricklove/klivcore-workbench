@@ -54,6 +54,7 @@ export const createReactFlowStore = (
       parentId: x.parentId,
       // mode: x.mode,
       selected: x.selected ?? false,
+      extent: x.parentId ? 'parent' : undefined,
       data: { node: nodeDirect },
     };
 
@@ -160,16 +161,20 @@ export const useReactFlowStore = (
 
   // refresh on any store change
   const [, setRenderId] = useState(0);
+  const forceUpdate = () => {
+    const reactFlowStore = reactFlowStoreAccess.getStore();
+    setNodeTypes(reactFlowStore.nodeTypes);
+    setNodes(reactFlowStore.nodes);
+    setEdges(reactFlowStore.edges);
+  };
+
   useEffect(() => {
     let timeoutId = 0 as unknown as ReturnType<typeof setTimeout>;
     return subscribe(store, () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         setRenderId((s) => s + 1);
-        const reactFlowStore = reactFlowStoreAccess.getStore();
-        setNodeTypes(reactFlowStore.nodeTypes);
-        setNodes(reactFlowStore.nodes);
-        setEdges(reactFlowStore.edges);
+        forceUpdate();
       }, SYNC_TIMEOUT);
     });
   }, [store]);
@@ -247,6 +252,20 @@ export const useReactFlowStore = (
       }
     },
     onConnect: (params: Connection) => {
+      const targetNode = _store.nodes[WorkflowBrandedTypes.nodeId(params.target)];
+      if (!targetNode) {
+        console.warn(`[useReactFlowStore:onConnect] Target node not found`, { params });
+        return;
+      }
+      const targetInput = targetNode.inputs.find((i) => i.name === params.targetHandle);
+      if (!targetInput) {
+        console.warn(`[useReactFlowStore:onConnect] Target input not found`, {
+          params,
+          targetNode,
+        });
+        return;
+      }
+
       store.actions.createEdge({
         source: {
           nodeId: WorkflowBrandedTypes.nodeId(params.source),
@@ -257,6 +276,10 @@ export const useReactFlowStore = (
           inputName: WorkflowBrandedTypes.inputName(params.targetHandle!),
         },
       });
+
+      setTimeout(() => {
+        forceUpdate();
+      }, 0);
     },
   };
 };
