@@ -108,43 +108,48 @@ export type WorkflowRuntimeNode = {
     name: WorkflowInputName;
     type: WorkflowValueType;
     value?: WorkflowRuntimeValue;
-    edge?: WorkflowRuntimeEdge;
+    edgeId?: WorkflowEdgeId;
+    getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
   outputs: {
     name: WorkflowOutputName;
     type: WorkflowValueType;
     value?: WorkflowRuntimeValue;
-    edges?: WorkflowRuntimeEdge[];
+    edgeIds?: WorkflowEdgeId[];
+    getEdges: () => WorkflowRuntimeEdge[];
   }[];
   data: JsonObject;
   mode?: `passthrough` | `disabled`;
   executionState?: WorkflowRuntimeExecutionState;
-  graphErrors?: {
-    kind: `missing-type-definition`;
-  }[];
+  getGraphErrors():
+    | undefined
+    | {
+        kind: `missing-type-definition`;
+      }[];
 };
 
 export type WorkflowRuntimeEdge = {
   id: WorkflowEdgeId;
   value?: WorkflowRuntimeValue;
-  source:
-    | {
-        node: WorkflowRuntimeNode;
-        outputName: WorkflowOutputName;
-        error?: undefined;
-      }
-    | {
-        nodeId: WorkflowNodeId;
-        outputName: WorkflowOutputName;
-        error: `missing-source-node`;
-      };
+  source: {
+    nodeId: WorkflowNodeId;
+    getNode: () => undefined | WorkflowRuntimeNode;
+    outputName: WorkflowOutputName;
+  };
   target: {
-    node: WorkflowRuntimeNode;
+    nodeId: WorkflowNodeId;
+    getNode: () => undefined | WorkflowRuntimeNode;
     inputName: WorkflowInputName;
   };
-  graphErrors?: {
-    kind: `missing-source-node` | `missing-source-output` | `missing-target-input`;
-  }[];
+  getGraphErrors():
+    | undefined
+    | {
+        kind:
+          | `missing-source-node`
+          | `missing-target-node`
+          | `missing-source-output`
+          | `missing-target-input`;
+      }[];
 };
 
 export type WorkflowRuntimeValue<T = unknown> = {

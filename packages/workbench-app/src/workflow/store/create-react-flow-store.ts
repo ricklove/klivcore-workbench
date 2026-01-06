@@ -55,19 +55,15 @@ export const createReactFlowStore = (
     return result;
   };
 
-  const memoizeEdge = memoize((x: EdgeSnap) =>
-    x.source.error
-      ? undefined
-      : {
-          id: x.id,
-          type: `custom` as const,
-          source: x.source.node.id,
-          sourceHandle: x.source.outputName,
-          target: x.target.node.id,
-          targetHandle: x.target.inputName,
-          data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
-        },
-  );
+  const memoizeEdge = memoize((x: EdgeSnap) => ({
+    id: x.id,
+    type: `custom` as const,
+    source: x.source.nodeId,
+    sourceHandle: x.source.outputName,
+    target: x.target.nodeId,
+    targetHandle: x.target.inputName,
+    data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
+  }));
   const memoizeEdges = memoize((snap: StoreSnap) => {
     const items = memorizeObjToArray(snap.edges as unknown as Record<string, EdgeSnap>);
     const result = items
