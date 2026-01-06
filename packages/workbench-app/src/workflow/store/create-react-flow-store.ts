@@ -132,39 +132,44 @@ export const useReactFlowStore = (
   onConnect: (params: Connection) => void;
 } => {
   const reactFlowStoreAccess = useMemo(() => createReactFlowStore(store), [store]);
-  const reactFlowStore = reactFlowStoreAccess.getStore();
   // const { nodeTypes, nodes, edges } = reactFlowStore;
 
-  const [nodeTypes, setNodeTypes] = useState(() => reactFlowStore.nodeTypes);
-  const [nodes, setNodes] = useState(() => reactFlowStore.nodes);
-  const [edges, setEdges] = useState(() => reactFlowStore.edges);
+  const [nodeTypes, setNodeTypes] = useState(() => reactFlowStoreAccess.getStore().nodeTypes);
+  const [nodes, setNodes] = useState(() => reactFlowStoreAccess.getStore().nodes);
+  const [edges, setEdges] = useState(() => reactFlowStoreAccess.getStore().edges);
 
-  const SYNC_TIMEOUT = 100;
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setNodeTypes(reactFlowStore.nodeTypes);
-    }, SYNC_TIMEOUT);
-    return () => clearTimeout(id);
-  }, [reactFlowStore.nodeTypes]);
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setNodes(reactFlowStore.nodes);
-    }, SYNC_TIMEOUT);
-    return () => clearTimeout(id);
-  }, [reactFlowStore.nodes]);
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setEdges(reactFlowStore.edges);
-    }, SYNC_TIMEOUT);
-    return () => clearTimeout(id);
-  }, [reactFlowStore.edges]);
+  const SYNC_TIMEOUT = 1000;
+  // useEffect(() => {
+  //   const id = setTimeout(() => {
+  //     setNodeTypes(reactFlowStore.nodeTypes);
+  //   }, SYNC_TIMEOUT);
+  //   return () => clearTimeout(id);
+  // }, [reactFlowStore.nodeTypes]);
+  // useEffect(() => {
+  //   const id = setTimeout(() => {
+  //     setNodes(reactFlowStore.nodes);
+  //   }, SYNC_TIMEOUT);
+  //   return () => clearTimeout(id);
+  // }, [reactFlowStore.nodes]);
+  // useEffect(() => {
+  //   const id = setTimeout(() => {
+  //     setEdges(reactFlowStore.edges);
+  //   }, SYNC_TIMEOUT);
+  //   return () => clearTimeout(id);
+  // }, [reactFlowStore.edges]);
 
   // refresh on any store change
   const [, setRenderId] = useState(0);
   useEffect(() => {
+    let timeoutId = 0 as unknown as ReturnType<typeof setTimeout>;
     return subscribe(store, () => {
-      setTimeout(() => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
         setRenderId((s) => s + 1);
+        const reactFlowStore = reactFlowStoreAccess.getStore();
+        setNodeTypes(reactFlowStore.nodeTypes);
+        setNodes(reactFlowStore.nodes);
+        setEdges(reactFlowStore.edges);
       }, SYNC_TIMEOUT);
     });
   }, [store]);
