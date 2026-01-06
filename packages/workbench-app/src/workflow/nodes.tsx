@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { NodeWrapperSimple } from './node-wrapper';
-import type { WorkflowRuntimeNode } from './types';
+import type { WorkflowRuntimeNode, WorkflowRuntimeStore } from './types';
 
 export const StringNodeComponent = (props: {
   id: string;
   selected: boolean;
-  data: { node: WorkflowRuntimeNode };
+  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
 }) => {
   const propText = props.data.node.data.value as string;
   const [text, setText] = useState(propText);

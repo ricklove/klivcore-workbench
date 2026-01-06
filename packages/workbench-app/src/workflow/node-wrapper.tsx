@@ -1,11 +1,11 @@
 import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
 import React, { useCallback, useState } from 'react';
-import type { WorkflowRuntimeNode } from './types';
+import type { WorkflowRuntimeNode, WorkflowRuntimeStore } from './types';
 
 export const NodeDefault = (props: {
   id: string;
   selected: boolean;
-  data: { node: WorkflowRuntimeNode };
+  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
 }) => {
   return (
     <>
@@ -20,7 +20,7 @@ export const NodeWrapperSimple = (props: {
   children: React.ReactNode;
   id: string;
   selected: boolean;
-  data: { node: WorkflowRuntimeNode };
+  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
 }) => {
   return <NodeWrapper {...props} />;
 };
@@ -45,14 +45,25 @@ const NodeWrapper = ({
   children: React.ReactNode;
   id: string;
   selected: boolean;
-  data: { node: WorkflowRuntimeNode };
+  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
 }) => {
   // console.log(`[NodeWrapper] rendering node ${id}`, { data });
   const { deleteElements, fitView } = useReactFlow();
 
-  const handleDisplayNameChange = (value: string) => {
+  const [displayName, setDisplayName] = useState(id);
+  const oldId = React.useRef(id);
+  // eslint-disable-next-line react-hooks/refs
+  if (oldId.current !== id) {
+    // eslint-disable-next-line react-hooks/refs
+    oldId.current = id;
+    setDisplayName(id);
+  }
+
+  const handleDisplayNameChange = useCallback(() => {
+    const value = displayName.trim();
     console.log(`[NodeWrapper] handleDisplayNameChange`, { value });
-  };
+    data.store.actions.renameNode({ oldId: data.node.id, newId: value });
+  }, [displayName]);
 
   const handleDeleteNode = () => {
     console.log(`[NodeWrapper] handleDeleteNode`, { id });
@@ -63,8 +74,6 @@ const NodeWrapper = ({
     (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
     [fitView],
   );
-
-  const displayName = id;
 
   const [expandInfo, setExpandInfo] = useState(false as false | `data` | `document`);
 
@@ -128,7 +137,8 @@ const NodeWrapper = ({
                 // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
                 title={`${displayName}: ${typeName}`}
                 value={displayName}
-                onChange={(x) => handleDisplayNameChange(x.target.value)}
+                onChange={(x) => setDisplayName(x.target.value)}
+                onBlur={handleDisplayNameChange}
               />
               {/* {data.refresh && (
                 <div

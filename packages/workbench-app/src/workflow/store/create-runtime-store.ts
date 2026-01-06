@@ -256,6 +256,39 @@ export const createWorkflowStoreFromDocument = (
       deleteNode: (nodeId) => {
         delete store.nodes[nodeId];
       },
+      renameNode: ({ oldId, newId }) => {
+        const node = store.nodes[oldId];
+        if (!node) {
+          console.warn(`[renameNode] Node with id ${oldId} does not exist`);
+          return;
+        }
+        const newNodeId = WorkflowBrandedTypes.nodeId(newId);
+        if (store.nodes[newNodeId]) {
+          console.warn(`[renameNode] Node with id ${newId} already exists`);
+          return;
+        }
+
+        node.id = newNodeId;
+        store.nodes[newNodeId] = node;
+        delete store.nodes[oldId];
+
+        // update parents
+        for (const n of Object.values(store.nodes)) {
+          if (n.parentId === oldId) {
+            n.parentId = newNodeId;
+          }
+        }
+
+        // update edges
+        for (const edge of Object.values(store.edges)) {
+          if (edge.source.nodeId === oldId) {
+            edge.source.nodeId = newNodeId;
+          }
+          if (edge.target.nodeId === oldId) {
+            edge.target.nodeId = newNodeId;
+          }
+        }
+      },
       createEdge: (args) => {
         const targetNode = store.nodes[args.target.nodeId];
         const targetInput = targetNode?.inputs.find((i) => i.name === args.target.inputName);

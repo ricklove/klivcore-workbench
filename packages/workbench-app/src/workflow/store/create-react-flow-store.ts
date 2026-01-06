@@ -55,7 +55,7 @@ export const createReactFlowStore = (
       // mode: x.mode,
       selected: x.selected ?? false,
       extent: x.parentId ? 'parent' : undefined,
-      data: { node: nodeDirect },
+      data: { node: nodeDirect, store },
     };
 
     console.log(`[createReactFlowStore:memoizeNode] result`, { result, memoizeNode });
@@ -77,7 +77,7 @@ export const createReactFlowStore = (
       target: x.target.nodeId,
       targetHandle: x.target.inputName,
       selected: x.selected ?? false,
-      data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
+      data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge, store },
     };
 
     console.log(`[createReactFlowStore:memoizeEdge] result`, { result, memoizeEdge });

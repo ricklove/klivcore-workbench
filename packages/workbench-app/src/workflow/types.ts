@@ -81,6 +81,7 @@ export type WorkflowReactFlowStore = {
     extent: undefined | 'parent';
     data: {
       node: WorkflowRuntimeNode;
+      store: WorkflowRuntimeStore;
     };
   }[];
   edges: {
@@ -93,6 +94,7 @@ export type WorkflowReactFlowStore = {
     selected: boolean;
     data: {
       edge: WorkflowRuntimeEdge;
+      store: WorkflowRuntimeStore;
     };
   }[];
 };
@@ -197,6 +199,7 @@ export type WorkflowRuntimeStoreActions = {
     };
   }) => void;
   deleteNode: (nodeId: WorkflowNodeId) => void;
+  renameNode: (args: { oldId: WorkflowNodeId; newId: string }) => void;
 
   createEdge: (edge: {
     source: {
