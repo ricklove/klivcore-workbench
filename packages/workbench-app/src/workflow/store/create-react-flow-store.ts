@@ -10,9 +10,12 @@ import { type EdgeChange, type NodeChange } from '@xyflow/react';
 import { useEffect, useMemo, useState } from 'react';
 import { memoize } from 'proxy-memoize';
 
-export const createReactFlowStore = (store: WorkflowRuntimeStore): WorkflowReactFlowStore => {
+export const createReactFlowStore = (
+  store: WorkflowRuntimeStore,
+): { getStore: () => WorkflowReactFlowStore } => {
   // typescript is breaking when trying to infer Snapshot<>
   type StoreSnap = WorkflowRuntimeStore;
+
   type NodeSnap = WorkflowRuntimeNode;
   type EdgeSnap = WorkflowRuntimeEdge;
 
@@ -22,23 +25,35 @@ export const createReactFlowStore = (store: WorkflowRuntimeStore): WorkflowReact
     ),
   );
 
+  const memorizeObjToArray = memoize(<T>(x: Record<string, T>) => {
+    const result = Object.values(x) as T[];
+    console.log(`[createReactFlowStore:memorizeObjToArray] result`, { result, memorizeObjToArray });
+    return result;
+  });
+
   const memoizeNode = memoize((x: NodeSnap) => {
     const nodeDirect = store.nodes[x.id]!;
-    const pos = x.position;
-    return {
+    const result = {
       id: x.id,
       type: x.type,
-      position: { x: pos.x, y: pos.y },
-      width: pos.width,
-      height: pos.height,
+      position: { x: x.position.x, y: x.position.y },
+      width: x.position.width,
+      height: x.position.height,
 
       parentId: x.parentId,
+      mode: x.mode,
       data: { node: nodeDirect },
     };
+
+    console.log(`[createReactFlowStore:memoizeNode] result`, { result, memoizeNode });
+    return result;
   });
-  const memoizeNodes = memoize((snap: StoreSnap) =>
-    Object.values(snap.nodes).map((x) => memoizeNode(x)),
-  );
+  const memoizeNodes = (snap: StoreSnap) => {
+    const items = memorizeObjToArray(snap.nodes as unknown as Record<string, NodeSnap>);
+    const result = items.map((x) => memoizeNode(x as unknown as NodeSnap));
+    console.log(`[createReactFlowStore:memoizeNodes] result`, { result, memoizeNodes });
+    return result;
+  };
 
   const memoizeEdge = memoize((x: EdgeSnap) =>
     x.source.error
@@ -53,21 +68,46 @@ export const createReactFlowStore = (store: WorkflowRuntimeStore): WorkflowReact
           data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
         },
   );
-  const memoizeEdges = memoize((snap: StoreSnap) =>
-    Object.values(snap.edges as unknown as WorkflowRuntimeEdge[])
-      .map((x) => memoizeEdge(x))
-      .filter((x): x is NonNullable<typeof x> => !!x),
-  );
+  const memoizeEdges = memoize((snap: StoreSnap) => {
+    const items = memorizeObjToArray(snap.edges as unknown as Record<string, EdgeSnap>);
+    const result = items
+      .map((x) => memoizeEdge(x as unknown as EdgeSnap))
+      .filter((x): x is NonNullable<typeof x> => !!x);
+    console.log(`[createReactFlowStore:memoizeEdges] result`, { result, memoizeEdges });
+    return result;
+  });
 
   return {
-    get nodeTypes() {
-      return memoizeNodeTypes(snapshot(store) as unknown as StoreSnap);
-    },
-    get nodes() {
-      return memoizeNodes(snapshot(store) as unknown as StoreSnap);
-    },
-    get edges() {
-      return memoizeEdges(snapshot(store) as unknown as StoreSnap);
+    getStore: () => {
+      const snap = snapshot(store);
+      return {
+        get nodeTypes() {
+          console.log(`[createReactFlowStore:get nodeTypes()]`, {
+            store,
+            posX: Object.values(store.nodes)[0]?.position.x,
+            snap,
+          });
+          return memoizeNodeTypes(snap as unknown as StoreSnap);
+        },
+        get nodes() {
+          console.log(`[createReactFlowStore:get nodes()]`, {
+            store,
+            posX: Object.values(store.nodes)[0]?.position.x,
+            snap,
+          });
+          return memoizeNodes(
+            snap as unknown as StoreSnap,
+          ) as unknown as WorkflowReactFlowStore['nodes'];
+        },
+        get edges() {
+          console.log(`[createReactFlowStore:get edges()]`, {
+            store,
+            posX: Object.values(store.nodes)[0]?.position.x,
+            snap,
+          });
+          return memoizeEdges(snap as unknown as StoreSnap);
+        },
+      };
     },
   };
 };
@@ -78,7 +118,8 @@ export const useReactFlowStore = (
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
 } => {
-  const reactFlowStore = useMemo(() => createReactFlowStore(store), [store]);
+  const reactFlowStoreAccess = useMemo(() => createReactFlowStore(store), [store]);
+  const reactFlowStore = reactFlowStoreAccess.getStore();
 
   // refresh on any store change
   const [, setRenderId] = useState(0);
