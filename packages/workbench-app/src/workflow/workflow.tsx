@@ -1,10 +1,19 @@
-import { ReactFlow, MiniMap, Controls, type NodeTypes } from '@xyflow/react';
+import {
+  ReactFlow,
+  MiniMap,
+  Controls,
+  type NodeTypes,
+  useReactFlow,
+  type Node,
+  ReactFlowProvider,
+  type XYPosition,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
 import { exampleWorkflowDocument } from './store/example-document';
 import { createWorkflowStoreFromDocument } from './store/create-runtime-store';
 import { useReactFlowStore } from './store/create-react-flow-store';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { persistStoreToDocument } from './store/save-document';
 import type { WorkflowDocumentData } from './types';
 
@@ -28,6 +37,13 @@ const runtimeStore = createWorkflowStoreFromDocument(
 const storePersistance = persistStoreToDocument(runtimeStore);
 
 export const WorkflowView = () => {
+  return (
+    <ReactFlowProvider>
+      <WorkflowViewInner />
+    </ReactFlowProvider>
+  );
+};
+const WorkflowViewInner = () => {
   // const store = reactStore;
 
   // const runtimeStore = useMemo(() => createWorkflowStoreFromDocument(exampleWorkflowDocument), []);
@@ -93,6 +109,22 @@ export const WorkflowView = () => {
 
   const { nodeTypes, nodes, edges, onNodesChange, onEdgesChange, onConnect } = store;
 
+  const { setCenter, setViewport } = useReactFlow();
+  const handleMiniMapNodeClick = useCallback(
+    (e: React.MouseEvent, node: Node) => {
+      console.log(`MiniMap node clicked:`, { node });
+      setCenter(node.position.x, node.position.y, { zoom: 1, duration: 250 });
+    },
+    [setCenter, setViewport],
+  );
+  const handleMiniMapClick = useCallback(
+    (e: React.MouseEvent, position: XYPosition) => {
+      console.log(`MiniMap node clicked:`, { position });
+      setCenter(position.x, position.y, { zoom: 1, duration: 250 });
+    },
+    [setCenter, setViewport],
+  );
+
   return (
     <div className="w-full h-full bg-slate-900 text-white">
       <ReactFlow
@@ -111,7 +143,12 @@ export const WorkflowView = () => {
       >
         {/* <Background /> */}
         <Controls />
-        <MiniMap />
+        <MiniMap
+          pannable
+          zoomable
+          onNodeClick={handleMiniMapNodeClick}
+          onClick={handleMiniMapClick}
+        />
       </ReactFlow>
     </div>
   );

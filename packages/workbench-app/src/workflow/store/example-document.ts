@@ -50,7 +50,7 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
     {
       id: N`n3`,
       type: T`string`,
-      position: { x: 0, y: 400, width: 100, height: 50 },
+      position: { x: 0, y: 1200, width: 100, height: 50 },
       inputs: [
         {
           name: I`value`,
