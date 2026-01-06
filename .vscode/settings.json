@@ -1,0 +1,4 @@
+{
+    "editor.defaultFormatter": "jonwolfe.prettier-eslint-formatter",
+    "editor.formatOnSave": true
+}
