@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/immutability */
-import { proxy, snapshot, subscribe, useSnapshot } from 'valtio';
+import { snapshot, subscribe } from 'valtio';
 import {
   WorkflowBrandedTypes,
   type WorkflowReactFlowStore,
@@ -8,19 +7,22 @@ import {
   type WorkflowRuntimeStore,
 } from '../types';
 import { type EdgeChange, type NodeChange } from '@xyflow/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { memoize } from 'proxy-memoize';
 
 export const createReactFlowStore = (store: WorkflowRuntimeStore): WorkflowReactFlowStore => {
-  type StoreSnap = ReturnType<typeof snapshot<typeof store>>;
+  // typescript is breaking when trying to infer Snapshot<>
+  type StoreSnap = WorkflowRuntimeStore;
+  type NodeSnap = WorkflowRuntimeNode;
+  type EdgeSnap = WorkflowRuntimeEdge;
 
-  const getNodeTypes = memoize((store: StoreSnap) =>
+  const memoizeNodeTypes = memoize((store: StoreSnap) =>
     Object.fromEntries(
       Object.values(store.nodeTypes).map((x) => [x.type, x.component as React.ComponentType]),
     ),
   );
 
-  const getNode = memoize((x: WorkflowRuntimeNode) => {
+  const memoizeNode = memoize((x: NodeSnap) => {
     const nodeDirect = store.nodes[x.id]!;
     const pos = x.position;
     return {
@@ -34,11 +36,11 @@ export const createReactFlowStore = (store: WorkflowRuntimeStore): WorkflowReact
       data: { node: nodeDirect },
     };
   });
-  const getNodes = memoize((snap: StoreSnap) =>
-    Object.values(snap.nodes as unknown as WorkflowRuntimeNode[]).map((x) => getNode(x)),
+  const memoizeNodes = memoize((snap: StoreSnap) =>
+    Object.values(snap.nodes).map((x) => memoizeNode(x)),
   );
 
-  const getEdge = memoize((x: WorkflowRuntimeEdge) =>
+  const memoizeEdge = memoize((x: EdgeSnap) =>
     x.source.error
       ? undefined
       : {
@@ -51,28 +53,23 @@ export const createReactFlowStore = (store: WorkflowRuntimeStore): WorkflowReact
           data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
         },
   );
-  const getEdges = memoize((snap: StoreSnap) =>
+  const memoizeEdges = memoize((snap: StoreSnap) =>
     Object.values(snap.edges as unknown as WorkflowRuntimeEdge[])
-      .map((x) => getEdge(x))
+      .map((x) => memoizeEdge(x))
       .filter((x): x is NonNullable<typeof x> => !!x),
   );
 
-  const reactStore: WorkflowReactFlowStore & {
-    _store: WorkflowRuntimeStore;
-  } = {
-    _store: store,
+  return {
     get nodeTypes() {
-      return getNodeTypes(snapshot(this._store));
+      return memoizeNodeTypes(snapshot(store) as unknown as StoreSnap);
     },
     get nodes() {
-      return getNodes(snapshot(this._store));
+      return memoizeNodes(snapshot(store) as unknown as StoreSnap);
     },
     get edges() {
-      return getEdges(snapshot(this._store));
+      return memoizeEdges(snapshot(store) as unknown as StoreSnap);
     },
   };
-
-  return proxy(reactStore);
 };
 
 export const useReactFlowStore = (
@@ -81,59 +78,25 @@ export const useReactFlowStore = (
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
 } => {
-  const [nodeTypes, setNodeTypes] = useState({} as WorkflowReactFlowStore['nodeTypes']);
+  const reactFlowStore = useMemo(() => createReactFlowStore(store), [store]);
+
+  // refresh on any store change
+  const [, setRenderId] = useState(0);
   useEffect(() => {
-    const unsub = subscribe(store.nodeTypes, () => {
-      setNodeTypes(
-        Object.fromEntries(
-          Object.values(store.nodeTypes).map((x) => [x.type, x.component as React.ComponentType]),
-        ),
-      );
+    return subscribe(store, () => {
+      setRenderId((s) => s + 1);
     });
-    return () => unsub();
   }, [store]);
 
-  const snap = useSnapshot(store) as unknown as typeof store;
-
-  const reactFlowStore: WorkflowReactFlowStore = {
-    nodeTypes,
-    nodes: Object.values(snap.nodes).map((x) => {
-      const nodeDirect = store.nodes[x.id]!;
-      const pos = x.position;
-      return {
-        id: x.id,
-        type: x.type,
-        position: { x: pos.x, y: pos.y },
-        width: pos.width,
-        height: pos.height,
-
-        parentId: x.parentId,
-        data: { node: nodeDirect },
-      };
-    }),
-    edges: Object.values(snap.edges)
-      .map((x) =>
-        x.source.error
-          ? undefined
-          : {
-              id: x.id,
-              type: `custom` as const,
-              source: x.source.node.id,
-              sourceHandle: x.source.outputName,
-              target: x.target.node.id,
-              targetHandle: x.target.inputName,
-              data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
-            },
-      )
-      .filter((x): x is NonNullable<typeof x> => !!x),
-  };
-
+  const _store = { store }.store;
   return {
-    ...reactFlowStore,
+    nodeTypes: reactFlowStore.nodeTypes,
+    nodes: reactFlowStore.nodes,
+    edges: reactFlowStore.edges,
     onNodesChange: (changes: NodeChange[]) => {
       for (const change of changes) {
         if (change.type === 'position' || change.type === 'dimensions') {
-          const node = store.nodes[WorkflowBrandedTypes.nodeId(change.id)];
+          const node = _store.nodes[WorkflowBrandedTypes.nodeId(change.id)];
           if (!node) continue;
 
           if (change.type === `position`) {
@@ -167,46 +130,3 @@ export const useReactFlowStore = (
     },
   };
 };
-
-// import {
-//   Edge,
-//   EdgeChange,
-//   Node,
-//   NodeChange,
-//   OnNodesChange,
-//   OnEdgesChange,
-//   applyNodeChanges,
-//   applyEdgeChanges,
-// } from '@xyflow/react';
-// import { createWithEqualityFn } from 'zustand/traditional';
-
-// export type RFState = {
-//   nodes: Node[];
-//   edges: Edge[];
-//   onNodesChange: OnNodesChange;
-//   onEdgesChange: OnEdgesChange;
-// };
-
-// const useStore = createWithEqualityFn<RFState>((set, get) => ({
-//   nodes: [
-//     {
-//       id: 'root',
-//       type: 'mindmap',
-//       data: { label: 'React Flow Mind Map' },
-//       position: { x: 0, y: 0 },
-//     },
-//   ],
-//   edges: [],
-//   onNodesChange: (changes: NodeChange[]) => {
-//     set({
-//       nodes: applyNodeChanges(changes, get().nodes),
-//     });
-//   },
-//   onEdgesChange: (changes: EdgeChange[]) => {
-//     set({
-//       edges: applyEdgeChanges(changes, get().edges),
-//     });
-//   },
-// }));
-
-// export default useStore;

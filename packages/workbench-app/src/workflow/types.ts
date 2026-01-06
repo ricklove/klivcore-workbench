@@ -212,9 +212,12 @@ export type WorkflowExecutionController = {
   ) => void;
 };
 
+type ValtioRef<T> = T & {
+  $$valtioSnapshot: T;
+};
 export type WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowNodeTypeName;
-  component: React.ComponentType;
+  component: ValtioRef<React.ComponentType>;
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;
