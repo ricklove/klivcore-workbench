@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react';
 import { NodeWrapperSimple } from './node-wrapper';
-import type { WorkflowRuntimeNode, WorkflowRuntimeStore } from './types';
+import type { WorkflowRuntimeNode, WorkflowRuntimeStore, WorkflowRuntimeValue } from './types';
 
 export const StringNodeComponent = (props: {
   id: string;
   selected: boolean;
   data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
 }) => {
-  const propText = props.data.node.data.value as string;
+  const nodeData = props.data.node.data as WorkflowRuntimeValue<{ value: string }>;
+  const propText = nodeData.data.value;
   const [text, setText] = useState(propText);
 
   const oldPropText = useRef(propText);
@@ -26,7 +27,7 @@ export const StringNodeComponent = (props: {
           onChange={(e) => {
             setText(e.target.value);
             // eslint-disable-next-line react-hooks/immutability
-            props.data.node.data.value = e.target.value;
+            nodeData.data.value = e.target.value;
           }}
         />
       </NodeWrapperSimple>

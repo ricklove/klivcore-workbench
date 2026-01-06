@@ -31,16 +31,11 @@ const BASE_HANDLE_TOP_OFFSET_PX = 20;
 const BASE_HANDLE_SIDE_OFFSET_PX = 6;
 const HANDLE_VERTICAL_SPACING_PX = 25;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const nodeToDocument = (node: Record<string, unknown>) => {
-  return ``;
-};
-
 const NodeWrapper = ({
   children,
   id,
   selected,
-  data,
+  data: dataReactFlow,
 }: {
   children: React.ReactNode;
   id: string;
@@ -59,10 +54,12 @@ const NodeWrapper = ({
     setDisplayName(id);
   }
 
+  const { node, store } = dataReactFlow;
+
   const handleDisplayNameChange = useCallback(() => {
     const value = displayName.trim();
     console.log(`[NodeWrapper] handleDisplayNameChange`, { value });
-    data.store.actions.renameNode({ oldId: data.node.id, newId: value });
+    store.actions.renameNode({ oldId: node.id, newId: value });
   }, [displayName]);
 
   const handleDeleteNode = () => {
@@ -77,9 +74,9 @@ const NodeWrapper = ({
 
   const [expandInfo, setExpandInfo] = useState(false as false | `data` | `document`);
 
-  const typeName = data.node.type;
-  const inputs = data.node.inputs;
-  const outputs = data.node.outputs;
+  const typeName = node.type;
+  const inputs = node.inputs;
+  const outputs = node.outputs;
 
   return (
     <>
@@ -113,12 +110,8 @@ const NodeWrapper = ({
                     className="min-h-[200px] flex-1 resize-none bg-black p-1"
                     value={JSON.stringify(
                       expandInfo === `data`
-                        ? data
-                        : nodeToDocument({
-                            id,
-                            typeName,
-                            data,
-                          }),
+                        ? { inputs: node.inputs, data: node.data, outputs: node.outputs }
+                        : node,
                       null,
                       2,
                     )}
@@ -152,7 +145,7 @@ const NodeWrapper = ({
                 className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
                 onClick={() => {
                   setExpandInfo((s) => (s === `data` ? false : `data`));
-                  console.log(`nodeData ${id}`, data);
+                  console.log(`dataReactFlow ${id}`, dataReactFlow);
                 }}
               >
                 {`🔎`}

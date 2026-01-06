@@ -9,7 +9,8 @@
   - [x] load WorkflowDocumentData from localStorage on refresh (if it exists)
 - [ ] simple workflow engine
   - [ ] on output => edge value
-  - [ ] on edge value => input value & execute
+  - [ ] on edge value => input value
+  - [ ] on input values => execute
   - [ ] after excute => output value
 - [ ] improve workflow storage
   - [ ] clone workflow server from lofr project

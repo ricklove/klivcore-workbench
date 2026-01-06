@@ -9,6 +9,7 @@ type WorkflowTimestamp = number & {
   __kind: `performance.timeOrigin+performance.now()`;
 };
 
+// TODO: make these objects so they can be renamed
 type WorkflowNodeId = string & { __brand: 'WorkflowNodeId' };
 type WorkflowEdgeId = string & { __brand: 'WorkflowEdgeId' };
 type WorkflowOutputName = string & { __brand: 'WorkflowOutputName' };
@@ -124,7 +125,7 @@ export type WorkflowRuntimeNode = {
     edgeIds?: WorkflowEdgeId[];
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
-  data: JsonObject;
+  data: WorkflowRuntimeValue<JsonObject>;
   selected?: boolean;
   mode?: `passthrough` | `disabled`;
   executionState?: WorkflowRuntimeExecutionState;
@@ -163,8 +164,10 @@ export type WorkflowRuntimeEdge = {
 export type WorkflowRuntimeValue<T = unknown> = {
   /** valtio ref() */
   data: T;
+  /** increment each time data changes, used for change tracking */
+  dataChangeCounter: number;
   /** valtio ref() */
-  meta: {
+  meta?: {
     type: WorkflowValueType;
     source: {
       nodeId: WorkflowNodeId;
@@ -256,6 +259,9 @@ export type WorkflowRuntimeExecutionState = {
   progressRatio?: number;
   progressMessage?: string;
   errorMessage?: string;
+  /** Used for change tracking */
+  inputDataChangeCounters: Record<WorkflowInputName, number>;
+  nodeDataChangeCounter: number;
 
   /** Completed execution states */
   history: {

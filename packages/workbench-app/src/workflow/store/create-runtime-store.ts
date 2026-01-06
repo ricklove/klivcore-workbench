@@ -5,8 +5,9 @@ import {
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
+  type WorkflowRuntimeValue,
 } from '../types';
-import { proxy } from 'valtio';
+import { proxy, ref } from 'valtio';
 import { builtinNodeTypes } from './node-types';
 
 const getters = {
@@ -132,7 +133,7 @@ const loadWorkflowStoreFromDocument = (
           return getters.node.outputs.getEdges(storeObj, this);
         },
       })),
-      data: n.data || {},
+      data: createRuntimeValue({ data: n.data || {} }),
       mode: n.mode,
       getGraphErrors() {
         return getters.node.getGraphErrors(storeObj, this);
@@ -194,6 +195,29 @@ const loadWorkflowStoreFromDocument = (
   return storeObj;
 };
 
+const createRuntimeValue = <T = Record<string, unknown>>({
+  data,
+  meta,
+}: {
+  data: T;
+  meta?: WorkflowRuntimeValue['meta'];
+}): WorkflowRuntimeValue<T> => {
+  const v = {
+    dataChangeCounter: 0,
+    _data: ref({ data }),
+    get data() {
+      return this._data.data;
+    },
+    set data(value: T) {
+      this._data.data = value;
+      this.dataChangeCounter++;
+    },
+    meta,
+  };
+
+  return v as WorkflowRuntimeValue<T>;
+};
+
 export const createWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
 ): WorkflowRuntimeStore => {
@@ -220,7 +244,7 @@ export const createWorkflowStoreFromDocument = (
             id: nodeId,
             inputs: [],
             outputs: [],
-            data: {},
+            data: createRuntimeValue({ data: {} }),
             getGraphErrors() {
               return getters.node.getGraphErrors(store, this);
             },
@@ -247,7 +271,7 @@ export const createWorkflowStoreFromDocument = (
               return getters.node.outputs.getEdges(store, this);
             },
           })),
-          data: {},
+          data: createRuntimeValue({ data: {} }),
           getGraphErrors() {
             return getters.node.getGraphErrors(store, this);
           },

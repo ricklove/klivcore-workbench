@@ -69,7 +69,7 @@ export const persistStoreToDocument = (
               name: output.name,
               type: output.type,
             })),
-            data: node.data,
+            data: node.data.data,
             parentId: node.parentId,
             mode: node.mode,
           };
