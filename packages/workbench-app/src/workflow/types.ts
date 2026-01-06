@@ -88,6 +88,7 @@ export type WorkflowReactFlowStore = {
     sourceHandle: WorkflowOutputName;
     target: WorkflowNodeId;
     targetHandle: WorkflowInputName;
+    selected: boolean;
     data: {
       edge: WorkflowRuntimeEdge;
     };
@@ -120,6 +121,7 @@ export type WorkflowRuntimeNode = {
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
   data: JsonObject;
+  selected?: boolean;
   mode?: `passthrough` | `disabled`;
   executionState?: WorkflowRuntimeExecutionState;
   getGraphErrors():
@@ -131,7 +133,6 @@ export type WorkflowRuntimeNode = {
 
 export type WorkflowRuntimeEdge = {
   id: WorkflowEdgeId;
-  value?: WorkflowRuntimeValue;
   source: {
     nodeId: WorkflowNodeId;
     getNode: () => undefined | WorkflowRuntimeNode;
@@ -142,6 +143,8 @@ export type WorkflowRuntimeEdge = {
     getNode: () => undefined | WorkflowRuntimeNode;
     inputName: WorkflowInputName;
   };
+  value?: WorkflowRuntimeValue;
+  selected?: boolean;
   getGraphErrors():
     | undefined
     | {

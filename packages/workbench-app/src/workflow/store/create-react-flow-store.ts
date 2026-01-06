@@ -34,9 +34,9 @@ export const createReactFlowStore = (
     return result;
   });
 
-  const memoizeNode = memoize((x: NodeSnap) => {
+  const memoizeNode = memoize((x: NodeSnap): WorkflowReactFlowStore['nodes'][number] => {
     const nodeDirect = store.nodes[x.id]!;
-    const result = {
+    const result: WorkflowReactFlowStore['nodes'][number] = {
       id: x.id,
       type: x.type,
       position: { x: x.position.x, y: x.position.y },
@@ -44,7 +44,8 @@ export const createReactFlowStore = (
       height: x.position.height,
 
       parentId: x.parentId,
-      mode: x.mode,
+      // mode: x.mode,
+      selected: x.selected ?? false,
       data: { node: nodeDirect },
     };
 
@@ -54,25 +55,31 @@ export const createReactFlowStore = (
   const memoizeNodes = (snap: StoreSnap) => {
     const items = memorizeObjToArray(snap.nodes as unknown as Record<string, NodeSnap>);
     const result = items.map((x) => memoizeNode(x as unknown as NodeSnap));
-    console.log(`[createReactFlowStore:memoizeNodes] result`, { result, memoizeNodes });
+    // console.log(`[createReactFlowStore:memoizeNodes] result`, { result, memoizeNodes });
     return result;
   };
 
-  const memoizeEdge = memoize((x: EdgeSnap) => ({
-    id: x.id,
-    type: `custom` as const,
-    source: x.source.nodeId,
-    sourceHandle: x.source.outputName,
-    target: x.target.nodeId,
-    targetHandle: x.target.inputName,
-    data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
-  }));
+  const memoizeEdge = memoize((x: EdgeSnap): WorkflowReactFlowStore['edges'][number] => {
+    const result = {
+      id: x.id,
+      type: `custom` as const,
+      source: x.source.nodeId,
+      sourceHandle: x.source.outputName,
+      target: x.target.nodeId,
+      targetHandle: x.target.inputName,
+      selected: x.selected ?? false,
+      data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge },
+    };
+
+    console.log(`[createReactFlowStore:memoizeEdge] result`, { result, memoizeEdge });
+    return result;
+  });
   const memoizeEdges = memoize((snap: StoreSnap) => {
     const items = memorizeObjToArray(snap.edges as unknown as Record<string, EdgeSnap>);
     const result = items
       .map((x) => memoizeEdge(x as unknown as EdgeSnap))
       .filter((x): x is NonNullable<typeof x> => !!x);
-    console.log(`[createReactFlowStore:memoizeEdges] result`, { result, memoizeEdges });
+    // console.log(`[createReactFlowStore:memoizeEdges] result`, { result, memoizeEdges });
     return result;
   });
 
@@ -81,29 +88,29 @@ export const createReactFlowStore = (
       const snap = snapshot(store);
       return {
         get nodeTypes() {
-          console.log(`[createReactFlowStore:get nodeTypes()]`, {
-            store,
-            posX: Object.values(store.nodes)[0]?.position.x,
-            snap,
-          });
+          // console.log(`[createReactFlowStore:get nodeTypes()]`, {
+          //   store,
+          //   posX: Object.values(store.nodes)[0]?.position.x,
+          //   snap,
+          // });
           return memoizeNodeTypes(snap as unknown as StoreSnap);
         },
         get nodes() {
-          console.log(`[createReactFlowStore:get nodes()]`, {
-            store,
-            posX: Object.values(store.nodes)[0]?.position.x,
-            snap,
-          });
+          // console.log(`[createReactFlowStore:get nodes()]`, {
+          //   store,
+          //   posX: Object.values(store.nodes)[0]?.position.x,
+          //   snap,
+          // });
           return memoizeNodes(
             snap as unknown as StoreSnap,
           ) as unknown as WorkflowReactFlowStore['nodes'];
         },
         get edges() {
-          console.log(`[createReactFlowStore:get edges()]`, {
-            store,
-            posX: Object.values(store.nodes)[0]?.position.x,
-            snap,
-          });
+          // console.log(`[createReactFlowStore:get edges()]`, {
+          //   store,
+          //   posX: Object.values(store.nodes)[0]?.position.x,
+          //   snap,
+          // });
           return memoizeEdges(snap as unknown as StoreSnap);
         },
       };
@@ -136,37 +143,66 @@ export const useReactFlowStore = (
     edges: reactFlowStore.edges,
     onNodesChange: (changes: NodeChange[]) => {
       for (const change of changes) {
-        if (change.type === 'position' || change.type === 'dimensions') {
-          const node = _store.nodes[WorkflowBrandedTypes.nodeId(change.id)];
-          if (!node) continue;
+        if (change.type === 'add') {
+          console.log(`[useReactFlowStore] Unhandled node add`, { change });
+          continue;
+        }
 
-          if (change.type === `position`) {
-            node.position.x = change.position?.x ?? node.position.x;
-            node.position.y = change.position?.y ?? node.position.y;
-          }
-          if (change.type === `dimensions`) {
-            node.position.width = change.dimensions?.width ?? node.position.width;
-            node.position.height = change.dimensions?.height ?? node.position.height;
-          }
+        const node = _store.nodes[WorkflowBrandedTypes.nodeId(change.id)];
+        if (!node) {
+          console.log(`[useReactFlowStore] Node not found for change`, { change });
+          continue;
+        }
+
+        if (change.type === 'select') {
+          node.selected = change.selected;
+          continue;
+        }
+        if (change.type === 'position') {
+          node.position.x = change.position?.x ?? node.position.x;
+          node.position.y = change.position?.y ?? node.position.y;
+
+          continue;
+        }
+
+        if (change.type === 'dimensions') {
+          node.position.width = change.dimensions?.width ?? node.position.width;
+          node.position.height = change.dimensions?.height ?? node.position.height;
           continue;
         }
 
         if (change.type === `remove`) {
-          store.actions.deleteNode(WorkflowBrandedTypes.nodeId(change.id));
+          store.actions.deleteNode(node.id);
           continue;
         }
 
-        console.log(`[useReactFlowStore] Unhandled node change: `, { change });
+        console.log(`[useReactFlowStore] Unhandled node change: `, { change, node });
       }
     },
     onEdgesChange: (changes: EdgeChange[]) => {
       for (const change of changes) {
-        if (change.type === `remove`) {
-          store.actions.deleteEdge(WorkflowBrandedTypes.edgeIdFormString(change.id));
+        if (change.type === 'add') {
+          console.log(`[useReactFlowStore] Unhandled edge add`, { change });
           continue;
         }
 
-        console.log(`[useReactFlowStore:onEdgesChange] Unhandled edge change: `, { change });
+        const edge = _store.edges[WorkflowBrandedTypes.edgeIdFormString(change.id)];
+        if (!edge) {
+          console.log(`[useReactFlowStore] Node not found for change`, { change });
+          continue;
+        }
+
+        if (change.type === 'select') {
+          edge.selected = change.selected;
+          continue;
+        }
+
+        if (change.type === `remove`) {
+          store.actions.deleteEdge(edge.id);
+          continue;
+        }
+
+        console.log(`[useReactFlowStore:onEdgesChange] Unhandled edge change: `, { change, edge });
       }
     },
     onConnect: (params: Connection) => {
