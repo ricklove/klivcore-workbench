@@ -1,11 +1,11 @@
-import { Handle, NodeResizer, Position, useReactFlow } from "@xyflow/react";
-import React, { useCallback, useState } from "react";
-import type { ReactNodeDataBase } from "./temp-store";
+import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
+import React, { useCallback, useState } from 'react';
+import type { WorkflowRuntimeNode } from './types';
 
 export const NodeDefault = (props: {
   id: string;
   selected: boolean;
-  data: ReactNodeDataBase;
+  data: { node: WorkflowRuntimeNode };
 }) => {
   return (
     <>
@@ -20,12 +20,12 @@ export const NodeWrapperSimple = (props: {
   children: React.ReactNode;
   id: string;
   selected: boolean;
-  data: ReactNodeDataBase;
+  data: { node: WorkflowRuntimeNode };
 }) => {
   return <NodeWrapper {...props} />;
 };
 
-const debug = false;
+// const debug = false;
 
 const BASE_HANDLE_TOP_OFFSET_PX = 20;
 const BASE_HANDLE_SIDE_OFFSET_PX = 6;
@@ -45,7 +45,7 @@ const NodeWrapper = ({
   children: React.ReactNode;
   id: string;
   selected: boolean;
-  data: ReactNodeDataBase;
+  data: { node: WorkflowRuntimeNode };
 }) => {
   // console.log(`[NodeWrapper] rendering node ${id}`, { data });
   const { deleteElements, fitView } = useReactFlow();
@@ -61,14 +61,16 @@ const NodeWrapper = ({
 
   const moveToNode = useCallback(
     (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
-    [fitView]
+    [fitView],
   );
 
   const displayName = id;
 
-  const [expandInfo, setExpandInfo] = useState(
-    false as false | `data` | `document`
-  );
+  const [expandInfo, setExpandInfo] = useState(false as false | `data` | `document`);
+
+  const typeName = data.node.type;
+  const inputs = data.node.inputs;
+  const outputs = data.node.outputs;
 
   return (
     <>
@@ -84,7 +86,7 @@ const NodeWrapper = ({
                 <div className="flex flex-col flex-1 p-1 text-xs bg-blue-200 border border-blue-800 rounded nowheel nodrag nopan">
                   <div className="flex flex-row items-center justify-between gap-1 p-0.5">
                     <div>{id}</div>
-                    <div>{data.typeName}</div>
+                    <div>{typeName}</div>
                     <div
                       className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center ${
                         `` //`rounded border border-white p-1 text-white`
@@ -105,11 +107,11 @@ const NodeWrapper = ({
                         ? data
                         : nodeToDocument({
                             id,
-                            typeName: data.typeName,
+                            typeName,
                             data,
                           }),
                       null,
-                      2
+                      2,
                     )}
                     readOnly
                   />
@@ -124,18 +126,18 @@ const NodeWrapper = ({
                 type="text"
                 className={`min-w-0 flex-1 font-bold text-xs text-white`}
                 // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
-                title={`${displayName}: ${data.typeName}`}
+                title={`${displayName}: ${typeName}`}
                 value={displayName}
                 onChange={(x) => handleDisplayNameChange(x.target.value)}
               />
-              {data.refresh && (
+              {/* {data.refresh && (
                 <div
                   className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
                   onClick={() => data.refresh?.()}
                 >
                   {`▶️`}
                 </div>
-              )}
+              )} */}
               <div
                 className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
                 onClick={() => {
@@ -149,9 +151,7 @@ const NodeWrapper = ({
                 className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
                   expandInfo ? `bg-blue-800` : `bg-blue-400`
                 }`}
-                onClick={() =>
-                  setExpandInfo((s) => (s === `document` ? false : `document`))
-                }
+                onClick={() => setExpandInfo((s) => (s === `document` ? false : `document`))}
               >
                 {`ℹ`}
               </div>
@@ -166,102 +166,98 @@ const NodeWrapper = ({
         </div>
       </div>
       {children}
-      {Object.entries(data.inputs).map(([key, value], index) => (
-        <React.Fragment key={key}>
-          {debug && (
+      {Object.values(inputs).map((input, index) => {
+        const key = input.name;
+        const edge = input.getEdge();
+        return (
+          <React.Fragment key={key}>
+            {/* {debug && (
             <div
               className="absolute top-0 left-0 p-1 text-xs text-white bg-black rounded opacity-90"
               style={{
-                top: `${
-                  BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX
-                }px`,
+                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
                 left: `-${BASE_HANDLE_SIDE_OFFSET_PX + 40}px`,
               }}
             >
-              in {key} {value.id}:{" "}
-              {JSON.stringify(value.lastValue)?.substring(0, 100)}
+              in {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
             </div>
-          )}
-          <Handle
-            type="target"
-            position={Position.Left}
-            id={key}
-            style={{
-              width: `12px`,
-              height: `12px`,
-              ...(value.source?.nodeId && value.source.nodeId !== id
-                ? { background: `#44aa44`, borderColor: `#44aa44` }
-                : { background: `#777777`, borderColor: `#777777` }),
-              top: `${
-                BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX
-              }px`,
-              left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-              borderTopRightRadius: `0px`,
-              borderBottomRightRadius: `0px`,
-            }}
-            // className="hover:top-0"
-          >
-            <div className="absolute right-0 opacity-0 hover:opacity-100">
-              <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
-                {value.source?.nodeId && (
-                  <div
-                    className="pointer-events-auto cursor-pointer"
-                    onClick={() =>
-                      value.source?.nodeId && moveToNode(value.source.nodeId)
-                    }
-                    title={`Go to '${value.source?.nodeId}'`}
-                  >
-                    🔗
-                  </div>
-                )}
-                <div>{key}</div>
+          )} */}
+            <Handle
+              type="target"
+              position={Position.Left}
+              id={key}
+              style={{
+                width: `12px`,
+                height: `12px`,
+                ...(edge
+                  ? { background: `#44aa44`, borderColor: `#44aa44` }
+                  : { background: `#777777`, borderColor: `#777777` }),
+                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                borderTopRightRadius: `0px`,
+                borderBottomRightRadius: `0px`,
+              }}
+              // className="hover:top-0"
+            >
+              <div className="absolute right-0 opacity-0 hover:opacity-100">
+                <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
+                  {edge && (
+                    <div
+                      className="pointer-events-auto cursor-pointer"
+                      onClick={() => moveToNode(edge.source.nodeId)}
+                      title={`Go to '${edge.source.nodeId}'`}
+                    >
+                      🔗
+                    </div>
+                  )}
+                  <div>{key}</div>
+                </div>
               </div>
-            </div>
-          </Handle>
-        </React.Fragment>
-      ))}
-      {Object.entries(data.outputs).map(([key, value], index) => (
-        <React.Fragment key={key}>
-          {debug && (
+            </Handle>
+          </React.Fragment>
+        );
+      })}
+      {Object.values(outputs).map((output, index) => {
+        const key = output.name;
+        const edges = output.getEdges();
+        return (
+          <React.Fragment key={key}>
+            {/* {debug && (
             <div
               className="absolute left-0 p-1 text-xs text-white bg-black rounded top-16 opacity-90"
               style={{
-                top: `${
-                  BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX
-                }px`,
+                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
                 left: `-${BASE_HANDLE_SIDE_OFFSET_PX + 40}px`,
               }}
             >
-              out {key} {value.id}:{" "}
-              {JSON.stringify(value.lastValue)?.substring(0, 100)}
+              out {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
             </div>
-          )}
-          <Handle
-            type="source"
-            position={Position.Right}
-            id={key}
-            style={{
-              width: `12px`,
-              height: `12px`,
-              ...(value.hasSubscribers
-                ? { background: `#44aa44`, borderColor: `#44aa44` }
-                : { background: `#777777`, borderColor: `#777777` }),
-              top: `${
-                BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX
-              }px`,
-              right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-              borderTopLeftRadius: `0px`,
-              borderBottomLeftRadius: `0px`,
-            }}
-          >
-            <div className="absolute left-0 opacity-0 hover:opacity-100">
-              <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
-                {key}
+          )} */}
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={key}
+              style={{
+                width: `12px`,
+                height: `12px`,
+                ...(edges.length
+                  ? { background: `#44aa44`, borderColor: `#44aa44` }
+                  : { background: `#777777`, borderColor: `#777777` }),
+                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                borderTopLeftRadius: `0px`,
+                borderBottomLeftRadius: `0px`,
+              }}
+            >
+              <div className="absolute left-0 opacity-0 hover:opacity-100">
+                <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
+                  {key}
+                </div>
               </div>
-            </div>
-          </Handle>
-        </React.Fragment>
-      ))}
+            </Handle>
+          </React.Fragment>
+        );
+      })}
     </>
   );
 };

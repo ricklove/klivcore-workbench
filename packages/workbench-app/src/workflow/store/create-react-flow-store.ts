@@ -6,7 +6,7 @@ import {
   type WorkflowRuntimeNode,
   type WorkflowRuntimeStore,
 } from '../types';
-import { type EdgeChange, type NodeChange } from '@xyflow/react';
+import { type Connection, type EdgeChange, type NodeChange } from '@xyflow/react';
 import { useEffect, useMemo, useState } from 'react';
 import { memoize } from 'proxy-memoize';
 
@@ -21,7 +21,10 @@ export const createReactFlowStore = (
 
   const memoizeNodeTypes = memoize((store: StoreSnap) =>
     Object.fromEntries(
-      Object.values(store.nodeTypes).map((x) => [x.type, x.component as React.ComponentType]),
+      Object.values(store.nodeTypes).map((x) => [
+        x.type,
+        x.component.Component as React.ComponentType,
+      ]),
     ),
   );
 
@@ -113,6 +116,7 @@ export const useReactFlowStore = (
 ): WorkflowReactFlowStore & {
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
+  onConnect: (params: Connection) => void;
 } => {
   const reactFlowStoreAccess = useMemo(() => createReactFlowStore(store), [store]);
   const reactFlowStore = reactFlowStoreAccess.getStore();
@@ -164,6 +168,18 @@ export const useReactFlowStore = (
 
         console.log(`[useReactFlowStore:onEdgesChange] Unhandled edge change: `, { change });
       }
+    },
+    onConnect: (params: Connection) => {
+      store.actions.createEdge({
+        source: {
+          nodeId: WorkflowBrandedTypes.nodeId(params.source),
+          outputName: WorkflowBrandedTypes.outputName(params.sourceHandle!),
+        },
+        target: {
+          nodeId: WorkflowBrandedTypes.nodeId(params.target),
+          inputName: WorkflowBrandedTypes.inputName(params.targetHandle!),
+        },
+      });
     },
   };
 };

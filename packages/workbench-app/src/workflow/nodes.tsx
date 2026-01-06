@@ -1,17 +1,18 @@
-import { useRef, useState } from "react";
-import { NodeWrapperSimple } from "./node-wrapper";
-import type { ReactNodeData } from "./temp-store";
+import { useRef, useState } from 'react';
+import { NodeWrapperSimple } from './node-wrapper';
+import type { WorkflowRuntimeNode } from './types';
 
 export const StringNodeComponent = (props: {
   id: string;
   selected: boolean;
-  data: ReactNodeData<unknown, { value: string }>;
+  data: { node: WorkflowRuntimeNode };
 }) => {
-  const propText = props.data.outputs.value?.lastValue || ``;
+  const propText = props.data.node.data.value as string;
   const [text, setText] = useState(propText);
-  const previousLastValue = useRef(text);
-  if (previousLastValue.current !== propText) {
-    previousLastValue.current = propText;
+
+  const oldPropText = useRef(propText);
+  if (oldPropText.current !== propText) {
+    oldPropText.current = propText;
     setText(propText);
   }
 
@@ -24,6 +25,8 @@ export const StringNodeComponent = (props: {
           readOnly={!props.selected}
           onChange={(e) => {
             setText(e.target.value);
+            // eslint-disable-next-line react-hooks/immutability
+            props.data.node.data.value = e.target.value;
           }}
         />
       </NodeWrapperSimple>

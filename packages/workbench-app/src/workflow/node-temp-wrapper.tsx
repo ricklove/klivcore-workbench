@@ -1,8 +1,8 @@
 // import { TempComponent } from "./temp-01";
 
-import { Component, useEffect, useState } from "react";
-import { NodeWrapperSimple } from "./node-wrapper";
-import type { ReactNodeData } from "./temp-store";
+import { Component, useEffect, useState } from 'react';
+import { NodeWrapperSimple } from './node-wrapper';
+import type { WorkflowRuntimeNode } from './types';
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode; message: string },
@@ -38,38 +38,43 @@ class ErrorBoundary extends Component<
 export const TempWrapper = (props: {
   id: string;
   selected: boolean;
-  data: ReactNodeData<{ importPath: string }, unknown>;
+  data: { node: WorkflowRuntimeNode };
 }) => {
+  const importPath = props.data.node.inputs.find((x) => x.name === 'importPath')?.value?.data as
+    | undefined
+    | string;
+
   const [ComponentObj, setComponentObj] = useState(
-    undefined as
-      | undefined
-      | { Component: React.ComponentType }
-      | { error: { message: string } }
+    undefined as undefined | { Component: React.ComponentType } | { error: { message: string } },
   );
   useEffect(() => {
+    if (!importPath) {
+      setComponentObj({ error: { message: `No importPath provided` } });
+      return;
+    }
     (async () => {
       try {
-        const module = await import(props.data.inputs.importPath.lastValue);
+        const module = await import(importPath);
         setComponentObj({
           Component: () => <module.Component {...module.defaultProps} />,
         });
       } catch (error) {
-        console.error("Error loading component:", error);
+        console.error('Error loading component:', error);
         setComponentObj({ error: { message: (error as Error).message } });
       }
     })();
-  }, []);
+  }, [importPath]);
 
   return (
     <>
       <NodeWrapperSimple {...props}>
         <div>
-          {ComponentObj && "Component" in ComponentObj && (
+          {ComponentObj && 'Component' in ComponentObj && (
             <ErrorBoundary message={`Error rendering Component`}>
               <ComponentObj.Component />
             </ErrorBoundary>
           )}
-          {ComponentObj && "error" in ComponentObj && (
+          {ComponentObj && 'error' in ComponentObj && (
             <div>Error loading component: {ComponentObj.error.message}</div>
           )}
           {!ComponentObj && <div>Loading component...</div>}

@@ -78,6 +78,9 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
           type: V`string`,
         },
       ],
+      data: {
+        value: `../temp/temp-01.tsx`,
+      },
     },
     {
       id: N`temp1`,

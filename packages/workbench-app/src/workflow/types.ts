@@ -74,6 +74,7 @@ export type WorkflowReactFlowStore = {
     position: { x: number; y: number };
     width: number;
     height: number;
+    selected: boolean;
     parentId?: WorkflowNodeId;
     extent?: 'parent';
     data: {
@@ -222,7 +223,7 @@ type ValtioRef<T> = T & {
 };
 export type WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowNodeTypeName;
-  component: ValtioRef<React.ComponentType>;
+  component: ValtioRef<{ Component: React.ComponentType<WorkflowReactFlowStore['nodes'][number]> }>;
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;

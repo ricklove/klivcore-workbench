@@ -7,6 +7,7 @@ import {
   type WorkflowRuntimeStore,
 } from '../types';
 import { proxy } from 'valtio';
+import { builtinNodeTypes } from './node-types';
 
 const getters = {
   node: {
@@ -215,7 +216,9 @@ export const createWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
 ): WorkflowRuntimeStore => {
   const storeObj = loadWorkflowStoreFromDocument(document);
-  const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {};
+  const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
+    ...builtinNodeTypes,
+  };
   const store: WorkflowRuntimeStore = proxy({
     ...storeObj,
     nodeTypes,
