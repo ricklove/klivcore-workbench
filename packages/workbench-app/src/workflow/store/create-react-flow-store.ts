@@ -139,7 +139,7 @@ export const useReactFlowStore = (
   const [nodes, setNodes] = useState(() => reactFlowStoreAccess.getStore().nodes);
   const [edges, setEdges] = useState(() => reactFlowStoreAccess.getStore().edges);
 
-  const SYNC_TIMEOUT = 1000;
+  const SYNC_TIMEOUT = 250;
   // useEffect(() => {
   //   const id = setTimeout(() => {
   //     setNodeTypes(reactFlowStore.nodeTypes);
@@ -203,15 +203,25 @@ export const useReactFlowStore = (
           node.selected = change.selected;
           continue;
         }
+
+        const SNAP_POS_SIZE = 8;
+        const SNAP_DIM_SIZE = 8;
+
         if (change.type === 'position') {
-          node.position.x = change.position?.x ?? node.position.x;
-          node.position.y = change.position?.y ?? node.position.y;
+          node.position.x =
+            Math.round((change.position?.x ?? node.position.x) / SNAP_POS_SIZE) * SNAP_POS_SIZE;
+          node.position.y =
+            Math.round((change.position?.y ?? node.position.y) / SNAP_POS_SIZE) * SNAP_POS_SIZE;
           continue;
         }
 
         if (change.type === 'dimensions') {
-          node.position.width = change.dimensions?.width ?? node.position.width;
-          node.position.height = change.dimensions?.height ?? node.position.height;
+          node.position.width =
+            Math.round((change.dimensions?.width ?? node.position.width) / SNAP_DIM_SIZE) *
+            SNAP_DIM_SIZE;
+          node.position.height =
+            Math.round((change.dimensions?.height ?? node.position.height) / SNAP_DIM_SIZE) *
+            SNAP_DIM_SIZE;
           continue;
         }
 

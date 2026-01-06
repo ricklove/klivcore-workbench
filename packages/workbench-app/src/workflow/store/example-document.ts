@@ -48,6 +48,32 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
       parentId: undefined,
     },
     {
+      id: N`n3`,
+      type: T`string`,
+      position: { x: 0, y: 400, width: 100, height: 50 },
+      inputs: [
+        {
+          name: I`value`,
+          type: V`string`,
+          source: {
+            nodeId: N`n2`,
+            name: O`value`,
+          },
+        },
+      ],
+      outputs: [
+        {
+          name: O`value`,
+          type: V`string`,
+        },
+      ],
+      data: {
+        value: 'test3',
+      },
+      mode: undefined,
+      parentId: undefined,
+    },
+    {
       id: N`n2b`,
       type: T`string`,
       position: { x: -200, y: 300, width: 100, height: 50 },
@@ -68,13 +94,13 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
         },
       ],
       data: {
-        value: 'test2',
+        value: 'test also',
       },
       mode: undefined,
       parentId: undefined,
     },
     {
-      id: N`n3`,
+      id: N`nb`,
       type: T`string`,
       position: { x: 200, y: -100, width: 100, height: 50 },
       inputs: [],
@@ -99,7 +125,7 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
           name: I`importPath`,
           type: V`string`,
           source: {
-            nodeId: N`n3`,
+            nodeId: N`nb`,
             name: O`value`,
           },
         },

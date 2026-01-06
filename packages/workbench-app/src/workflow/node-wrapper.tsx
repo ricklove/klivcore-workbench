@@ -83,7 +83,7 @@ const NodeWrapper = ({
                 className="absolute bottom-10 flex min-h-[600px] flex-col justify-end gap-1"
                 style={{ width: `200%`, marginLeft: `-50%` }}
               >
-                <div className="flex flex-col flex-1 p-1 text-xs bg-blue-200 border border-blue-800 rounded nowheel nodrag nopan">
+                <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
                   <div className="flex flex-row items-center justify-between gap-1 p-0.5">
                     <div>{id}</div>
                     <div>{typeName}</div>
@@ -101,7 +101,7 @@ const NodeWrapper = ({
                     </div>
                   </div>
                   <textarea
-                    className="min-h-[200px] flex-1 resize-none bg-white p-1"
+                    className="min-h-[200px] flex-1 resize-none bg-black p-1"
                     value={JSON.stringify(
                       expandInfo === `data`
                         ? data
