@@ -6,7 +6,15 @@ import {
   type WorkflowRuntimeNode,
   type WorkflowRuntimeStore,
 } from '../types';
-import { type Connection, type EdgeChange, type NodeChange } from '@xyflow/react';
+import {
+  applyEdgeChanges,
+  applyNodeChanges,
+  type Connection,
+  type Edge,
+  type EdgeChange,
+  type Node,
+  type NodeChange,
+} from '@xyflow/react';
 import { useEffect, useMemo, useState } from 'react';
 import { memoize } from 'proxy-memoize';
 
@@ -28,9 +36,9 @@ export const createReactFlowStore = (
     ),
   );
 
-  const memorizeObjToArray = memoize(<T>(x: Record<string, T>) => {
+  const memoizeObjToArray = memoize(<T>(x: Record<string, T>) => {
     const result = Object.values(x) as T[];
-    console.log(`[createReactFlowStore:memorizeObjToArray] result`, { result, memorizeObjToArray });
+    console.log(`[createReactFlowStore:memoizeObjToArray] result`, { result, memoizeObjToArray });
     return result;
   });
 
@@ -52,12 +60,12 @@ export const createReactFlowStore = (
     console.log(`[createReactFlowStore:memoizeNode] result`, { result, memoizeNode });
     return result;
   });
-  const memoizeNodes = (snap: StoreSnap) => {
-    const items = memorizeObjToArray(snap.nodes as unknown as Record<string, NodeSnap>);
+  const memoizeNodes = memoize((snap: StoreSnap) => {
+    const items = memoizeObjToArray(snap.nodes as unknown as Record<string, NodeSnap>);
     const result = items.map((x) => memoizeNode(x as unknown as NodeSnap));
     // console.log(`[createReactFlowStore:memoizeNodes] result`, { result, memoizeNodes });
     return result;
-  };
+  });
 
   const memoizeEdge = memoize((x: EdgeSnap): WorkflowReactFlowStore['edges'][number] => {
     const result = {
@@ -75,7 +83,7 @@ export const createReactFlowStore = (
     return result;
   });
   const memoizeEdges = memoize((snap: StoreSnap) => {
-    const items = memorizeObjToArray(snap.edges as unknown as Record<string, EdgeSnap>);
+    const items = memoizeObjToArray(snap.edges as unknown as Record<string, EdgeSnap>);
     const result = items
       .map((x) => memoizeEdge(x as unknown as EdgeSnap))
       .filter((x): x is NonNullable<typeof x> => !!x);
@@ -101,9 +109,7 @@ export const createReactFlowStore = (
           //   posX: Object.values(store.nodes)[0]?.position.x,
           //   snap,
           // });
-          return memoizeNodes(
-            snap as unknown as StoreSnap,
-          ) as unknown as WorkflowReactFlowStore['nodes'];
+          return memoizeNodes(snap as unknown as StoreSnap);
         },
         get edges() {
           // console.log(`[createReactFlowStore:get edges()]`, {
@@ -127,21 +133,50 @@ export const useReactFlowStore = (
 } => {
   const reactFlowStoreAccess = useMemo(() => createReactFlowStore(store), [store]);
   const reactFlowStore = reactFlowStoreAccess.getStore();
+  // const { nodeTypes, nodes, edges } = reactFlowStore;
+
+  const [nodeTypes, setNodeTypes] = useState(() => reactFlowStore.nodeTypes);
+  const [nodes, setNodes] = useState(() => reactFlowStore.nodes);
+  const [edges, setEdges] = useState(() => reactFlowStore.edges);
+
+  const SYNC_TIMEOUT = 100;
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setNodeTypes(reactFlowStore.nodeTypes);
+    }, SYNC_TIMEOUT);
+    return () => clearTimeout(id);
+  }, [reactFlowStore.nodeTypes]);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setNodes(reactFlowStore.nodes);
+    }, SYNC_TIMEOUT);
+    return () => clearTimeout(id);
+  }, [reactFlowStore.nodes]);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setEdges(reactFlowStore.edges);
+    }, SYNC_TIMEOUT);
+    return () => clearTimeout(id);
+  }, [reactFlowStore.edges]);
 
   // refresh on any store change
   const [, setRenderId] = useState(0);
   useEffect(() => {
     return subscribe(store, () => {
-      setRenderId((s) => s + 1);
+      setTimeout(() => {
+        setRenderId((s) => s + 1);
+      }, SYNC_TIMEOUT);
     });
   }, [store]);
 
   const _store = { store }.store;
   return {
-    nodeTypes: reactFlowStore.nodeTypes,
-    nodes: reactFlowStore.nodes,
-    edges: reactFlowStore.edges,
+    nodeTypes,
+    nodes,
+    edges,
     onNodesChange: (changes: NodeChange[]) => {
+      setNodes((s) => applyNodeChanges(changes, s as unknown as Node[]) as typeof nodes);
+
       for (const change of changes) {
         if (change.type === 'add') {
           console.log(`[useReactFlowStore] Unhandled node add`, { change });
@@ -161,7 +196,6 @@ export const useReactFlowStore = (
         if (change.type === 'position') {
           node.position.x = change.position?.x ?? node.position.x;
           node.position.y = change.position?.y ?? node.position.y;
-
           continue;
         }
 
@@ -180,6 +214,8 @@ export const useReactFlowStore = (
       }
     },
     onEdgesChange: (changes: EdgeChange[]) => {
+      setEdges((s) => applyEdgeChanges(changes, s as unknown as Edge[]) as typeof edges);
+
       for (const change of changes) {
         if (change.type === 'add') {
           console.log(`[useReactFlowStore] Unhandled edge add`, { change });
