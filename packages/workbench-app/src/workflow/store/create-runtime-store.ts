@@ -120,6 +120,7 @@ const loadWorkflowStoreFromDocument = (
       inputs: n.inputs.map((x) => ({
         name: x.name,
         type: x.type,
+        value: createRuntimeValue({ data: undefined }),
         edgeId: undefined,
         getEdge() {
           return getters.node.inputs.getEdge(storeObj, this);
@@ -128,6 +129,7 @@ const loadWorkflowStoreFromDocument = (
       outputs: n.outputs.map((x) => ({
         name: x.name,
         type: x.type,
+        value: createRuntimeValue({ data: undefined }),
         edgeIds: undefined,
         getEdges() {
           return getters.node.outputs.getEdges(storeObj, this);
@@ -161,6 +163,7 @@ const loadWorkflowStoreFromDocument = (
         source: {
           nodeId: input.source.nodeId,
           outputName: input.source.name,
+
           getNode() {
             return getters.edge.source.getNode(storeObj, this);
           },
@@ -172,6 +175,7 @@ const loadWorkflowStoreFromDocument = (
             return getters.edge.target.getNode(storeObj, this);
           },
         },
+        value: createRuntimeValue({ data: undefined }),
         getGraphErrors() {
           return getters.edge.getGraphErrors(storeObj, this);
         },
@@ -239,6 +243,7 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
     node.inputs.push({
       name: typeInput.name,
       type: typeInput.type,
+      value: createRuntimeValue({ data: undefined }),
       edgeId: undefined,
       getEdge() {
         return getters.node.inputs.getEdge(store, this);
@@ -254,6 +259,7 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
     node.outputs.push({
       name: typeOutput.name,
       type: typeOutput.type,
+      value: createRuntimeValue({ data: undefined }),
       edgeIds: undefined,
       getEdges() {
         return getters.node.outputs.getEdges(store, this);
@@ -309,6 +315,7 @@ export const createWorkflowStoreFromDocument = (
           inputs: nodeType.inputs.map((i) => ({
             name: i.name,
             type: i.type,
+            value: createRuntimeValue({ data: undefined }),
             edgeId: undefined,
             getEdge() {
               return getters.node.inputs.getEdge(store, this);
@@ -317,6 +324,7 @@ export const createWorkflowStoreFromDocument = (
           outputs: nodeType.outputs.map((o) => ({
             name: o.name,
             type: o.type,
+            value: createRuntimeValue({ data: undefined }),
             edgeIds: undefined,
             getEdges() {
               return getters.node.outputs.getEdges(store, this);
@@ -409,6 +417,7 @@ export const createWorkflowStoreFromDocument = (
               return getters.edge.target.getNode(store, this);
             },
           },
+          value: createRuntimeValue({ data: undefined }),
           getGraphErrors() {
             return getters.edge.getGraphErrors(store, this);
           },

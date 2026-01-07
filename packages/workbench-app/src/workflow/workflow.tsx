@@ -7,15 +7,17 @@ import {
   type Node,
   ReactFlowProvider,
   type XYPosition,
+  Panel,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
 import { exampleWorkflowDocument } from './store/example-document';
 import { createWorkflowStoreFromDocument } from './store/create-runtime-store';
 import { useReactFlowStore } from './store/create-react-flow-store';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { persistStoreToDocument } from './store/save-document';
 import type { WorkflowDocumentData } from './types';
+import { createWorkflowEngine } from './store/engine';
 
 const edgeTypes = {
   custom: CustomEdge,
@@ -35,6 +37,7 @@ const runtimeStore = createWorkflowStoreFromDocument(
   })(),
 );
 const storePersistance = persistStoreToDocument(runtimeStore);
+const storeEngine = createWorkflowEngine(runtimeStore);
 
 export const WorkflowView = () => {
   return (
@@ -125,6 +128,8 @@ const WorkflowViewInner = () => {
     [setCenter, setViewport],
   );
 
+  const [, setEngineRunning] = useState(storeEngine.running);
+
   return (
     <div className="w-full h-full bg-slate-900 text-white">
       <ReactFlow
@@ -149,6 +154,21 @@ const WorkflowViewInner = () => {
           onNodeClick={handleMiniMapNodeClick}
           onClick={handleMiniMapClick}
         />
+        <Panel position="top-left">
+          <button
+            className={`px-2 py-1 rounded ${storeEngine.running ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+            onClick={() => {
+              if (storeEngine.running) {
+                storeEngine.stop({ shouldAbort: true });
+              } else {
+                storeEngine.start();
+              }
+              setEngineRunning(storeEngine.running);
+            }}
+          >
+            {storeEngine.running ? `⏹ Stop` : `▶ Run`}
+          </button>
+        </Panel>
       </ReactFlow>
     </div>
   );

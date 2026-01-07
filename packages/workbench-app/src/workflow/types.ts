@@ -10,10 +10,10 @@ type WorkflowTimestamp = number & {
 };
 
 // TODO: make these objects so they can be renamed
-type WorkflowNodeId = string & { __brand: 'WorkflowNodeId' };
-type WorkflowEdgeId = string & { __brand: 'WorkflowEdgeId' };
-type WorkflowOutputName = string & { __brand: 'WorkflowOutputName' };
-type WorkflowInputName = string & { __brand: 'WorkflowInputName' };
+export type WorkflowNodeId = string & { __brand: 'WorkflowNodeId' };
+export type WorkflowEdgeId = string & { __brand: 'WorkflowEdgeId' };
+export type WorkflowOutputName = string & { __brand: 'WorkflowOutputName' };
+export type WorkflowInputName = string & { __brand: 'WorkflowInputName' };
 
 export const WorkflowBrandedTypes = {
   typeName: (value: string) => value as unknown as WorkflowNodeTypeName,
@@ -114,14 +114,14 @@ export type WorkflowRuntimeNode = {
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;
-    value?: WorkflowRuntimeValue;
+    value: WorkflowRuntimeValue;
     edgeId?: WorkflowEdgeId;
     getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
   outputs: {
     name: WorkflowOutputName;
     type: WorkflowValueType;
-    value?: WorkflowRuntimeValue;
+    value: WorkflowRuntimeValue;
     edgeIds?: WorkflowEdgeId[];
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
@@ -148,7 +148,7 @@ export type WorkflowRuntimeEdge = {
     getNode: () => undefined | WorkflowRuntimeNode;
     inputName: WorkflowInputName;
   };
-  value?: WorkflowRuntimeValue;
+  value: WorkflowRuntimeValue;
   selected?: boolean;
   getGraphErrors():
     | undefined
@@ -219,14 +219,7 @@ export type WorkflowRuntimeStoreActions = {
 
 export type WorkflowExecutionController = {
   abortSignal: AbortSignal;
-  setProgress: (
-    valueOrSetter:
-      | { progressRatio: number; message?: string }
-      | ((prev: { progressRatio: number; message?: string }) => {
-          progressRatio: number;
-          message?: string;
-        }),
-  ) => void;
+  setProgress: (value: { progressRatio: number; message?: string }) => void;
 };
 
 type ValtioRef<T> = T & {
@@ -243,6 +236,11 @@ export type WorkflowRuntimeNodeTypeDefinition = {
     name: WorkflowOutputName;
     type: WorkflowValueType;
   }[];
+  /** execute the node's logic
+   * use null to reset output value or the data object
+   * undefined output keys will not be changed
+   * undefined data will not update the node's data
+   */
   execute: (args: {
     inputs: Record<string, unknown>;
     data: JsonObject;
@@ -250,6 +248,10 @@ export type WorkflowRuntimeNodeTypeDefinition = {
     node: WorkflowRuntimeNode;
     store: WorkflowRuntimeStore;
   }) => Promise<{ outputs: Record<string, unknown>; data?: JsonObject }>;
+
+  // TODO: node lifecycle methods (to replace automatic population of inputs/outputs)
+  // loadNodeType?: (store: WorkflowRuntimeStore) => void;
+  // unloadNodeType?: (store: WorkflowRuntimeStore) => void;
 };
 
 export type WorkflowRuntimeExecutionState = {
@@ -259,9 +261,6 @@ export type WorkflowRuntimeExecutionState = {
   progressRatio?: number;
   progressMessage?: string;
   errorMessage?: string;
-  /** Used for change tracking */
-  inputDataChangeCounters: Record<WorkflowInputName, number>;
-  nodeDataChangeCounter: number;
 
   /** Completed execution states */
   history: {
@@ -273,7 +272,7 @@ export type WorkflowRuntimeExecutionState = {
 };
 
 export type WorkflowRuntimeEngine = {
-  setup: (store: WorkflowRuntimeStore) => void;
+  running: boolean;
   /** start running the nodes, based on the engines scheduling logic */
   start: () => void;
   /** stop running the nodes, optionally abort current node executions */
