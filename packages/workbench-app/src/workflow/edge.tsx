@@ -114,10 +114,10 @@ export const CustomEdge = (props: {
           <div
             className="absolute z-50 text-sm"
             style={{
-              transform: `translate(-50%, -50%) translate(${midX}px, ${midY}px)`,
+              transform: `translate(-50%, -50%) translate(${midX}px, ${midY}px) scale(0.5)`,
             }}
           >
-            <div className="absolute bottom-10 flex h-50 w-50 flex-col justify-end gap-1">
+            <div className="absolute bottom-10 flex h-50 w-50 flex-col justify-end gap-1 pointer-events-auto">
               <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
                 <div className="flex flex-row items-center justify-between gap-1 p-0.5">
                   <div>{id}</div>
