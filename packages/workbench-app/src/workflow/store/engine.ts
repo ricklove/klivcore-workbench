@@ -10,10 +10,137 @@ import {
   type WorkflowEdgeId,
   type WorkflowRuntimeExecutionState,
   WorkflowBrandedTypes,
+  type WorkflowExecutionArgs,
 } from '../types';
 
+const executeNode = async ({
+  node,
+  store,
+  abortSignal,
+}: {
+  node: WorkflowRuntimeNode;
+  store: WorkflowRuntimeStore;
+  abortSignal: AbortSignal;
+}) => {
+  const nodeId = node.id;
+  const typeDef = store.nodeTypes[node.type];
+  if (!typeDef) {
+    console.warn(`[createWorkflowEngine:processNodeQueue] Node type definition not found:`, {
+      nodeId,
+      type: node.type,
+    });
+    return;
+  }
+
+  console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Executing node:`, {
+    nodeId,
+    node,
+  });
+  const executionState: WorkflowRuntimeExecutionState =
+    node.executionState ??
+    (node.executionState = {
+      status: `initial`,
+      history: [],
+    });
+
+  if (executionState.status === `running`) {
+    console.warn(
+      `[createWorkflowEngine:processNodeQueue:executeNode] Node is already running, skipping execution:`,
+      {
+        nodeId,
+        node,
+        executionState,
+      },
+    );
+    return;
+  }
+
+  executionState.status = `running`;
+  executionState.startTimestamp = WorkflowBrandedTypes.now();
+  executionState.endTimestamp = undefined;
+  executionState.progressRatio = 0;
+  executionState.progressMessage = undefined;
+  executionState.errorMessage = undefined;
+
+  const args: WorkflowExecutionArgs = {
+    inputs: Object.fromEntries(node.inputs.map((input) => [input.name, input.value.data])),
+    data: node.data.data,
+    node,
+    store,
+    controller: {
+      abortSignal,
+      setProgress: ({ progressRatio, message }) => {
+        console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
+          nodeId,
+          progressRatio,
+          message,
+        });
+        executionState.progressRatio = progressRatio;
+        executionState.progressMessage = message;
+      },
+    },
+  };
+
+  try {
+    const result = await typeDef.execute(args);
+    abortSignal.throwIfAborted();
+
+    executionState.status = `success`;
+    executionState.endTimestamp = WorkflowBrandedTypes.now();
+
+    console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution done:`, {
+      nodeId,
+      result,
+      executionState,
+      node,
+      args,
+    });
+
+    if (!result) {
+      return;
+    }
+
+    // set outputs
+    for (const output of node.outputs) {
+      if (output === undefined) continue;
+      output.value.data = result.outputs[output.name] ?? undefined;
+    }
+
+    // set node data
+    if (result.data !== undefined) {
+      node.data.data = result.data ?? undefined;
+    }
+  } catch (err) {
+    if (abortSignal.aborted) {
+      executionState.status = `aborted`;
+      executionState.endTimestamp = WorkflowBrandedTypes.now();
+      console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
+        nodeId,
+        args,
+      });
+    } else {
+      executionState.status = `error`;
+      executionState.endTimestamp = WorkflowBrandedTypes.now();
+      executionState.errorMessage = (err as Error)?.message ?? `Unknown error`;
+
+      console.error(`[createWorkflowEngine:processNodeQueue:executeNode] Error executing node:`, {
+        nodeId,
+        err,
+        args,
+      });
+    }
+  }
+
+  executionState.history.push({
+    status: executionState.status,
+    startTimestamp: executionState.startTimestamp!,
+    endTimestamp: executionState.endTimestamp!,
+    errorMessage: executionState.errorMessage,
+  });
+};
+
 export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRuntimeEngine => {
-  const state = {
+  const engineState = {
     running: false,
     /** add nodes to the nodeQueue when input changes
      * remove nodes from the nodeQueue when they finished executing and sent outputs
@@ -27,13 +154,13 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
 
   const processNodeQueue = () => {
     // forward data
-    for (const nodeId of state.nodeQueue) {
+    for (const nodeId of engineState.nodeQueue) {
       const node = store.nodes[nodeId];
       if (!node) {
         console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
           nodeId,
         });
-        state.nodeQueue.delete(nodeId);
+        engineState.nodeQueue.delete(nodeId);
         continue;
       }
 
@@ -42,15 +169,16 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
       // send outputs to target inputs
       for (const output of node.outputs) {
         const hasChanged =
-          output.value.dataChangeCounter !== state.dataChangeCounters.get(output.value);
+          output.value.dataChangeCounter !== engineState.dataChangeCounters.get(output.value);
         if (!hasChanged) {
           console.log(`[createWorkflowEngine:processNodeQueue] Node output has changed:`, {
             nodeId,
             outputName: output.name,
+            output,
           });
           continue;
         }
-        state.dataChangeCounters.set(output.value, output.value.dataChangeCounter);
+        engineState.dataChangeCounters.set(output.value, output.value.dataChangeCounter);
 
         for (const edge of output.getEdges()) {
           edge.value.data = output.value.data;
@@ -73,10 +201,10 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
 
       // check for new input edges, and pull if new edge
       for (const input of node.inputs) {
-        if (input.edgeId === state.inputEdges.get(input)) {
+        if (input.edgeId === engineState.inputEdges.get(input)) {
           continue;
         }
-        state.inputEdges.set(input, input.edgeId);
+        engineState.inputEdges.set(input, input.edgeId);
 
         const edge = store.edges[input.edgeId!];
         if (!edge) {
@@ -100,137 +228,70 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
     }
 
     // execute nodes
-    for (const nodeId of state.nodeQueue) {
+    const nodeIdsToExecute = [] as WorkflowNodeId[];
+    for (const nodeId of engineState.nodeQueue) {
       const node = store.nodes[nodeId];
       if (!node) {
         console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
           nodeId,
         });
-        state.nodeQueue.delete(nodeId);
+        engineState.nodeQueue.delete(nodeId);
         continue;
       }
 
-      const hasInputChanges = node.inputs.some(
-        (input) => input.value.dataChangeCounter !== state.dataChangeCounters.get(input.value),
-      );
-      if (!hasInputChanges) {
+      const hasInputOrDataChanged =
+        node.inputs.some(
+          (input) =>
+            input.value.dataChangeCounter !== engineState.dataChangeCounters.get(input.value),
+        ) || node.data.dataChangeCounter !== engineState.dataChangeCounters.get(node.data);
+      if (!hasInputOrDataChanged) {
         console.log(`[createWorkflowEngine:processNodeQueue] Node inputs have not changed:`, {
           nodeId,
         });
-        state.nodeQueue.delete(nodeId);
+        engineState.nodeQueue.delete(nodeId);
         continue;
       }
+      // update data change counters
+      for (const input of node.inputs) {
+        engineState.dataChangeCounters.set(input.value, input.value.dataChangeCounter);
+      }
+      engineState.dataChangeCounters.set(node.data, node.data.dataChangeCounter);
 
-      const typeDef = store.nodeTypes[node.type];
-      if (!typeDef) {
-        console.warn(`[createWorkflowEngine:processNodeQueue] Node type definition not found:`, {
+      engineState.nodeQueue.delete(nodeId);
+      nodeIdsToExecute.push(nodeId);
+    }
+
+    for (const nodeId of nodeIdsToExecute) {
+      const node = store.nodes[nodeId];
+      if (!node) {
+        console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
           nodeId,
-          type: node.type,
         });
-        state.nodeQueue.delete(nodeId);
         continue;
       }
-
-      (async () => {
-        console.log(`[createWorkflowEngine:processNodeQueue] Executing node:`, { nodeId, node });
-        const executionState: WorkflowRuntimeExecutionState =
-          node.executionState ??
-          (node.executionState = {
-            status: `initial`,
-            history: [],
-          });
-
-        executionState.status = `running`;
-        executionState.startTimestamp = WorkflowBrandedTypes.now();
-        executionState.endTimestamp = undefined;
-        executionState.progressRatio = 0;
-        executionState.progressMessage = undefined;
-        executionState.errorMessage = undefined;
-
-        try {
-          const result = await typeDef.execute({
-            inputs: Object.fromEntries(node.inputs.map((input) => [input.name, input.value.data])),
-            data: node.data.data,
-            node,
-            store,
-            controller: {
-              abortSignal: state.abortController.signal,
-              setProgress: ({ progressRatio, message }) => {
-                console.log(`[createWorkflowEngine:processNodeQueue] Node progress:`, {
-                  nodeId,
-                  progressRatio,
-                  message,
-                });
-                executionState.progressRatio = progressRatio;
-                executionState.progressMessage = message;
-              },
-            },
-          });
-          state.abortController.signal.throwIfAborted();
-
-          executionState.status = `success`;
-          executionState.endTimestamp = WorkflowBrandedTypes.now();
-
-          // set outputs
-          for (const output of node.outputs) {
-            if (output === undefined) continue;
-            output.value.data = result.outputs[output.name] ?? undefined;
-          }
-
-          // set node data
-          if (result.data !== undefined) {
-            node.data.data = result.data ?? undefined;
-          }
-        } catch (err) {
-          if (state.abortController.signal.aborted) {
-            executionState.status = `aborted`;
-            executionState.endTimestamp = WorkflowBrandedTypes.now();
-            console.log(`[createWorkflowEngine:processNodeQueue] Node execution aborted:`, {
-              nodeId,
-            });
-          } else {
-            executionState.status = `error`;
-            executionState.endTimestamp = WorkflowBrandedTypes.now();
-            executionState.errorMessage = (err as Error)?.message ?? `Unknown error`;
-
-            console.error(`[createWorkflowEngine:processNodeQueue] Error executing node:`, {
-              nodeId,
-              err,
-            });
-          }
-        }
-
-        executionState.history.push({
-          status: executionState.status,
-          startTimestamp: executionState.startTimestamp!,
-          endTimestamp: executionState.endTimestamp!,
-          errorMessage: executionState.errorMessage,
-        });
-
-        state.nodeQueue.delete(nodeId);
-      })();
+      void executeNode({ node, store, abortSignal: engineState.abortController.signal });
     }
   };
 
   const engine: WorkflowRuntimeEngine = {
     get running() {
-      return state.running;
+      return engineState.running;
     },
     start: () => {
-      if (state.running) {
+      if (engineState.running) {
         console.warn(`[createWorkflowEngine:start] Engine is already running`, { engine });
         return;
       }
 
       console.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
-      state.running = true;
-      state.abortController = new AbortController();
+      engineState.running = true;
+      engineState.abortController = new AbortController();
 
       // subscribe to store changes
       subscribe(store, (ops) => {
-        if (!state.running) {
-          state.sub?.unsubscribe();
-          state.sub = undefined;
+        if (!engineState.running) {
+          engineState.sub?.unsubscribe();
+          engineState.sub = undefined;
           return;
         }
 
@@ -263,10 +324,10 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
             continue;
           }
 
-          state.nodeQueue.add(p[1]);
+          engineState.nodeQueue.add(p[1]);
         }
 
-        if (!state.nodeQueue.size) {
+        if (!engineState.nodeQueue.size) {
           return;
         }
 
@@ -274,26 +335,26 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
       });
 
       // queue all nodes
-      state.nodeQueue = new Set(Object.keys(store.nodes) as WorkflowNodeId[]);
+      engineState.nodeQueue = new Set(Object.keys(store.nodes) as WorkflowNodeId[]);
       processNodeQueue();
     },
     stop: ({ shouldAbort }) => {
-      if (!state.running) {
+      if (!engineState.running) {
         console.warn(`[createWorkflowEngine:stop] Engine is not running`, { engine });
         return;
       }
 
       console.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, { engine });
-      state.running = false;
-      state.sub?.unsubscribe();
-      state.sub = undefined;
+      engineState.running = false;
+      engineState.sub?.unsubscribe();
+      engineState.sub = undefined;
 
       if (shouldAbort) {
-        state.abortController.abort();
+        engineState.abortController.abort();
       }
     },
     queueNode: (nodeId) => {
-      state.nodeQueue.add(nodeId);
+      engineState.nodeQueue.add(nodeId);
       processNodeQueue();
     },
   };

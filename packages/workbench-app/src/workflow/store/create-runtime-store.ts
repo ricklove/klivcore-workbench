@@ -101,6 +101,29 @@ const getters = {
   },
 };
 
+const createRuntimeValue = <T = Record<string, unknown>>({
+  data,
+  meta,
+}: {
+  data: T;
+  meta?: WorkflowRuntimeValue['meta'];
+}): WorkflowRuntimeValue<T> => {
+  const box = ref<{ data: T }>({ data });
+  const v = {
+    dataChangeCounter: 0,
+    get data() {
+      return box.data;
+    },
+    set data(value: T) {
+      box.data = value;
+      this.dataChangeCounter++;
+    },
+    meta,
+  };
+
+  return v as WorkflowRuntimeValue<T>;
+};
+
 const loadWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
 ): Pick<WorkflowRuntimeStore, `nodes` | `edges` | `nodeTypes`> => {
@@ -197,29 +220,6 @@ const loadWorkflowStoreFromDocument = (
   }
 
   return storeObj;
-};
-
-const createRuntimeValue = <T = Record<string, unknown>>({
-  data,
-  meta,
-}: {
-  data: T;
-  meta?: WorkflowRuntimeValue['meta'];
-}): WorkflowRuntimeValue<T> => {
-  const v = {
-    dataChangeCounter: 0,
-    _data: ref({ data }),
-    get data() {
-      return this._data.data;
-    },
-    set data(value: T) {
-      this._data.data = value;
-      this.dataChangeCounter++;
-    },
-    meta,
-  };
-
-  return v as WorkflowRuntimeValue<T>;
 };
 
 const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode) => {

@@ -125,7 +125,7 @@ export type WorkflowRuntimeNode = {
     edgeIds?: WorkflowEdgeId[];
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
-  data: WorkflowRuntimeValue<JsonObject>;
+  data: WorkflowRuntimeValue<undefined | JsonObject>;
   selected?: boolean;
   mode?: `passthrough` | `disabled`;
   executionState?: WorkflowRuntimeExecutionState;
@@ -163,10 +163,10 @@ export type WorkflowRuntimeEdge = {
 
 export type WorkflowRuntimeValue<T = unknown> = {
   /** valtio ref() */
-  data: T;
+  get data(): T;
+  set data(value: T);
   /** increment each time data changes, used for change tracking */
   dataChangeCounter: number;
-  /** valtio ref() */
   meta?: {
     type: WorkflowValueType;
     source: {
@@ -241,18 +241,26 @@ export type WorkflowRuntimeNodeTypeDefinition = {
    * undefined output keys will not be changed
    * undefined data will not update the node's data
    */
-  execute: (args: {
-    inputs: Record<string, unknown>;
-    data: JsonObject;
-    controller: WorkflowExecutionController;
-    node: WorkflowRuntimeNode;
-    store: WorkflowRuntimeStore;
-  }) => Promise<{ outputs: Record<string, unknown>; data?: JsonObject }>;
+  execute: (args: WorkflowExecutionArgs) => Promise<WorkflowExecutionResult>;
 
   // TODO: node lifecycle methods (to replace automatic population of inputs/outputs)
   // loadNodeType?: (store: WorkflowRuntimeStore) => void;
   // unloadNodeType?: (store: WorkflowRuntimeStore) => void;
 };
+
+export type WorkflowExecutionArgs = {
+  inputs: Record<string, unknown>;
+  data: undefined | JsonObject;
+  controller: WorkflowExecutionController;
+  node: WorkflowRuntimeNode;
+  store: WorkflowRuntimeStore;
+};
+export type WorkflowExecutionResult =
+  | undefined
+  | {
+      outputs: Record<string, unknown>;
+      data?: null | JsonObject;
+    };
 
 export type WorkflowRuntimeExecutionState = {
   status: `initial` | `running` | `success` | `error` | `aborted`;

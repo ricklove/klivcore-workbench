@@ -30,8 +30,13 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
       },
     ],
     execute: async ({ inputs, data }) => {
+      const inputsTyped = inputs as {
+        value: undefined | string;
+      };
+      const dataTyped = data as undefined | { value: undefined | string };
+
       return {
-        outputs: { value: inputs.value ?? data.value },
+        outputs: { value: inputsTyped.value ?? dataTyped?.value ?? null },
       };
     },
   },
