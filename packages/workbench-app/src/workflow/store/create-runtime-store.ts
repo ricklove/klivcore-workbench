@@ -231,7 +231,10 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
     return;
   }
 
-  console.log(`Populating node ${node.id} of type ${node.type}`, { node, typeDef, store });
+  console.log(
+    `Populating node ${node.id} of type ${node.type}`,
+    // , { node, typeDef, store }
+  );
 
   // add type input and outputs
   for (const typeInput of typeDef.inputs) {

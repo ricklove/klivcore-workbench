@@ -58,7 +58,10 @@ export const createReactFlowStore = (
       data: { node: nodeDirect, store, inputs: x.inputs, outputs: x.outputs, data: x.data },
     };
 
-    console.log(`[createReactFlowStore:memoizeNode] result`, { result, memoizeNode });
+    console.log(
+      `[createReactFlowStore:memoizeNode] result`,
+      // , { result, memoizeNode }
+    );
     return result;
   });
   const memoizeNodes = memoize((snap: StoreSnap) => {
@@ -80,7 +83,10 @@ export const createReactFlowStore = (
       data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge, store },
     };
 
-    console.log(`[createReactFlowStore:memoizeEdge] result`, { result, memoizeEdge });
+    console.log(
+      `[createReactFlowStore:memoizeEdge] result`,
+      //, { result, memoizeEdge }
+    );
     return result;
   });
   const memoizeEdges = memoize((snap: StoreSnap) => {
@@ -139,7 +145,7 @@ export const useReactFlowStore = (
   const [nodes, setNodes] = useState(() => reactFlowStoreAccess.getStore().nodes);
   const [edges, setEdges] = useState(() => reactFlowStoreAccess.getStore().edges);
 
-  const SYNC_TIMEOUT = 250;
+  const SYNC_TIMEOUT = 10000;
 
   // refresh on any store change
   const forceUpdate = () => {

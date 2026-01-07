@@ -32,10 +32,13 @@ const executeNode = async ({
     return;
   }
 
-  console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Executing node:`, {
-    nodeId,
-    node,
-  });
+  console.log(
+    `[createWorkflowEngine:processNodeQueue:executeNode] Executing node: ${nodeId}`,
+    //     , {
+    //     nodeId,
+    //     node,
+    //   }
+  );
   const executionState: WorkflowRuntimeExecutionState =
     node.executionState ??
     (node.executionState = {
@@ -88,13 +91,16 @@ const executeNode = async ({
     executionState.status = `success`;
     executionState.endTimestamp = WorkflowBrandedTypes.now();
 
-    console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution done:`, {
-      nodeId,
-      result,
-      executionState,
-      node,
-      args,
-    });
+    console.log(
+      `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
+      //     , {
+      //   nodeId,
+      //   result,
+      //   executionState,
+      //   node,
+      //   args,
+      // }
+    );
 
     if (!result) {
       return;
@@ -123,11 +129,14 @@ const executeNode = async ({
       executionState.endTimestamp = WorkflowBrandedTypes.now();
       executionState.errorMessage = (err as Error)?.message ?? `Unknown error`;
 
-      console.error(`[createWorkflowEngine:processNodeQueue:executeNode] Error executing node:`, {
-        nodeId,
-        err,
-        args,
-      });
+      console.error(
+        `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
+        //     , {
+        //     nodeId,
+        //     err,
+        //     args,
+        //   }
+      );
     }
   }
 
@@ -234,7 +243,10 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
         continue;
       }
 
-      console.log(`[createWorkflowEngine:processNodeQueue] Processing node:`, { nodeId, node });
+      console.log(
+        `[createWorkflowEngine:processNodeQueue] Processing node: ${nodeId}`,
+        // , { nodeId, node }
+      );
 
       // send outputs to target inputs
       for (const output of node.outputs) {

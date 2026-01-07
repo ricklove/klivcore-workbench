@@ -289,6 +289,8 @@ export type WorkflowRuntimeExecutionState = {
 
 export type WorkflowRuntimeEngine = {
   running: boolean;
+  /** get or set the engine tick speed */
+  tickSpeed: number | `slow` | `normal` | `fast`;
   /** start running the nodes, based on the engines scheduling logic */
   start: () => void;
   /** stop running the nodes, optionally abort current node executions */

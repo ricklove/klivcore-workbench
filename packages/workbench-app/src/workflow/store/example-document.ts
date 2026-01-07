@@ -137,3 +137,50 @@ export const exampleWorkflowDocument: WorkflowDocumentData = {
     },
   ],
 };
+
+export const createExampleWorkflowDocumentChain = (length: number) => {
+  const nodes: WorkflowDocumentData['nodes'] = [];
+  const columns = Math.ceil(Math.sqrt(length));
+  const spacingX = 200;
+  const spacingY = 150;
+  const w = 128;
+  const h = 24;
+
+  for (let i = 0; i < length; i++) {
+    nodes.push({
+      id: WorkflowBrandedTypes.nodeId(`node${i}`),
+      type: T`string`,
+      position: {
+        x: (i % columns) * spacingX,
+        y: Math.floor(i / columns) * spacingY,
+        width: w,
+        height: h,
+      },
+      inputs:
+        i === 0
+          ? []
+          : [
+              {
+                name: I`value`,
+                type: V`string`,
+                source: {
+                  nodeId: WorkflowBrandedTypes.nodeId(`node${i - 1}`),
+                  name: O`value`,
+                },
+              },
+            ],
+      outputs: [
+        {
+          name: O`value`,
+          type: V`string`,
+        },
+      ],
+      data: {
+        value: `Node ${i} value`,
+      },
+      mode: undefined,
+      parentId: undefined,
+    });
+  }
+  return { nodes };
+};

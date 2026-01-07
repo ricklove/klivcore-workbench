@@ -11,7 +11,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
-import { exampleWorkflowDocument } from './store/example-document';
+import { createExampleWorkflowDocumentChain } from './store/example-document';
 import { createWorkflowStoreFromDocument } from './store/create-runtime-store';
 import { useReactFlowStore } from './store/create-react-flow-store';
 import { useCallback, useEffect, useState } from 'react';
@@ -33,7 +33,7 @@ const runtimeStore = createWorkflowStoreFromDocument(
       console.error(`[WorkflowView] Error parsing stored workflow document`, { err });
     }
 
-    return exampleWorkflowDocument;
+    return createExampleWorkflowDocumentChain(100);
   })(),
 );
 const storePersistance = persistStoreToDocument(runtimeStore);
