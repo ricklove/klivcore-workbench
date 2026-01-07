@@ -129,6 +129,9 @@ const WorkflowViewInner = () => {
   );
 
   const [, setEngineRunning] = useState(storeEngine.running);
+  const [tickSpeed, setTickSpeed] = useState(
+    typeof storeEngine.tickSpeed === 'number' ? storeEngine.tickSpeed : 1000,
+  );
 
   return (
     <div className="w-full h-full bg-slate-900 text-white">
@@ -155,19 +158,37 @@ const WorkflowViewInner = () => {
           onClick={handleMiniMapClick}
         />
         <Panel position="top-left">
-          <button
-            className={`px-2 py-1 rounded ${storeEngine.running ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-            onClick={() => {
-              if (storeEngine.running) {
-                storeEngine.stop({ shouldAbort: true });
-              } else {
-                storeEngine.start();
-              }
-              setEngineRunning(storeEngine.running);
-            }}
-          >
-            {storeEngine.running ? `⏹ Stop` : `▶ Run`}
-          </button>
+          <div className="flex flex-row items-center gap-1">
+            <button
+              className={`px-2 py-1 rounded ${storeEngine.running ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+              onClick={() => {
+                if (storeEngine.running) {
+                  storeEngine.stop({ shouldAbort: true });
+                } else {
+                  storeEngine.start();
+                }
+                setEngineRunning(storeEngine.running);
+              }}
+            >
+              {storeEngine.running ? `⏹ Stop` : `▶ Run`}
+            </button>
+            <input
+              type="range"
+              min="-1000"
+              max="2000"
+              step="10"
+              value={tickSpeed}
+              title={storeEngine.tickSpeed.toString()}
+              className="ml-4"
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                storeEngine.tickSpeed = val < -500 ? `fast` : val < 0 ? `normal` : val;
+                setTickSpeed(val);
+                console.log(`[WorkflowView] Set engine tick speed to ${val}ms`);
+              }}
+            />
+            <div>{storeEngine.tickSpeed}</div>
+          </div>
         </Panel>
       </ReactFlow>
     </div>

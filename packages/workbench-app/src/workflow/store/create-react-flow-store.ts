@@ -140,41 +140,37 @@ export const useReactFlowStore = (
   const [edges, setEdges] = useState(() => reactFlowStoreAccess.getStore().edges);
 
   const SYNC_TIMEOUT = 250;
-  // useEffect(() => {
-  //   const id = setTimeout(() => {
-  //     setNodeTypes(reactFlowStore.nodeTypes);
-  //   }, SYNC_TIMEOUT);
-  //   return () => clearTimeout(id);
-  // }, [reactFlowStore.nodeTypes]);
-  // useEffect(() => {
-  //   const id = setTimeout(() => {
-  //     setNodes(reactFlowStore.nodes);
-  //   }, SYNC_TIMEOUT);
-  //   return () => clearTimeout(id);
-  // }, [reactFlowStore.nodes]);
-  // useEffect(() => {
-  //   const id = setTimeout(() => {
-  //     setEdges(reactFlowStore.edges);
-  //   }, SYNC_TIMEOUT);
-  //   return () => clearTimeout(id);
-  // }, [reactFlowStore.edges]);
 
   // refresh on any store change
-  const [, setRenderId] = useState(0);
   const forceUpdate = () => {
     const reactFlowStore = reactFlowStoreAccess.getStore();
-    setNodeTypes(reactFlowStore.nodeTypes);
-    setNodes(reactFlowStore.nodes);
-    setEdges(reactFlowStore.edges);
+    setNodeTypes(() => reactFlowStore.nodeTypes);
+    setNodes((s) => {
+      return reactFlowStore.nodes.map((n, i) => ({
+        ...s[i],
+        ...n,
+      }));
+    });
+    setEdges((s) => {
+      return reactFlowStore.edges.map((n, i) => ({
+        ...s[i],
+        ...n,
+      }));
+    });
   };
 
   useEffect(() => {
     let timeoutId = 0 as unknown as ReturnType<typeof setTimeout>;
     return subscribe(store, () => {
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        return;
+      }
+
       timeoutId = setTimeout(() => {
-        setRenderId((s) => s + 1);
-        forceUpdate();
+        timeoutId = 0;
+        setTimeout(() => {
+          forceUpdate();
+        });
       }, SYNC_TIMEOUT);
     });
   }, [store]);

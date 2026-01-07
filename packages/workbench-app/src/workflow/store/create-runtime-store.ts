@@ -434,7 +434,38 @@ export const createWorkflowStoreFromDocument = (
         }
       },
       deleteEdge: (edgeId) => {
+        const edge = store.edges[edgeId];
+        if (!edge) {
+          return;
+        }
         delete store.edges[edgeId];
+
+        // remove edge from nodes
+        const targetNode = store.nodes[edge.target.nodeId];
+        const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
+
+        const sourceNode = store.nodes[edge.source.nodeId];
+        const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
+
+        if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
+          console.warn(`[createEdge] Cannot create edge, missing source or target`, {
+            edge,
+            targetNode,
+            targetInput,
+            sourceNode,
+            sourceOutput,
+          });
+          return;
+        }
+
+        if (targetInput) {
+          targetInput.edgeId = undefined;
+        }
+
+        if (sourceOutput) {
+          sourceOutput.edgeIds = sourceOutput.edgeIds || [];
+          sourceOutput.edgeIds.splice(sourceOutput.edgeIds.indexOf(edgeId), 1);
+        }
       },
     },
   });

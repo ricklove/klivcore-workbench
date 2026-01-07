@@ -142,17 +142,87 @@ const executeNode = async ({
 export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRuntimeEngine => {
   const engineState = {
     running: false,
+    isProcessing: false,
+    wasRequestedDuringProcessing: false,
     /** add nodes to the nodeQueue when input changes
      * remove nodes from the nodeQueue when they finished executing and sent outputs
      */
     nodeQueue: new Set<WorkflowNodeId>(),
+    /** nodes to execute, will resume after stop */
+    nodeIdsToExecute: new Set<WorkflowNodeId>(),
     dataChangeCounters: new Map<WorkflowRuntimeValue, number>(),
     inputEdges: new Map<WorkflowRuntimeNode[`inputs`][number], undefined | WorkflowEdgeId>(),
     sub: undefined as undefined | { unsubscribe: () => void },
     abortController: new AbortController(),
+    tickSpeed: 1000 as number | `slow` | `normal` | `fast`,
+  };
+
+  const addNodeToQueue = (nodeId: WorkflowNodeId) => {
+    engineState.nodeQueue.add(nodeId);
+  };
+  const removeNodeFromQueue = (nodeId: WorkflowNodeId) => {
+    // engineState.nodeQueue.delete(nodeId);
+  };
+
+  const clearNodeQueue = () => {
+    // engineState.nodeQueue.clear();
+  };
+  const addAllNodesToQueue = (store: WorkflowRuntimeStore) => {
+    if (Object.keys(store.nodes).length === engineState.nodeQueue.size) {
+      return;
+    }
+
+    engineState.nodeQueue.clear();
+    Object.values(store.nodes).forEach((node) => {
+      engineState.nodeQueue.add(node.id);
+    });
+  };
+
+  const channel = new MessageChannel();
+  const queueMacrotask = (cb: () => void) => {
+    if (typeof engineState.tickSpeed === `number` || engineState.tickSpeed === `slow`) {
+      setTimeout(
+        () => {
+          cb();
+        },
+        typeof engineState.tickSpeed === `number` ? engineState.tickSpeed : 0,
+      );
+      return;
+    }
+    if (engineState.tickSpeed === `normal`) {
+      requestAnimationFrame(() => {
+        cb();
+      });
+      return;
+    }
+
+    channel.port1.onmessage = () => {
+      cb();
+    };
+    channel.port2.postMessage(null);
   };
 
   const processNodeQueue = () => {
+    if (engineState.isProcessing) {
+      engineState.wasRequestedDuringProcessing = true;
+      return;
+    }
+    engineState.isProcessing = true;
+    engineState.wasRequestedDuringProcessing = false;
+
+    queueMicrotask(() => {
+      processNodeQueueInner();
+    });
+    // don't release until macro task
+    queueMacrotask(() => {
+      engineState.isProcessing = false;
+      if (engineState.wasRequestedDuringProcessing) {
+        processNodeQueue();
+      }
+    });
+  };
+
+  const processNodeQueueInner = () => {
     // forward data
     for (const nodeId of engineState.nodeQueue) {
       const node = store.nodes[nodeId];
@@ -160,7 +230,7 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
         console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
           nodeId,
         });
-        engineState.nodeQueue.delete(nodeId);
+        removeNodeFromQueue(nodeId);
         continue;
       }
 
@@ -171,11 +241,11 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
         const hasChanged =
           output.value.dataChangeCounter !== engineState.dataChangeCounters.get(output.value);
         if (!hasChanged) {
-          console.log(`[createWorkflowEngine:processNodeQueue] Node output has changed:`, {
-            nodeId,
-            outputName: output.name,
-            output,
-          });
+          //   console.log(`[createWorkflowEngine:processNodeQueue] Node output has not changed:`, {
+          //     nodeId,
+          //     outputName: output.name,
+          //     output,
+          //   });
           continue;
         }
         engineState.dataChangeCounters.set(output.value, output.value.dataChangeCounter);
@@ -206,9 +276,23 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
         }
         engineState.inputEdges.set(input, input.edgeId);
 
+        // handle edge removal
+        if (!input.edgeId) {
+          input.value.data = undefined;
+          input.value.meta = undefined;
+          console.log(`[createWorkflowEngine:processNodeQueue] Input edge removed:`, {
+            input,
+            node,
+          });
+          continue;
+        }
+
         const edge = store.edges[input.edgeId!];
         if (!edge) {
-          console.warn(`[createWorkflowEngine:processNodeQueue] Input edge not found:`, { input });
+          console.warn(`[createWorkflowEngine:processNodeQueue] Input edge not found:`, {
+            input,
+            node,
+          });
           continue;
         }
 
@@ -228,14 +312,13 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
     }
 
     // execute nodes
-    const nodeIdsToExecute = [] as WorkflowNodeId[];
     for (const nodeId of engineState.nodeQueue) {
       const node = store.nodes[nodeId];
       if (!node) {
         console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
           nodeId,
         });
-        engineState.nodeQueue.delete(nodeId);
+        removeNodeFromQueue(nodeId);
         continue;
       }
 
@@ -245,10 +328,10 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
             input.value.dataChangeCounter !== engineState.dataChangeCounters.get(input.value),
         ) || node.data.dataChangeCounter !== engineState.dataChangeCounters.get(node.data);
       if (!hasInputOrDataChanged) {
-        console.log(`[createWorkflowEngine:processNodeQueue] Node inputs have not changed:`, {
-          nodeId,
-        });
-        engineState.nodeQueue.delete(nodeId);
+        // console.log(`[createWorkflowEngine:processNodeQueue] Node inputs have not changed:`, {
+        //   nodeId,
+        // });
+        removeNodeFromQueue(nodeId);
         continue;
       }
       // update data change counters
@@ -257,11 +340,11 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
       }
       engineState.dataChangeCounters.set(node.data, node.data.dataChangeCounter);
 
-      engineState.nodeQueue.delete(nodeId);
-      nodeIdsToExecute.push(nodeId);
+      removeNodeFromQueue(nodeId);
+      engineState.nodeIdsToExecute.add(nodeId);
     }
 
-    for (const nodeId of nodeIdsToExecute) {
+    for (const nodeId of engineState.nodeIdsToExecute) {
       const node = store.nodes[nodeId];
       if (!node) {
         console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
@@ -269,13 +352,26 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
         });
         continue;
       }
-      void executeNode({ node, store, abortSignal: engineState.abortController.signal });
+      (async () => {
+        await executeNode({ node, store, abortSignal: engineState.abortController.signal });
+        // nodeIdsToExecute.push(nodeId);
+        // processNodeQueue();
+        if (!engineState.abortController.signal.aborted) {
+          engineState.nodeIdsToExecute.delete(nodeId);
+        }
+      })();
     }
   };
 
   const engine: WorkflowRuntimeEngine = {
     get running() {
       return engineState.running;
+    },
+    get tickSpeed() {
+      return engineState.tickSpeed;
+    },
+    set tickSpeed(value) {
+      engineState.tickSpeed = value;
     },
     start: () => {
       if (engineState.running) {
@@ -285,61 +381,65 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
 
       console.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
       engineState.running = true;
+      engineState.isProcessing = false;
+      engineState.wasRequestedDuringProcessing = false;
       engineState.abortController = new AbortController();
 
       // subscribe to store changes
       const sub = subscribe(store, (ops) => {
+        console.log(`[createWorkflowEngine:store.subscribe] Store changed`, { ops });
+
         if (!engineState.running) {
           engineState.sub?.unsubscribe();
           engineState.sub = undefined;
           return;
         }
 
-        console.log(`[createWorkflowEngine:store.subscribe] Store changed`, { ops });
+        // for (const op of ops) {
+        //   const [, path, , ,] = op;
+        //   type _0t = typeof store;
+        //   type _1t = _0t[`nodes`];
+        //   type _2t = _1t[WorkflowNodeId];
+        //   type _3t = _2t[`inputs`] | _2t[`outputs`];
+        //   type _4t = _2t[`inputs`][number] | _2t[`outputs`][number];
+        //   type _5t = NonNullable<_4t[`value`]>;
 
-        for (const op of ops) {
-          const [, path, , ,] = op;
-          type _0t = typeof store;
-          type _1t = _0t[`nodes`];
-          type _2t = _1t[WorkflowNodeId];
-          type _3t = _2t[`inputs`] | _2t[`outputs`];
-          type _4t = _2t[`inputs`][number] | _2t[`outputs`][number];
-          type _5t = NonNullable<_4t[`value`]>;
+        //   type _0 = keyof _0t;
+        //   type _1 = keyof _1t;
+        //   type _2 = keyof _2t;
+        //   type _3 = number; //keyof _3t;
+        //   type _4 = keyof _4t;
+        //   type _5 = keyof _5t;
 
-          type _0 = keyof _0t;
-          type _1 = keyof _1t;
-          type _2 = keyof _2t;
-          type _3 = number; //keyof _3t;
-          type _4 = keyof _4t;
-          type _5 = keyof _5t;
+        //   const p = path as [_0, _1, _2, _3, _4, _5];
 
-          const p = path as [_0, _1, _2, _3, _4, _5];
+        //   // TODO: what if node structure changes? (nodes/edges/inputs/outputs added/removed)
 
-          // TODO: what if node structure changes? (nodes/edges/inputs/outputs added/removed)
+        //   if (
+        //     p[0] !== `nodes` ||
+        //     (p[2] !== `inputs` && p[2] !== `outputs`) ||
+        //     p[4] !== `value` ||
+        //     p[5] !== `data`
+        //   ) {
+        //     continue;
+        //   }
 
-          if (
-            p[0] !== `nodes` ||
-            (p[2] !== `inputs` && p[2] !== `outputs`) ||
-            p[4] !== `value` ||
-            p[5] !== `data`
-          ) {
-            continue;
-          }
+        //   addNodeToQueue(p[1]);
+        // }
 
-          engineState.nodeQueue.add(p[1]);
-        }
+        // if (!engineState.nodeQueue.size) {
+        //   return;
+        // }
 
-        if (!engineState.nodeQueue.size) {
-          return;
-        }
-
+        // queue all nodes
+        addAllNodesToQueue(store);
         processNodeQueue();
       });
 
       engineState.sub = { unsubscribe: sub };
 
       // queue all nodes
-      engineState.nodeQueue = new Set(Object.keys(store.nodes) as WorkflowNodeId[]);
+      addAllNodesToQueue(store);
       processNodeQueue();
     },
     stop: ({ shouldAbort }) => {
@@ -358,7 +458,7 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
       }
     },
     queueNode: (nodeId) => {
-      engineState.nodeQueue.add(nodeId);
+      addNodeToQueue(nodeId);
       processNodeQueue();
     },
   };

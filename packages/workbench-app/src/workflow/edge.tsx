@@ -112,7 +112,7 @@ export const CustomEdge = (props: {
         </div>
         {expandInfo && (
           <div
-            className="absolute z-50"
+            className="absolute z-50 text-sm"
             style={{
               transform: `translate(-50%, -50%) translate(${midX}px, ${midY}px)`,
             }}
@@ -135,7 +135,7 @@ export const CustomEdge = (props: {
                   </div>
                 </div>
                 <textarea
-                  className="min-h-[200px] flex-1 resize-none bg-black p-1"
+                  className="flex-1 resize-none bg-black p-1"
                   value={JSON.stringify(props.data.edge.value, null, 2)}
                   readOnly
                 />
