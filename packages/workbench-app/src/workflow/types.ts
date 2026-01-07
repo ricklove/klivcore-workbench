@@ -24,8 +24,11 @@ export const WorkflowBrandedTypes = {
   I: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowInputName,
   outputName: (value: string) => value as unknown as WorkflowOutputName,
   O: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowOutputName,
+
   nodeId: (value: string) => value as unknown as WorkflowNodeId,
   N: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowNodeId,
+  nodeIdToString: (id: WorkflowNodeId) => id as unknown as string,
+
   edgeIdFormString: (value: string) => value as unknown as WorkflowEdgeId,
   edgeId: (
     sourceNodeId: string,
@@ -83,6 +86,9 @@ export type WorkflowReactFlowStore = {
     data: {
       node: WorkflowRuntimeNode;
       store: WorkflowRuntimeStore;
+      inputs: WorkflowRuntimeNode['inputs'];
+      outputs: WorkflowRuntimeNode['outputs'];
+      data: WorkflowRuntimeNode['data'];
     };
   }[];
   edges: {
@@ -99,6 +105,8 @@ export type WorkflowReactFlowStore = {
     };
   }[];
 };
+
+export type WorkflowComponentProps = WorkflowReactFlowStore['nodes'][number];
 
 export type WorkflowRuntimeNode = {
   id: WorkflowNodeId;
@@ -227,7 +235,7 @@ type ValtioRef<T> = T & {
 };
 export type WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowNodeTypeName;
-  component: ValtioRef<{ Component: React.ComponentType<WorkflowReactFlowStore['nodes'][number]> }>;
+  component: ValtioRef<{ Component: React.ComponentType<WorkflowComponentProps> }>;
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;

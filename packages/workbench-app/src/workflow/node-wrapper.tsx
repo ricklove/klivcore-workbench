@@ -1,12 +1,8 @@
 import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
 import React, { useCallback, useState } from 'react';
-import type { WorkflowRuntimeNode, WorkflowRuntimeStore } from './types';
+import { WorkflowBrandedTypes, type WorkflowComponentProps } from './types';
 
-export const NodeDefault = (props: {
-  id: string;
-  selected: boolean;
-  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
-}) => {
+export const NodeDefault = (props: WorkflowComponentProps) => {
   return (
     <>
       <NodeWrapperSimple {...props}>
@@ -16,12 +12,11 @@ export const NodeDefault = (props: {
   );
 };
 
-export const NodeWrapperSimple = (props: {
-  children: React.ReactNode;
-  id: string;
-  selected: boolean;
-  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
-}) => {
+export const NodeWrapperSimple = (
+  props: WorkflowComponentProps & {
+    children: React.ReactNode;
+  },
+) => {
   return <NodeWrapper {...props} />;
 };
 
@@ -36,16 +31,13 @@ const NodeWrapper = ({
   id,
   selected,
   data: dataReactFlow,
-}: {
+}: WorkflowComponentProps & {
   children: React.ReactNode;
-  id: string;
-  selected: boolean;
-  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
 }) => {
   // console.log(`[NodeWrapper] rendering node ${id}`, { data });
   const { deleteElements, fitView } = useReactFlow();
 
-  const [displayName, setDisplayName] = useState(id);
+  const [displayName, setDisplayName] = useState(WorkflowBrandedTypes.nodeIdToString(id));
   const oldId = React.useRef(id);
   // eslint-disable-next-line react-hooks/refs
   if (oldId.current !== id) {
@@ -72,7 +64,9 @@ const NodeWrapper = ({
     [fitView],
   );
 
-  const [expandInfo, setExpandInfo] = useState(false as false | `data` | `document`);
+  const [expandInfoRaw, setExpandInfo] = useState(false as false | `data` | `document`);
+  const [expandInfoQuick, setExpandInfoQuick] = useState(false);
+  const expandInfo = expandInfoRaw || (expandInfoQuick ? `data` : false);
 
   const typeName = node.type;
   const inputs = node.inputs;
@@ -147,6 +141,8 @@ const NodeWrapper = ({
                   setExpandInfo((s) => (s === `data` ? false : `data`));
                   console.log(`dataReactFlow ${id}`, dataReactFlow);
                 }}
+                onMouseEnter={() => setExpandInfoQuick(true)}
+                onMouseLeave={() => setExpandInfoQuick(false)}
               >
                 {`🔎`}
               </div>

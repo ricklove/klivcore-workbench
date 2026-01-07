@@ -288,12 +288,14 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
       engineState.abortController = new AbortController();
 
       // subscribe to store changes
-      subscribe(store, (ops) => {
+      const sub = subscribe(store, (ops) => {
         if (!engineState.running) {
           engineState.sub?.unsubscribe();
           engineState.sub = undefined;
           return;
         }
+
+        console.log(`[createWorkflowEngine:store.subscribe] Store changed`, { ops });
 
         for (const op of ops) {
           const [, path, , ,] = op;
@@ -333,6 +335,8 @@ export const createWorkflowEngine = (store: WorkflowRuntimeStore): WorkflowRunti
 
         processNodeQueue();
       });
+
+      engineState.sub = { unsubscribe: sub };
 
       // queue all nodes
       engineState.nodeQueue = new Set(Object.keys(store.nodes) as WorkflowNodeId[]);

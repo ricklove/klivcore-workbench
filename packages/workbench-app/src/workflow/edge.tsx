@@ -1,10 +1,6 @@
-import {
-  getBezierPath,
-  useReactFlow,
-  BaseEdge,
-  EdgeLabelRenderer,
-} from "@xyflow/react";
-import { useCallback, useMemo } from "react";
+import { getBezierPath, useReactFlow, BaseEdge, EdgeLabelRenderer } from '@xyflow/react';
+import { useCallback, useMemo, useState } from 'react';
+import type { WorkflowRuntimeEdge, WorkflowRuntimeStore } from './types';
 
 export const CustomEdge = (props: {
   id: string;
@@ -15,6 +11,10 @@ export const CustomEdge = (props: {
   source: string;
   target: string;
   selected?: boolean;
+  data: {
+    edge: WorkflowRuntimeEdge;
+    store: WorkflowRuntimeStore;
+  };
 }) => {
   const [edgePath] = getBezierPath({
     sourceX: props.sourceX,
@@ -27,15 +27,10 @@ export const CustomEdge = (props: {
   const { fitView } = useReactFlow();
   const moveToNode = useCallback(
     (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
-    [fitView]
+    [fitView],
   );
-  // const moveToPosition = useCallback(
-  //   ({ x, y }: { x: number; y: number }) =>
-  //     setViewport({ x, y, zoom: getViewport().zoom }, { duration: 250 }),
-  //   [setViewport, getViewport]
-  // );
 
-  const { startX, startY, endX, endY } = useMemo(() => {
+  const { startX, startY, endX, endY, midX, midY } = useMemo(() => {
     const offset = 5;
     const { sourceX, sourceY, targetX, targetY } = {
       sourceX: props.sourceX + offset,
@@ -56,8 +51,12 @@ export const CustomEdge = (props: {
     const endX = targetX - gapX;
     const endY = targetY - gapY;
 
-    return { startX, startY, endX, endY };
+    return { startX, startY, endX, endY, midX: (startX + endX) / 2, midY: (startY + endY) / 2 };
   }, [props.sourceX, props.sourceY, props.targetX, props.targetY]);
+
+  const [expandInfoQuick, setExpandInfoQuick] = useState(false);
+  const [expandInfoSticky, setExpandInfoSticky] = useState(false);
+  const expandInfo = expandInfoQuick || expandInfoSticky;
 
   return (
     <>
@@ -66,7 +65,7 @@ export const CustomEdge = (props: {
         <button
           className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
           style={{
-            position: "absolute",
+            position: 'absolute',
             transform: `translate(-50%, -50%) translate(${startX}px, ${startY}px)`,
           }}
           onClick={() => moveToNode(props.target)}
@@ -82,7 +81,7 @@ export const CustomEdge = (props: {
         <button
           className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
           style={{
-            position: "absolute",
+            position: 'absolute',
             transform: `translate(-50%, -50%) translate(${endX}px, ${endY}px)`,
           }}
           onClick={() => moveToNode(props.source)}
@@ -95,6 +94,55 @@ export const CustomEdge = (props: {
             }`}
           ></div>
         </button>
+        <div
+          className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${midX}px, ${midY}px)`,
+          }}
+        >
+          <div
+            className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white opacity-10 hover:opacity-100 bg-black`}
+            onMouseEnter={() => setExpandInfoQuick(true)}
+            onMouseLeave={() => setExpandInfoQuick(false)}
+            onClick={() => setExpandInfoSticky((x) => !x)}
+          >
+            {`🔎`}
+          </div>
+        </div>
+        {expandInfo && (
+          <div
+            className="absolute z-50"
+            style={{
+              transform: `translate(-50%, -50%) translate(${midX}px, ${midY}px)`,
+            }}
+          >
+            <div className="absolute bottom-10 flex h-50 w-50 flex-col justify-end gap-1">
+              <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
+                <div className="flex flex-row items-center justify-between gap-1 p-0.5">
+                  <div>{id}</div>
+                  <div
+                    className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center ${
+                      `` //`rounded border border-white p-1 text-white`
+                    } ${
+                      `` //expandInfo ? `bg-blue-800` : `bg-blue-400`
+                    }`}
+                    onClick={() => {
+                      setExpandInfoSticky(false);
+                    }}
+                  >
+                    ✖
+                  </div>
+                </div>
+                <textarea
+                  className="min-h-[200px] flex-1 resize-none bg-black p-1"
+                  value={JSON.stringify(props.data.edge.value, null, 2)}
+                  readOnly
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </EdgeLabelRenderer>
     </>
   );

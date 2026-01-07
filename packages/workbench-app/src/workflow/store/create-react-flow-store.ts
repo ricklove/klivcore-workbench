@@ -55,7 +55,7 @@ export const createReactFlowStore = (
       // mode: x.mode,
       selected: x.selected ?? false,
       extent: x.parentId ? 'parent' : undefined,
-      data: { node: nodeDirect, store },
+      data: { node: nodeDirect, store, inputs: x.inputs, outputs: x.outputs, data: x.data },
     };
 
     console.log(`[createReactFlowStore:memoizeNode] result`, { result, memoizeNode });

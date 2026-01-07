@@ -2,7 +2,7 @@
 
 import { Component, useEffect, useState } from 'react';
 import { NodeWrapperSimple } from './node-wrapper';
-import type { WorkflowRuntimeNode, WorkflowRuntimeStore } from './types';
+import type { WorkflowComponentProps } from './types';
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode; message: string },
@@ -35,11 +35,7 @@ class ErrorBoundary extends Component<
   }
 }
 
-export const TempWrapper = (props: {
-  id: string;
-  selected: boolean;
-  data: { node: WorkflowRuntimeNode; store: WorkflowRuntimeStore };
-}) => {
+export const TempWrapper = (props: WorkflowComponentProps) => {
   const importPath = props.data.node.inputs.find((x) => x.name === 'importPath')?.value?.data as
     | undefined
     | string;
