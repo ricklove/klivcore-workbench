@@ -102,7 +102,7 @@ export const useReactFlowStore = (
 
     const subscribeNode = (nodeId: WorkflowNodeId, e: ObserveEvent<unknown>) => {
       const node$ = store$.nodes[nodeId];
-      if (!node$) {
+      if (!node$?.id.get()) {
         handleNodeMissing(nodeId, e);
         return;
       }
@@ -154,7 +154,7 @@ export const useReactFlowStore = (
           );
         }
 
-        if (!node$.get()) {
+        if (!node$.id.get()) {
           handleNodeMissing(nodeId, e);
           return;
         }
@@ -165,9 +165,9 @@ export const useReactFlowStore = (
         const node: WorkflowReactFlowStore[`nodes`][number] = {
           id: node$.id.get(),
           type: node$.type.get(),
-          position: { x: node$.position.x.get(), y: node$.position.y.get() },
-          width: node$.position.width.get(),
-          height: node$.position.height.get(),
+          position: { x: node$.position.x.peek(), y: node$.position.y.peek() },
+          width: node$.position.width.peek(),
+          height: node$.position.height.peek(),
           parentId: node$.parentId.get(),
           extent: node$.parentId.get() ? 'parent' : undefined,
           data: {
@@ -220,7 +220,7 @@ export const useReactFlowStore = (
 
     const subscribeEdge = (edgeId: WorkflowEdgeId, e: ObserveEvent<unknown>) => {
       const edge$ = store$.edges[edgeId];
-      if (!edge$?.get()) {
+      if (!edge$?.id.get()) {
         handleEdgeMissing(edgeId, e);
         return;
       }
@@ -235,7 +235,7 @@ export const useReactFlowStore = (
 
       observeBatched((e) => {
         const edge$ = store$.edges[edgeId];
-        if (!edge$?.get()) {
+        if (!edge$?.id.get()) {
           handleEdgeMissing(edgeId, e);
           return;
         }
