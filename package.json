@@ -11,5 +11,8 @@
   ],
   "scripts": {
     "setup:config": "klivcore-standards --version v1"
+  },
+  "dependencies": {
+    "@legendapp/state": "^3.0.0-beta.43"
   }
 }
