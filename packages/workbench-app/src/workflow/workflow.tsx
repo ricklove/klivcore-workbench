@@ -18,6 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { persistStoreToDocument } from './store/save-document';
 import type { WorkflowDocumentData } from './types';
 import { createWorkflowEngine } from './store/engine';
+import { demo_observeBatched } from './store-fast/observe-batched';
 
 const edgeTypes = {
   custom: CustomEdge,
@@ -159,6 +160,14 @@ const WorkflowViewInner = () => {
         />
         <Panel position="top-left">
           <div className="flex flex-row items-center gap-1">
+            <button
+              className={`px-2 py-1 rounded bg-blue-600 hover:bg-blue-700`}
+              onClick={() => {
+                demo_observeBatched();
+              }}
+            >
+              {`test`}
+            </button>
             <button
               className={`px-2 py-1 rounded ${storeEngine.running ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
               onClick={() => {

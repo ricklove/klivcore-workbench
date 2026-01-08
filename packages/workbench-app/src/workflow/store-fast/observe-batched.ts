@@ -1,4 +1,4 @@
-import { observe } from '@legendapp/state';
+import { observable, observe, when, type Observable } from '@legendapp/state';
 
 export function observeBatched(
   compute: () => void,
@@ -40,7 +40,7 @@ export function observeBatched(
   };
 }
 
-type TriggerKind = `requestAnimationFrame` | `setTimeout` | `MessageChannel`;
+type TriggerKind = number | `requestAnimationFrame` | `MessageChannel` | Observable<boolean>;
 const createTrigger = (triggerKind: TriggerKind) => {
   if (triggerKind === `requestAnimationFrame`) {
     return (cb: () => void) => {
@@ -48,20 +48,71 @@ const createTrigger = (triggerKind: TriggerKind) => {
       return () => cancelAnimationFrame(id);
     };
   }
-  if (triggerKind === `setTimeout`) {
+  if (triggerKind === `MessageChannel`) {
+    let channel = undefined as undefined | MessageChannel;
+
     return (cb: () => void) => {
-      const id = setTimeout(cb, 0);
+      channel = channel ?? new MessageChannel();
+
+      channel.port1.onmessage = cb;
+      channel.port2.postMessage(null);
+
+      return () => {
+        channel?.port1.close();
+        channel?.port2.close();
+        channel = undefined;
+      };
+    };
+  }
+  if (typeof triggerKind === `number`) {
+    return (cb: () => void) => {
+      const id = setTimeout(cb, triggerKind);
       return () => clearTimeout(id);
     };
   }
 
-  const channel = new MessageChannel();
   return (cb: () => void) => {
-    channel.port1.onmessage = cb;
-    channel.port2.postMessage(undefined);
+    let disposed = false;
+    when(triggerKind, () => {
+      if (disposed) return;
+      cb();
+    });
     return () => {
-      channel.port1.close();
-      channel.port2.close();
+      disposed = true;
     };
+  };
+};
+
+// example usage:
+export const demo_observeBatched = () => {
+  const count = observable(0);
+  const message = observable(``);
+
+  const stopObserving = observeBatched(() => {
+    // The expensive computation
+    console.log(`${message.get()}`);
+  }, 100);
+
+  let sleeping = false;
+  const intervalId = setInterval(() => {
+    if (sleeping) return;
+
+    // The fast updates
+    count.set(count.get() + 1);
+    message.set(`Update #${count.get()} at ${new Date()}`);
+
+    if (count.get() % 250 === 0) {
+      sleeping = true;
+      message.set(`No updates!!! Sleeping for 3 seconds... Last Update #${count.get()}`);
+
+      setTimeout(() => {
+        sleeping = false;
+      }, 3000);
+    }
+  }, 1);
+
+  return () => {
+    stopObserving();
+    clearInterval(intervalId);
   };
 };
