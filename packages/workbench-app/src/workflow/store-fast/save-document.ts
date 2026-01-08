@@ -7,14 +7,19 @@ export const persistStoreToDocument = (
 ): Observable<WorkflowDocumentData | undefined> => {
   const document$ = observable<WorkflowDocumentData>();
 
-  const SYNC_TIMEOUT = 1000;
+  const SYNC_TIMEOUT = 3000;
   observeBatched(() => {
     const document: WorkflowDocumentData = {
       nodes: Object.values(store$.nodes).map((node: Observable<WorkflowRuntimeNode>) => {
         return {
           id: node.id.get(),
           type: node.type.get(),
-          position: node.position.get(),
+          position: {
+            x: node.position.x.get(),
+            y: node.position.y.get(),
+            width: node.position.width.get(),
+            height: node.position.height.get(),
+          },
           inputs: node.inputs.map((input) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const edgeId = input.edgeId.get();

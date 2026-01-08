@@ -12,19 +12,20 @@ import {
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
 import { createExampleWorkflowDocumentChain } from './example-document';
-import { createWorkflowStoreFromDocument } from './store/create-runtime-store';
-import { useReactFlowStore } from './store/create-react-flow-store';
+import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-store';
+import { useReactFlowStore } from './store-fast/create-react-flow-store';
 import { useCallback, useEffect, useState } from 'react';
-import { persistStoreToDocument } from './store/save-document';
+import { persistStoreToDocument } from './store-fast/save-document';
 import type { WorkflowDocumentData } from './types';
 import { createWorkflowEngine } from './store/engine';
 import { demo_observeBatched } from './store-fast/observe-batched';
+import { observe } from '@legendapp/state';
 
 const edgeTypes = {
   custom: CustomEdge,
 };
 
-const runtimeStore = createWorkflowStoreFromDocument(
+const runtimeStore$ = createWorkflowStoreFromDocument(
   (() => {
     try {
       return JSON.parse(
@@ -37,8 +38,8 @@ const runtimeStore = createWorkflowStoreFromDocument(
     return createExampleWorkflowDocumentChain(100);
   })(),
 );
-const storePersistance = persistStoreToDocument(runtimeStore);
-const storeEngine = createWorkflowEngine(runtimeStore);
+const storePersistance$ = persistStoreToDocument(runtimeStore$);
+const storeEngine = createWorkflowEngine(runtimeStore$.get());
 
 export const WorkflowView = () => {
   return (
@@ -51,19 +52,20 @@ const WorkflowViewInner = () => {
   // const store = reactStore;
 
   // const runtimeStore = useMemo(() => createWorkflowStoreFromDocument(exampleWorkflowDocument), []);
-  const reactFlowStore = useReactFlowStore(runtimeStore);
+  const reactFlowStore = useReactFlowStore(runtimeStore$);
   const store = reactFlowStore;
 
   useEffect(() => {
-    const { unsubscribe } = storePersistance.subscribe((x) => {
-      console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore, store });
+    const unsubscribe = observe(() => {
+      const x = storePersistance$.get();
+      console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore$, store });
       localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x, null, 2));
     });
 
     return () => {
       unsubscribe();
     };
-  }, [runtimeStore]);
+  }, [runtimeStore$]);
 
   // console.log(`[WorkflowView:RENDER] reactFlowStore`, {
   //   reactFlowStore,
