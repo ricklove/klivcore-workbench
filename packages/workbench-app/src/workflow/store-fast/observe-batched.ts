@@ -98,7 +98,10 @@ export const demo_observeBatched = () => {
     if (sleeping) return;
 
     // The fast updates
-    count.set(count.get() + 1);
+    const CHANGE_COUNT = 1000;
+    for (let i = 0; i < CHANGE_COUNT + 1; i++) {
+      count.set(count.get() + 1);
+    }
     message.set(`Update #${count.get()} at ${new Date()}`);
 
     if (count.get() % 250 === 0) {
