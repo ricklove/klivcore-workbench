@@ -2,7 +2,7 @@ import { observable, observe, when, type Observable } from '@legendapp/state';
 
 export function observeBatched(
   compute: () => void,
-  triggerKind: TriggerKind = `requestAnimationFrame`,
+  triggerKind: BatchedTriggerKind = `requestAnimationFrame`,
 ): () => void {
   const trigger = createTrigger(triggerKind);
   let disposeTrigger: (() => void) | undefined;
@@ -40,8 +40,12 @@ export function observeBatched(
   };
 }
 
-type TriggerKind = number | `requestAnimationFrame` | `MessageChannel` | Observable<boolean>;
-const createTrigger = (triggerKind: TriggerKind) => {
+export type BatchedTriggerKind =
+  | number
+  | `requestAnimationFrame`
+  | `MessageChannel`
+  | Observable<boolean>;
+const createTrigger = (triggerKind: BatchedTriggerKind) => {
   if (triggerKind === `requestAnimationFrame`) {
     return (cb: () => void) => {
       const id = requestAnimationFrame(cb);

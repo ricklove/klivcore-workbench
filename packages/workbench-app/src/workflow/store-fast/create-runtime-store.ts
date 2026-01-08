@@ -286,7 +286,7 @@ export const createWorkflowStoreFromDocument = (
       createNodeType: (definition) => {
         store$.nodeTypes[definition.type]?.set(definition);
         // populate existing nodes of this type
-        for (const node of Object.values(store$.nodes)) {
+        for (const node of Object.values(store$.nodes.get())) {
           if (node.type === definition.type) {
             populateNodeType(store$.get(), node);
           }
@@ -359,14 +359,14 @@ export const createWorkflowStoreFromDocument = (
         store$.nodes[oldId]?.delete();
 
         // update parents
-        for (const n of Object.values(store$.nodes)) {
+        for (const n of Object.values(store$.nodes.get())) {
           if (n.parentId === oldId) {
             n.parentId = newNodeId;
           }
         }
 
         // update edges
-        for (const edge of Object.values(store$.edges)) {
+        for (const edge of Object.values(store$.edges.get())) {
           if (edge.source.nodeId === oldId) {
             edge.source.nodeId = newNodeId;
           }

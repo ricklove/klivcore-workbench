@@ -53,7 +53,6 @@ export const createReactFlowStore = (
 
       parentId: x.parentId,
       // mode: x.mode,
-      selected: x.selected ?? false,
       extent: x.parentId ? 'parent' : undefined,
       data: { node: nodeDirect, store, inputs: x.inputs, outputs: x.outputs, data: x.data },
     };
@@ -79,7 +78,6 @@ export const createReactFlowStore = (
       sourceHandle: x.source.outputName,
       target: x.target.nodeId,
       targetHandle: x.target.inputName,
-      selected: x.selected ?? false,
       data: { edge: store.edges[x.id]! as WorkflowRuntimeEdge, store },
     };
 
@@ -202,7 +200,7 @@ export const useReactFlowStore = (
         }
 
         if (change.type === 'select') {
-          node.selected = change.selected;
+          // ignore
           continue;
         }
 
@@ -251,7 +249,7 @@ export const useReactFlowStore = (
         }
 
         if (change.type === 'select') {
-          edge.selected = change.selected;
+          // ignore
           continue;
         }
 
