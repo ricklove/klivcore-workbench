@@ -100,8 +100,8 @@ export const useReactFlowStore = (
               parentId: node$.parentId.get(),
               extent: node$.parentId.get() ? 'parent' : undefined,
               data: {
-                node: node$.get(),
-                store: store$.get(),
+                node: node$.peek(),
+                store: store$.peek(),
                 inputs: node$.inputs.get(),
                 outputs: node$.outputs.get(),
                 data: node$.data.get(),
