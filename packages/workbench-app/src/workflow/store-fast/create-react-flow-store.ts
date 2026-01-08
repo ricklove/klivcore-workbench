@@ -68,9 +68,29 @@ export const useReactFlowStore = (
 
     // node changes
     unsubs.push(
-      observeBatched(() => {
+      observeBatched((e) => {
         Object.values(store$.nodes).forEach((node$: Observable<WorkflowRuntimeNode>) => {
-          observeBatched(() => {
+          console.log(
+            `[useReactFlowStore:Object.values(store$.nodes):node$] node '${node$.id.peek()}' instance changed`,
+            {
+              e,
+              id: node$.id.peek(),
+              node$,
+              node: node$.peek(),
+            },
+          );
+
+          observeBatched((e) => {
+            console.log(
+              `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${node$.id.peek()}' content changed`,
+              {
+                e,
+                id: node$.id.peek(),
+                node$,
+                node: node$.peek(),
+              },
+            );
+
             const node: WorkflowReactFlowStore[`nodes`][number] = {
               id: node$.id.get(),
               type: node$.type.get(),

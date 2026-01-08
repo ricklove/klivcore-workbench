@@ -1,8 +1,14 @@
-type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
-type JsonObject = { [key: string]: JsonValue };
-type JsonArray = JsonValue[];
+// type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
+// type JsonArray = JsonValue[];
+// interface JsonObject {
+//   [key: string]: JsonValue;
+// }
+type JsonObject = Record<
+  string,
+  string | number | boolean | null | Record<string, unknown> | Array<unknown>
+>;
 
-type WorkflowNodeTypeName = string & { __brand: 'WorkflowNodeTypeName' };
+export type WorkflowNodeTypeName = string & { __brand: 'WorkflowNodeTypeName' };
 type WorkflowValueType = string & { __brand: 'WorkflowValueType' };
 type WorkflowTimestamp = number & {
   __brand: 'WorkflowTimestamp';

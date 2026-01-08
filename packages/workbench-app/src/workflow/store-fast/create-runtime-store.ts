@@ -337,34 +337,34 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       },
       renameNode: ({ oldId, newId }) => {
         const node = store$.nodes[oldId];
-        if (!node) {
+        if (!node?.id.get()) {
           console.warn(`[renameNode] Node with id ${oldId} does not exist`);
           return;
         }
         const newNodeId = WorkflowBrandedTypes.nodeId(newId);
-        if (store$.nodes[newNodeId]) {
+        if (store$.nodes[newNodeId]?.id.get()) {
           console.warn(`[renameNode] Node with id ${newId} already exists`);
           return;
         }
 
         node.id.set(newNodeId);
-        store$.nodes[newNodeId] = node;
+        store$.nodes[newNodeId]?.set(node.get());
         store$.nodes[oldId]?.delete();
 
         // update parents
         for (const n of Object.values(store$.nodes.get())) {
           if (n.parentId === oldId) {
-            n.parentId = newNodeId;
+            store$.nodes[n.id]?.parentId.set(newNodeId);
           }
         }
 
         // update edges
         for (const edge of Object.values(store$.edges.get())) {
           if (edge.source.nodeId === oldId) {
-            edge.source.nodeId = newNodeId;
+            store$.edges[edge.id]?.source.nodeId.set(newNodeId);
           }
           if (edge.target.nodeId === oldId) {
-            edge.target.nodeId = newNodeId;
+            store$.edges[edge.id]?.target.nodeId.set(newNodeId);
           }
         }
       },

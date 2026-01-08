@@ -1,7 +1,7 @@
-import { observable, observe, when, type Observable } from '@legendapp/state';
+import { observable, observe, when, type Observable, type ObserveEvent } from '@legendapp/state';
 
 export function observeBatched(
-  compute: () => void,
+  compute: (e: ObserveEvent<unknown>) => void,
   triggerKind: BatchedTriggerKind = `requestAnimationFrame`,
 ): () => void {
   const trigger = createTrigger(triggerKind);
@@ -23,7 +23,7 @@ export function observeBatched(
     disposeTrigger = trigger(() => {
       disposeObserver = observe((e) => {
         if (e.num === 0) {
-          compute();
+          compute(e);
           return;
         }
 

@@ -58,7 +58,7 @@ const WorkflowViewInner = () => {
   useEffect(() => {
     const unsubscribe = observe(() => {
       const x = storePersistance$.get();
-      console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore$, store });
+      console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore$ });
       localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x, null, 2));
     });
 

@@ -10,26 +10,26 @@ export const persistStoreToDocument = (
   const SYNC_TIMEOUT = 3000;
   observeBatched(() => {
     const document: WorkflowDocumentData = {
-      nodes: Object.values(store$.nodes).map((node: Observable<WorkflowRuntimeNode>) => {
+      nodes: Object.values(store$.nodes).map((node$: Observable<WorkflowRuntimeNode>) => {
         return {
-          id: node.id.get(),
-          type: node.type.get(),
+          id: node$.id.get(),
+          type: node$.type.get(),
           position: {
-            x: node.position.x.get(),
-            y: node.position.y.get(),
-            width: node.position.width.get(),
-            height: node.position.height.get(),
+            x: node$.position.x.get(),
+            y: node$.position.y.get(),
+            width: node$.position.width.get(),
+            height: node$.position.height.get(),
           },
-          inputs: node.inputs.map((input) => {
+          inputs: node$.inputs.map((input$) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const edgeId = input.edgeId.get();
-            const edge = input.getEdge();
+            const edgeId = input$.edgeId.get();
+            const edge = input$.getEdge();
             //   const edge = Object.values(store.edges).find(
             //     (e) => e.target.nodeId === node.id && e.target.inputName === input.name,
             //   );
             return {
-              name: input.name.get(),
-              type: input.type.get(),
+              name: input$.name.get(),
+              type: input$.type.get(),
               source: edge
                 ? {
                     nodeId: edge.source.nodeId,
@@ -38,14 +38,13 @@ export const persistStoreToDocument = (
                 : undefined,
             };
           }),
-          outputs: node.outputs.map((output) => ({
-            name: output.name.get(),
-            type: output.type.get(),
+          outputs: node$.outputs.map((output$) => ({
+            name: output$.name.get(),
+            type: output$.type.get(),
           })),
-          // TODO: fix data observation
-          data: node.data.get().data,
-          parentId: node.parentId.get(),
-          mode: node.mode.get(),
+          data: node$.data.data.get(),
+          parentId: node$.parentId.get(),
+          mode: node$.mode.get(),
         };
       }),
     };
