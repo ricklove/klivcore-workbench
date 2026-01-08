@@ -1,6 +1,9 @@
 import {
   WorkflowBrandedTypes,
   type WorkflowDocumentData,
+  type WorkflowEdgeId,
+  type WorkflowNodeId,
+  type WorkflowNodeTypeName,
   type WorkflowRuntimeEdge,
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
@@ -126,12 +129,9 @@ const createRuntimeValue = <T = Record<string, unknown>>({
 
 const loadWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
-): Pick<WorkflowRuntimeStore, `nodes` | `edges` | `nodeTypes`> => {
-  const storeObj: Pick<WorkflowRuntimeStore, `nodes` | `edges` | `nodeTypes`> = {
-    nodeTypes: {},
-    nodes: {},
-    edges: {},
-  };
+): Observable<WorkflowRuntimeStore> => {
+  const store$ = createEmptyStore();
+  const storeObj = store$.get() as WorkflowRuntimeStore;
 
   // create nodes
   for (const n of document.nodes) {
@@ -218,8 +218,7 @@ const loadWorkflowStoreFromDocument = (
       }
     }
   }
-
-  return storeObj;
+  return store$;
 };
 
 const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode) => {
@@ -271,17 +270,11 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
   }
 };
 
-export const createWorkflowStoreFromDocument = (
-  document: WorkflowDocumentData,
-): Observable<WorkflowRuntimeStore> => {
-  const storeObj = loadWorkflowStoreFromDocument(document);
-  const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
-    ...builtinNodeTypes,
-  };
-
+const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
   const store$: Observable<WorkflowRuntimeStore> = observable({
-    ...storeObj,
-    nodeTypes,
+    nodeTypes: {} as Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>,
+    nodes: {} as Record<WorkflowNodeId, WorkflowRuntimeNode>,
+    edges: {} as Record<WorkflowEdgeId, WorkflowRuntimeEdge>,
     actions: {
       createNodeType: (definition) => {
         store$.nodeTypes[definition.type]?.set(definition);
@@ -478,6 +471,19 @@ export const createWorkflowStoreFromDocument = (
       },
     },
   });
+  return store$;
+};
+
+export const createWorkflowStoreFromDocument = (
+  document: WorkflowDocumentData,
+): Observable<WorkflowRuntimeStore> => {
+  const store$ = loadWorkflowStoreFromDocument(document);
+  const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
+    ...builtinNodeTypes,
+  };
+
+  // populate node types
+  store$.nodeTypes.set(nodeTypes);
 
   // populate all nodes with their type definitions
   for (const node of Object.values(store$.nodes.get())) {
