@@ -1,4 +1,4 @@
-import { WorkflowBrandedTypes, type WorkflowDocumentData } from '../types';
+import { WorkflowBrandedTypes, type WorkflowDocumentData } from './types';
 
 const { T, V, I, O, N } = WorkflowBrandedTypes;
 

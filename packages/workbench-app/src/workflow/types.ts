@@ -230,12 +230,14 @@ export type WorkflowExecutionController = {
   setProgress: (value: { progressRatio: number; message?: string }) => void;
 };
 
-type ValtioRef<T> = T & {
-  $$valtioSnapshot: T;
-};
+// type PlainObject<T> =
+//   | (T & {
+//       $$valtioSnapshot: T;
+//     })
+//   | OpaqueObject<T>;
 export type WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowNodeTypeName;
-  component: ValtioRef<{ Component: React.ComponentType<WorkflowComponentProps> }>;
+  getComponent: () => { Component: React.ComponentType<WorkflowComponentProps> };
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;

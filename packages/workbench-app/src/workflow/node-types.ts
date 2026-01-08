@@ -1,13 +1,12 @@
-import { ref } from 'valtio';
-import { NodeDefault } from '../node-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../types';
-import { StringNodeComponent } from '../nodes';
-import { TempWrapper } from '../node-temp-wrapper';
+import { NodeDefault } from './node-wrapper';
+import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from './types';
+import { StringNodeComponent } from './nodes';
+import { TempWrapper } from './node-temp-wrapper';
 
 export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   default: {
     type: WorkflowBrandedTypes.typeName(`default`),
-    component: ref({ Component: NodeDefault }),
+    getComponent: () => ({ Component: NodeDefault }),
     inputs: [],
     outputs: [],
     execute: async () => {
@@ -16,7 +15,7 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   string: {
     type: WorkflowBrandedTypes.typeName(`string`),
-    component: ref({ Component: StringNodeComponent }),
+    getComponent: () => ({ Component: StringNodeComponent }),
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`value`),
@@ -42,7 +41,7 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   tempWrapper: {
     type: WorkflowBrandedTypes.typeName(`tempWrapper`),
-    component: ref({ Component: TempWrapper }),
+    getComponent: () => ({ Component: TempWrapper }),
     inputs: [],
     outputs: [],
     execute: async () => {

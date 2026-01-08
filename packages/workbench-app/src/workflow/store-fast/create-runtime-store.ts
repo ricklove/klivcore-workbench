@@ -7,8 +7,8 @@ import {
   type WorkflowRuntimeStore,
   type WorkflowRuntimeValue,
 } from '../types';
-import { proxy, ref } from 'valtio';
 import { builtinNodeTypes } from '../node-types';
+import { observable, ObservableHint, type Observable } from '@legendapp/state';
 
 const getters = {
   node: {
@@ -108,7 +108,7 @@ const createRuntimeValue = <T = Record<string, unknown>>({
   data: T;
   meta?: WorkflowRuntimeValue['meta'];
 }): WorkflowRuntimeValue<T> => {
-  const box = ref<{ data: T }>({ data });
+  const box = ObservableHint.opaque({ data });
   const v = {
     dataChangeCounter: 0,
     get data() {
@@ -127,11 +127,11 @@ const createRuntimeValue = <T = Record<string, unknown>>({
 const loadWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
 ): Pick<WorkflowRuntimeStore, `nodes` | `edges` | `nodeTypes`> => {
-  const storeObj: Pick<WorkflowRuntimeStore, `nodes` | `edges` | `nodeTypes`> = proxy({
+  const storeObj: Pick<WorkflowRuntimeStore, `nodes` | `edges` | `nodeTypes`> = {
     nodeTypes: {},
     nodes: {},
     edges: {},
-  });
+  };
 
   // create nodes
   for (const n of document.nodes) {
@@ -273,46 +273,46 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
 
 export const createWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,
-): WorkflowRuntimeStore => {
+): Observable<WorkflowRuntimeStore> => {
   const storeObj = loadWorkflowStoreFromDocument(document);
   const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
     ...builtinNodeTypes,
   };
 
-  const store: WorkflowRuntimeStore = proxy({
+  const store$: Observable<WorkflowRuntimeStore> = observable({
     ...storeObj,
     nodeTypes,
     actions: {
       createNodeType: (definition) => {
-        store.nodeTypes[definition.type] = definition;
+        store$.nodeTypes[definition.type]?.set(definition);
         // populate existing nodes of this type
-        for (const node of Object.values(store.nodes)) {
+        for (const node of Object.values(store$.nodes)) {
           if (node.type === definition.type) {
-            populateNodeType(store, node);
+            populateNodeType(store$.get(), node);
           }
         }
       },
       deleteNodeType: (typeName: string) => {
-        delete store.nodeTypes[WorkflowBrandedTypes.typeName(typeName)];
+        store$.nodeTypes[WorkflowBrandedTypes.typeName(typeName)]?.delete();
       },
       createNode: (args) => {
         const nodeId = WorkflowBrandedTypes.nodeId(args.id);
-        const nodeType = store.nodeTypes[args.type];
+        const nodeType = store$.nodeTypes[args.type]?.get();
         if (!nodeType) {
-          store.nodes[nodeId] = {
+          store$.nodes[nodeId]?.set({
             ...args,
             id: nodeId,
             inputs: [],
             outputs: [],
             data: createRuntimeValue({ data: {} }),
             getGraphErrors() {
-              return getters.node.getGraphErrors(store, this);
+              return getters.node.getGraphErrors(store$.get(), this as WorkflowRuntimeNode);
             },
-          };
+          });
           return;
         }
 
-        store.nodes[nodeId] = {
+        store$.nodes[nodeId]?.set({
           ...args,
           id: nodeId,
           inputs: nodeType.inputs.map((i) => ({
@@ -321,7 +321,7 @@ export const createWorkflowStoreFromDocument = (
             value: createRuntimeValue({ data: undefined }),
             edgeId: undefined,
             getEdge() {
-              return getters.node.inputs.getEdge(store, this);
+              return getters.node.inputs.getEdge(store$.get(), this);
             },
           })),
           outputs: nodeType.outputs.map((o) => ({
@@ -330,43 +330,43 @@ export const createWorkflowStoreFromDocument = (
             value: createRuntimeValue({ data: undefined }),
             edgeIds: undefined,
             getEdges() {
-              return getters.node.outputs.getEdges(store, this);
+              return getters.node.outputs.getEdges(store$.get(), this);
             },
           })),
           data: createRuntimeValue({ data: {} }),
           getGraphErrors() {
-            return getters.node.getGraphErrors(store, this);
+            return getters.node.getGraphErrors(store$.get(), this as WorkflowRuntimeNode);
           },
-        };
+        });
       },
       deleteNode: (nodeId) => {
-        delete store.nodes[nodeId];
+        store$.nodes[nodeId]?.delete();
       },
       renameNode: ({ oldId, newId }) => {
-        const node = store.nodes[oldId];
+        const node = store$.nodes[oldId];
         if (!node) {
           console.warn(`[renameNode] Node with id ${oldId} does not exist`);
           return;
         }
         const newNodeId = WorkflowBrandedTypes.nodeId(newId);
-        if (store.nodes[newNodeId]) {
+        if (store$.nodes[newNodeId]) {
           console.warn(`[renameNode] Node with id ${newId} already exists`);
           return;
         }
 
-        node.id = newNodeId;
-        store.nodes[newNodeId] = node;
-        delete store.nodes[oldId];
+        node.id.set(newNodeId);
+        store$.nodes[newNodeId] = node;
+        store$.nodes[oldId]?.delete();
 
         // update parents
-        for (const n of Object.values(store.nodes)) {
+        for (const n of Object.values(store$.nodes)) {
           if (n.parentId === oldId) {
             n.parentId = newNodeId;
           }
         }
 
         // update edges
-        for (const edge of Object.values(store.edges)) {
+        for (const edge of Object.values(store$.edges)) {
           if (edge.source.nodeId === oldId) {
             edge.source.nodeId = newNodeId;
           }
@@ -376,10 +376,10 @@ export const createWorkflowStoreFromDocument = (
         }
       },
       createEdge: (args) => {
-        const targetNode = store.nodes[args.target.nodeId];
+        const targetNode = store$.nodes[args.target.nodeId]?.get();
         const targetInput = targetNode?.inputs.find((i) => i.name === args.target.inputName);
 
-        const sourceNode = store.nodes[args.source.nodeId];
+        const sourceNode = store$.nodes[args.source.nodeId]?.get();
         const sourceOutput = sourceNode?.outputs.find((o) => o.name === args.source.outputName);
 
         if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
@@ -395,7 +395,7 @@ export const createWorkflowStoreFromDocument = (
 
         if (targetInput.edgeId) {
           // remove existing edge
-          delete store.edges[targetInput.edgeId];
+          store$.edges[targetInput.edgeId]?.delete();
         }
 
         const edgeId = WorkflowBrandedTypes.edgeId(
@@ -404,27 +404,33 @@ export const createWorkflowStoreFromDocument = (
           args.target.nodeId,
           args.target.inputName,
         );
-        store.edges[edgeId] = {
+        store$.edges[edgeId]?.set({
           id: edgeId,
           source: {
             nodeId: args.source.nodeId,
             outputName: args.source.outputName,
             getNode() {
-              return getters.edge.source.getNode(store, this);
+              return getters.edge.source.getNode(
+                store$.get(),
+                this as WorkflowRuntimeEdge['source'],
+              );
             },
           },
           target: {
             nodeId: args.target.nodeId,
             inputName: args.target.inputName,
             getNode() {
-              return getters.edge.target.getNode(store, this);
+              return getters.edge.target.getNode(
+                store$.get(),
+                this as WorkflowRuntimeEdge['target'],
+              );
             },
           },
           value: createRuntimeValue({ data: undefined }),
           getGraphErrors() {
-            return getters.edge.getGraphErrors(store, this);
+            return getters.edge.getGraphErrors(store$.get(), this as WorkflowRuntimeEdge);
           },
-        };
+        });
 
         // update nodes
         if (targetInput) {
@@ -437,17 +443,17 @@ export const createWorkflowStoreFromDocument = (
         }
       },
       deleteEdge: (edgeId) => {
-        const edge = store.edges[edgeId];
+        const edge = store$.edges[edgeId]?.get();
         if (!edge) {
           return;
         }
-        delete store.edges[edgeId];
+        store$.edges[edgeId]?.delete();
 
         // remove edge from nodes
-        const targetNode = store.nodes[edge.target.nodeId];
+        const targetNode = store$.nodes[edge.target.nodeId]?.get();
         const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
 
-        const sourceNode = store.nodes[edge.source.nodeId];
+        const sourceNode = store$.nodes[edge.source.nodeId]?.get();
         const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
 
         if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
@@ -474,9 +480,9 @@ export const createWorkflowStoreFromDocument = (
   });
 
   // populate all nodes with their type definitions
-  for (const node of Object.values(store.nodes)) {
-    populateNodeType(store, node);
+  for (const node of Object.values(store$.nodes.get())) {
+    populateNodeType(store$.get(), node);
   }
 
-  return store;
+  return store$;
 };

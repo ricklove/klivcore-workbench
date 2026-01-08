@@ -31,7 +31,7 @@ export const createReactFlowStore = (
     Object.fromEntries(
       Object.values(store.nodeTypes).map((x) => [
         x.type,
-        x.component.Component as React.ComponentType,
+        x.getComponent().Component as React.ComponentType,
       ]),
     ),
   );
