@@ -8,6 +8,8 @@ export function observeBatched(
   let disposeTrigger: (() => void) | undefined;
   let disposeObserver: (() => void) | undefined;
 
+  let count = 0;
+
   const stop = () => {
     disposeTrigger?.();
     disposeTrigger = undefined;
@@ -23,7 +25,7 @@ export function observeBatched(
     disposeTrigger = trigger(() => {
       disposeObserver = observe((e) => {
         if (e.num === 0) {
-          compute(e);
+          compute({ ...e, num: count++ });
           return;
         }
 
