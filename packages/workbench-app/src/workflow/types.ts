@@ -42,7 +42,7 @@ export const WorkflowBrandedTypes = {
   now: () => (performance.timeOrigin + performance.now()) as unknown as WorkflowTimestamp,
 };
 
-export type WorkflowDocumentData = {
+export interface WorkflowDocumentData {
   nodes: {
     id: WorkflowNodeId;
     type: WorkflowNodeTypeName;
@@ -70,9 +70,9 @@ export type WorkflowDocumentData = {
     data: undefined | JsonObject;
     mode: undefined | `passthrough` | `disabled`;
   }[];
-};
+}
 
-export type WorkflowReactFlowStore = {
+export interface WorkflowReactFlowStore {
   nodeTypes: Record<WorkflowNodeTypeName, React.ComponentType>;
   nodes: {
     id: WorkflowNodeId;
@@ -104,11 +104,11 @@ export type WorkflowReactFlowStore = {
       store: WorkflowRuntimeStore;
     };
   }[];
-};
+}
 
 export type WorkflowComponentProps = WorkflowReactFlowStore['nodes'][number];
 
-export type WorkflowRuntimeNode = {
+export interface WorkflowRuntimeNode {
   id: WorkflowNodeId;
   type: WorkflowNodeTypeName;
   parentId?: WorkflowNodeId;
@@ -142,9 +142,9 @@ export type WorkflowRuntimeNode = {
     | {
         kind: `missing-type-definition`;
       }[];
-};
+}
 
-export type WorkflowRuntimeEdge = {
+export interface WorkflowRuntimeEdge {
   id: WorkflowEdgeId;
   source: {
     nodeId: WorkflowNodeId;
@@ -167,7 +167,7 @@ export type WorkflowRuntimeEdge = {
           | `missing-source-output`
           | `missing-target-input`;
       }[];
-};
+}
 
 export type WorkflowRuntimeValue<T = unknown> = {
   /** valtio ref() */
@@ -186,15 +186,15 @@ export type WorkflowRuntimeValue<T = unknown> = {
 };
 
 /** This whole store is a valtio object, just change it directly */
-export type WorkflowRuntimeStore = {
+export interface WorkflowRuntimeStore {
   nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
   edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;
   actions: WorkflowRuntimeStoreActions;
-};
+}
 
 /** helpers to simplify some actions */
-export type WorkflowRuntimeStoreActions = {
+export interface WorkflowRuntimeStoreActions {
   createNodeType: (args: WorkflowRuntimeNodeTypeDefinition) => void;
   deleteNodeType: (nodeType: WorkflowNodeTypeName) => void;
 
@@ -223,19 +223,19 @@ export type WorkflowRuntimeStoreActions = {
     };
   }) => void;
   deleteEdge: (edgeId: WorkflowEdgeId) => void;
-};
+}
 
-export type WorkflowExecutionController = {
+export interface WorkflowExecutionController {
   abortSignal: AbortSignal;
   setProgress: (value: { progressRatio: number; message?: string }) => void;
-};
+}
 
 // type PlainObject<T> =
 //   | (T & {
 //       $$valtioSnapshot: T;
 //     })
 //   | OpaqueObject<T>;
-export type WorkflowRuntimeNodeTypeDefinition = {
+export interface WorkflowRuntimeNodeTypeDefinition {
   type: WorkflowNodeTypeName;
   getComponent: () => { Component: React.ComponentType<WorkflowComponentProps> };
   inputs: {
@@ -256,15 +256,15 @@ export type WorkflowRuntimeNodeTypeDefinition = {
   // TODO: node lifecycle methods (to replace automatic population of inputs/outputs)
   // loadNodeType?: (store: WorkflowRuntimeStore) => void;
   // unloadNodeType?: (store: WorkflowRuntimeStore) => void;
-};
+}
 
-export type WorkflowExecutionArgs = {
+export interface WorkflowExecutionArgs {
   inputs: Record<string, unknown>;
   data: undefined | JsonObject;
   controller: WorkflowExecutionController;
   node: WorkflowRuntimeNode;
   store: WorkflowRuntimeStore;
-};
+}
 export type WorkflowExecutionResult =
   | undefined
   | {
@@ -272,7 +272,7 @@ export type WorkflowExecutionResult =
       data?: null | JsonObject;
     };
 
-export type WorkflowRuntimeExecutionState = {
+export interface WorkflowRuntimeExecutionState {
   status: `initial` | `running` | `success` | `error` | `aborted`;
   startTimestamp?: WorkflowTimestamp;
   endTimestamp?: WorkflowTimestamp;
@@ -287,9 +287,9 @@ export type WorkflowRuntimeExecutionState = {
     endTimestamp: WorkflowTimestamp;
     errorMessage?: string;
   }[];
-};
+}
 
-export type WorkflowRuntimeEngine = {
+export interface WorkflowRuntimeEngine {
   running: boolean;
   /** get or set the engine tick speed */
   tickSpeed: number | `slow` | `normal` | `fast`;
@@ -299,4 +299,4 @@ export type WorkflowRuntimeEngine = {
   stop: (args: { shouldAbort: boolean }) => void;
   /** manually trigger a node to execute */
   queueNode: (nodeId: WorkflowNodeId) => void;
-};
+}
