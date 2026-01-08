@@ -1,8 +1,9 @@
-import type { Observable } from '@legendapp/state';
+import type { Observable, ObserveEvent } from '@legendapp/state';
 import {
   WorkflowBrandedTypes,
+  type WorkflowEdgeId,
+  type WorkflowNodeId,
   type WorkflowReactFlowStore,
-  type WorkflowRuntimeEdge,
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
@@ -67,29 +68,100 @@ export const useReactFlowStore = (
     const trigger: BatchedTriggerKind = 250;
 
     // node changes
+    const nodesByOldId = new Map<WorkflowNodeId, WorkflowRuntimeNode>();
+    const handleNodeMissing = (oldNodeId: WorkflowNodeId, e: ObserveEvent<unknown>) => {
+      const oldNodeById = nodesByOldId.get(oldNodeId);
+      const newNodeId = oldNodeById?.id;
+      if (newNodeId && newNodeId !== oldNodeId) {
+        console.log(
+          `[useReactFlowStore:handleNodeMissing] node renamed from '${oldNodeId}' to '${newNodeId}' - renaming in react flow store`,
+          {
+            e,
+            nodeId: oldNodeId,
+            oldNodeById,
+            store$: store$.peek(),
+          },
+        );
+
+        setNodes((s) => s.map((x) => (x.id === oldNodeId ? { ...x, id: newNodeId } : x)));
+        return;
+      }
+
+      console.log(
+        `[useReactFlowStore:handleNodeMissing] node '${oldNodeId}' not found - deleting from react flow store`,
+        {
+          e,
+          nodeId: oldNodeId,
+          store$: store$.peek(),
+        },
+      );
+
+      setNodes((s) => s.filter((n) => n.id !== oldNodeId));
+    };
+
     unsubs.push(
       observeBatched((e) => {
-        Object.values(store$.nodes).forEach((node$: Observable<WorkflowRuntimeNode>) => {
-          console.log(
-            `[useReactFlowStore:Object.values(store$.nodes):node$] node '${node$.id.peek()}' instance changed`,
-            {
-              e,
-              id: node$.id.peek(),
-              node$,
-              node: node$.peek(),
-            },
-          );
+        Object.keys(store$.nodes).forEach((nodeIdRaw: string) => {
+          const nodeId = WorkflowBrandedTypes.nodeId(nodeIdRaw);
+          const node$ = store$.nodes[nodeId];
+          if (!node$) {
+            handleNodeMissing(nodeId, e);
+            return;
+          }
 
-          observeBatched((e) => {
+          nodesByOldId.set(nodeId, node$.peek());
+          if (e.num > 0) {
             console.log(
-              `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${node$.id.peek()}' content changed`,
+              `[useReactFlowStore:Object.values(store$.nodes):node$] node '${nodeId}' instance changed`,
               {
                 e,
-                id: node$.id.peek(),
+                nodeId,
                 node$,
                 node: node$.peek(),
               },
             );
+          } else {
+            console.log(
+              `[useReactFlowStore:Object.values(store$.nodes):node$] node '${nodeId}' instance subscribed`,
+              {
+                e,
+                nodeId,
+                node$,
+                node: node$.peek(),
+              },
+            );
+          }
+
+          observeBatched((e) => {
+            if (e.num > 0) {
+              console.log(
+                `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content changed`,
+                {
+                  e,
+                  nodeId,
+                  node$,
+                  node: node$.peek(),
+                },
+              );
+            } else {
+              console.log(
+                `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content subscribed`,
+                {
+                  e,
+                  nodeId,
+                  node$,
+                  node: node$.peek(),
+                },
+              );
+            }
+
+            if (!node$.get()) {
+              handleNodeMissing(nodeId, e);
+              return;
+            }
+            nodesByOldId.set(nodeId, node$.peek());
+
+            const oldId = nodeId !== node$.id.get() ? nodeId : undefined;
 
             const node: WorkflowReactFlowStore[`nodes`][number] = {
               id: node$.id.get(),
@@ -109,7 +181,7 @@ export const useReactFlowStore = (
             };
 
             setNodes((s) => {
-              const index = s.findIndex((x) => x.id === node.id);
+              const index = s.findIndex((x) => x.id === (oldId ?? node.id));
               if (index === -1) {
                 return [...s, node];
               }
@@ -126,10 +198,46 @@ export const useReactFlowStore = (
     );
 
     // edge changes
+    const handleEdgeMissing = (edgeId: WorkflowEdgeId, e: ObserveEvent<unknown>) => {
+      console.log(
+        `[useReactFlowStore:handleEdgeMissing] edge '${edgeId}' not found - deleting from react flow store`,
+        {
+          e,
+          edgeId,
+          store$: store$.peek(),
+        },
+      );
+
+      setEdges((s) => s.filter((e) => e.id !== edgeId));
+    };
+
     unsubs.push(
-      observeBatched(() => {
-        Object.values(store$.edges).forEach((edge$: Observable<WorkflowRuntimeEdge>) => {
-          observeBatched(() => {
+      observeBatched((e) => {
+        Object.keys(store$.edges).forEach((edgeIdRaw) => {
+          const edgeId = WorkflowBrandedTypes.edgeIdFormString(edgeIdRaw);
+          const edge$ = store$.edges[edgeId];
+          if (!edge$?.get()) {
+            handleEdgeMissing(edgeId, e);
+            return;
+          }
+
+          observeBatched((e) => {
+            const edge$ = store$.edges[edgeId];
+            if (!edge$?.get()) {
+              handleEdgeMissing(edgeId, e);
+              return;
+            }
+
+            console.log(
+              `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
+              {
+                e,
+                edgeId,
+                edge$,
+                edge: edge$.peek(),
+              },
+            );
+
             const edge: WorkflowReactFlowStore[`edges`][number] = {
               id: edge$.id.get(),
               type: `custom`,
@@ -138,8 +246,8 @@ export const useReactFlowStore = (
               target: edge$.target.nodeId.get(),
               targetHandle: edge$.target.inputName.get(),
               data: {
-                edge: edge$.get(),
-                store: store$.get(),
+                edge: edge$.peek(),
+                store: store$.peek(),
               },
             };
 
@@ -262,7 +370,7 @@ export const useReactFlowStore = (
 
         const edge = store$.edges[WorkflowBrandedTypes.edgeIdFormString(change.id)];
         if (!edge?.id.get()) {
-          console.log(`[useReactFlowStore] Node not found for change`, { change });
+          console.log(`[useReactFlowStore] Edge not found for change`, { change });
           continue;
         }
 

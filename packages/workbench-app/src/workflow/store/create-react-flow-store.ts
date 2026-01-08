@@ -244,7 +244,7 @@ export const useReactFlowStore = (
 
         const edge = _store.edges[WorkflowBrandedTypes.edgeIdFormString(change.id)];
         if (!edge) {
-          console.log(`[useReactFlowStore] Node not found for change`, { change });
+          console.log(`[useReactFlowStore] Edge not found for change`, { change });
           continue;
         }
 
