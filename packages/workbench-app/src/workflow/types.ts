@@ -2,6 +2,9 @@
 // type JsonArray = JsonValue[];
 // interface JsonObject {
 //   [key: string]: JsonValue;
+
+import type { Observable } from '@legendapp/state';
+
 // }
 type JsonObject = Record<
   string,
@@ -104,8 +107,8 @@ export interface WorkflowReactFlowStore {
     target: WorkflowNodeId;
     targetHandle: WorkflowInputName;
     data: {
-      edge: WorkflowRuntimeEdge;
-      store: WorkflowRuntimeStore;
+      edge$: Observable<WorkflowRuntimeEdge>;
+      store$: Observable<WorkflowRuntimeStore>;
     };
   }[];
 }

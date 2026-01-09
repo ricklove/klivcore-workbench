@@ -250,28 +250,33 @@ export const useReactFlowStore = (
           },
         );
 
-        const edge: WorkflowReactFlowStore[`edges`][number] = {
-          id: edge$.id.get(),
-          type: `custom`,
-          source: edge$.source.nodeId.get(),
-          sourceHandle: edge$.source.outputName.get(),
-          target: edge$.target.nodeId.get(),
-          targetHandle: edge$.target.inputName.get(),
-          data: {
-            edge: edge$.peek(),
-            store: store$.peek(),
-          },
-        };
-
         setEdges((s) => {
-          const index = s.findIndex((x) => x.id === edge.id);
+          const index = s.findIndex((x) => x.id === edgeId);
           if (index === -1) {
-            return [...s, edge];
+            return [
+              ...s,
+              {
+                id: edge$.id.get(),
+                type: `custom`,
+                source: edge$.source.nodeId.get(),
+                sourceHandle: edge$.source.outputName.get(),
+                target: edge$.target.nodeId.get(),
+                targetHandle: edge$.target.inputName.get(),
+                data: {
+                  edge$,
+                  store$,
+                },
+              },
+            ];
           }
           const newEdges = [...s];
           newEdges[index] = {
-            ...newEdges[index],
-            ...edge,
+            ...newEdges[index]!,
+            id: edge$.id.get(),
+            source: edge$.source.nodeId.get(),
+            sourceHandle: edge$.source.outputName.get(),
+            target: edge$.target.nodeId.get(),
+            targetHandle: edge$.target.inputName.get(),
           };
           return newEdges;
         });
