@@ -43,7 +43,7 @@ const getters = {
       storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
       inputName: WorkflowInputName,
-    ): { data: T | undefined; isConnected: boolean } => {
+    ): { data: T | undefined | null; isConnected: boolean } => {
       const input = node.inputs.find((i) => i.name === inputName);
       const isConnected = !!input?.edgeId;
       const data = input ? input.value.getValue<T>() : undefined;
@@ -53,7 +53,7 @@ const getters = {
       storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
       outputName: WorkflowOutputName,
-    ): { data: T | undefined; isConnected: boolean } => {
+    ): { data: T | undefined | null; isConnected: boolean } => {
       const output = node.outputs.find((o) => o.name === outputName);
       const isConnected = !!output?.edgeIds && output.edgeIds.length > 0;
       const data = output ? output.value.getValue<T>() : undefined;
@@ -62,7 +62,7 @@ const getters = {
     getData: <T>(
       storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
-    ): { data: T | undefined } => {
+    ): { data: T | undefined | null } => {
       const data = node.data.getValue<T>();
       return { data };
     },
@@ -133,21 +133,21 @@ const getters = {
   },
 };
 
-const createRuntimeValue = ({
+const createRuntimeValue = <TBase = unknown>({
   data,
   // meta,
 }: {
-  data: unknown;
+  data: TBase;
   // meta?: WorkflowRuntimeValue['meta'];
-}): WorkflowRuntimeValue => {
+}): WorkflowRuntimeValue<TBase> => {
   const inner$ = observable(ObservableHint.opaque({ content: data }));
   const dataChangeCounter$ = observable(0);
 
-  const v: WorkflowRuntimeValue = ObservableHint.plain({
+  const v: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
     box$: linked({
       get: () => inner$.get().content,
-      set: (v: unknown) => {
-        inner$.set(ObservableHint.opaque({ content: v }));
+      set: (v) => {
+        inner$.set(ObservableHint.opaque({ content: (v ?? null) as TBase }));
         dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
       },
     }),
@@ -155,7 +155,14 @@ const createRuntimeValue = ({
       return inner$.get().content as T | undefined;
     },
     setValue: <T>(v: T | undefined) => {
-      inner$.set(ObservableHint.opaque({ content: v as T }));
+      inner$.set(ObservableHint.opaque({ content: (v ?? null) as TBase }));
+      dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+    },
+    clearValue: () => {
+      if (inner$.get().content === undefined) {
+        return;
+      }
+      inner$.set(ObservableHint.opaque({ content: undefined as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },
     get dataChangeCounter() {
@@ -255,7 +262,7 @@ const loadWorkflowStoreFromDocument = (
       getData: <T>() => {
         return getters.node.getData<T>(storeObj, runtimeNode);
       },
-      data: createRuntimeValue({ data: n.data || {} }),
+      data: createRuntimeValue({ data: n.data }),
       mode: n.mode,
       getGraphErrors() {
         return getters.node.getGraphErrors(storeObj, this);
@@ -394,7 +401,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
             id: nodeId,
             inputs: [],
             outputs: [],
-            data: createRuntimeValue({ data: {} }),
+            data: createRuntimeValue({ data: undefined }),
             getInputData: <T>(inputName: string) => {
               return getters.node.getInputData<T>(
                 store$.get(),
@@ -442,7 +449,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
               return getters.node.outputs.getEdges(store$.get(), this);
             },
           })),
-          data: createRuntimeValue({ data: {} }),
+          data: createRuntimeValue({ data: undefined }),
           getInputData: <T>(inputName: string) => {
             return getters.node.getInputData<T>(
               store$.get(),

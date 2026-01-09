@@ -1,10 +1,10 @@
 import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useState } from 'react';
-import { WorkflowBrandedTypes, type WorkflowComponentProps } from './types';
+import { WorkflowBrandedTypes, type WorkflowComponentPropsAny } from './types';
 import { Computed, Memo, useValue } from '@legendapp/state/react';
 import { optimizationStore } from './optimization-store';
 
-export const WorkflowNodeDefault = (props: WorkflowComponentProps) => {
+export const WorkflowNodeDefault = (props: WorkflowComponentPropsAny) => {
   return (
     <>
       <WorkflowNodeWrapperSimple {...props}>
@@ -15,7 +15,7 @@ export const WorkflowNodeDefault = (props: WorkflowComponentProps) => {
 };
 
 export const WorkflowNodeWrapperSimple = (
-  props: WorkflowComponentProps & {
+  props: WorkflowComponentPropsAny & {
     children: React.ReactNode;
   },
 ) => {
@@ -33,7 +33,7 @@ const WorkflowNodeWrapper = ({
   id,
   selected,
   data: dataReactFlow,
-}: WorkflowComponentProps & {
+}: WorkflowComponentPropsAny & {
   children: React.ReactNode;
 }) => {
   const isMultiSelect = useValue(() => optimizationStore.isMultiSelection$.get());
@@ -56,7 +56,7 @@ const WorkflowNodeWrapperInner = memo(
     selected,
     isMultiSelect,
     data: dataReactFlow,
-  }: Pick<WorkflowComponentProps, 'id' | 'selected' | 'data'> & {
+  }: Pick<WorkflowComponentPropsAny, 'id' | 'selected' | 'data'> & {
     isMultiSelect: boolean;
   }) => {
     // console.log(`[NodeWrapper] rendering node ${id}`, { data });
@@ -130,9 +130,14 @@ const WorkflowNodeWrapperInner = memo(
                           value={JSON.stringify(
                             expandInfo === `data`
                               ? {
-                                  inputs: node$.inputs.get(),
-                                  data: node$.data.get(),
-                                  outputs: node$.outputs.get(),
+                                  inputs: dataReactFlow.inputs$.get(),
+                                  data: dataReactFlow.data$.get(),
+                                  outputs: dataReactFlow.outputs$.get(),
+                                  node: {
+                                    inputs: node$.inputs.get(),
+                                    data: node$.data.get(),
+                                    outputs: node$.outputs.get(),
+                                  },
                                 }
                               : node$.get(),
                             null,

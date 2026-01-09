@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import type { WorkflowComponentProps } from './types';
+import type { WorkflowComponentProps, WorkflowComponentPropsAny } from './types';
 
 export const NodeTypeWrapComponent = (
-  InnerComponent: React.ComponentType<WorkflowComponentProps>,
+  InnerComponent: React.ComponentType<WorkflowComponentPropsAny>,
 ): React.ComponentType<WorkflowComponentProps> => {
   return memo((props) => <InnerComponent {...props} />);
 };

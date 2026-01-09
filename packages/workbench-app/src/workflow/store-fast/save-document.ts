@@ -47,7 +47,7 @@ export const persistStoreToDocument = (
             name: output$.name.get(),
             type: output$.type.get(),
           })),
-          data: node$.data.get().getValue<WorkflowJsonObject>(),
+          data: node$.data.get().getValue<WorkflowJsonObject>() ?? undefined,
           parentId: node$.parentId.get(),
           mode: node$.mode.get(),
         };

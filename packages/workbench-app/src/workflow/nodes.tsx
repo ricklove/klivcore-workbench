@@ -2,15 +2,16 @@ import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import { type WorkflowComponentProps } from './types';
 import { useValue } from '@legendapp/state/react';
 
-export const StringNodeComponent = (props: WorkflowComponentProps) => {
+export const StringNodeComponent = (props: WorkflowComponentProps<{ value: string }>) => {
   const node$ = props.data.node$;
-  const textInputSlot = useValue(() => node$.getInputData<string>(`value`));
+  const textInput = useValue(props.data.inputs$.value.get());
+  // const textInputSlot = useValue(() => node$.getInputData<string>(`value`));
   const textData = useValue(() => {
     return node$.data.get().getValue<{ value: string }>()?.value;
   });
 
-  const text = textInputSlot.data ?? textData ?? '';
-  const isReadonly = textInputSlot.isConnected;
+  const text = textInput ?? textData ?? '';
+  const isReadonly = textInput === undefined;
 
   return (
     <>

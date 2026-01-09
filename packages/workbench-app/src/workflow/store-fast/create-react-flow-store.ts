@@ -1,4 +1,4 @@
-import type { Observable, ObserveEvent } from '@legendapp/state';
+import { observable, type Observable, type ObserveEvent } from '@legendapp/state';
 import {
   WorkflowBrandedTypes,
   type WorkflowEdgeId,
@@ -174,9 +174,20 @@ export const useReactFlowStore = (
             data: {
               node$,
               store$,
-              inputs$: node$.inputs,
-              outputs$: node$.outputs,
-              data$: node$.data,
+              // inputs$: (key: WorkflowInputName) => {
+              //   return node$.inputs.find((input$) => input$.name.get() === key)?.value.box$;
+              // },
+              inputs$: observable(() =>
+                Object.fromEntries(
+                  node$.inputs.map((input$) => [input$.name.get(), input$.value.box$]),
+                ),
+              ),
+              outputs$: observable(() =>
+                Object.fromEntries(
+                  node$.outputs.map((output$) => [output$.name.get(), output$.value.box$]),
+                ),
+              ),
+              data$: node$.data.box$,
             },
           };
 

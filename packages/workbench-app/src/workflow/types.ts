@@ -1,4 +1,4 @@
-import { type Observable, type OpaqueObject, type PlainObject } from '@legendapp/state';
+import { type Observable, type PlainObject } from '@legendapp/state';
 
 // type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 // type JsonArray = JsonValue[];
@@ -91,13 +91,7 @@ export interface WorkflowReactFlowStore {
     height: number;
     parentId: undefined | WorkflowNodeId;
     extent: undefined | 'parent';
-    data: {
-      node$: Observable<WorkflowRuntimeNode>;
-      store$: Observable<WorkflowRuntimeStore>;
-      inputs$: Observable<WorkflowRuntimeNode['inputs']>;
-      outputs$: Observable<WorkflowRuntimeNode['outputs']>;
-      data$: Observable<WorkflowRuntimeNode['data']>;
-    };
+    data: WorkflowComponentPropsData<WorkflowJsonObject, unknown, unknown>;
   }[];
   edges: {
     id: WorkflowEdgeId;
@@ -113,20 +107,47 @@ export interface WorkflowReactFlowStore {
   }[];
 }
 
-export type WorkflowComponentProps = WorkflowReactFlowStore['nodes'][number] & {
+export type WorkflowComponentPropsData<
+  TData extends WorkflowJsonObject = WorkflowJsonObject,
+  TInputs = TData,
+  TOutputs = TData,
+> = {
+  node$: Observable<WorkflowRuntimeNode>;
+  store$: Observable<WorkflowRuntimeStore>;
+  inputs$: Observable<PartialNull<TInputs>>;
+  outputs$: Observable<PartialNull<TOutputs>>;
+  data$: Observable<undefined | null | Partial<TData>>;
+};
+
+type PartialNull<T> = {
+  [P in keyof T]?: T[P] | null;
+};
+
+export type WorkflowComponentPropsBase = WorkflowReactFlowStore['nodes'][number] & {
   selected: boolean;
 };
-// export type WorkflowComponentPropsTyped<TInputs,TOutputs,TData extends JsonObject> = Omit<WorkflowComponentProps, 'data'> & {
-//   data: {
-//       node$: Observable<WorkflowRuntimeNode>;
-//       store$: Observable<WorkflowRuntimeStore>;
-//       inputs$: Observable<WorkflowRuntimeNode['inputs']>;
-//       outputs$: Observable<WorkflowRuntimeNode['outputs']>;
-//       data$: Observable<WorkflowRuntimeValue<undefined | TData>>;
-//     }
-// }
+export type WorkflowComponentProps<
+  TData extends WorkflowJsonObject = WorkflowJsonObject,
+  TInputs = TData,
+  TOutputs = TData,
+> = Omit<WorkflowComponentPropsBase, 'data'> & {
+  data: WorkflowComponentPropsData<TData, TInputs, TOutputs>;
+};
 
-// export type WorkflowRuntimeNodeInputsTyped<T extends Record<string, unknown>> = {
+export type WorkflowComponentPropsAny = Omit<WorkflowComponentPropsBase, 'data'> & {
+  data: {
+    node$: Observable<WorkflowRuntimeNode>;
+    store$: Observable<WorkflowRuntimeStore>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    inputs$: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    outputs$: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data$: any;
+  };
+};
+
+// type WorkflowRuntimeNodeInputsTyped<T extends Record<string, unknown>> = {
 //     name: WorkflowInputName;
 //     type: WorkflowValueType;
 //     value: WorkflowRuntimeValue<T[keyof T]>;
@@ -153,7 +174,7 @@ export interface WorkflowRuntimeNode {
     edgeId?: WorkflowEdgeId;
     getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
-  getInputData: <T>(inputName: string) => { data: T | undefined; isConnected: boolean };
+  getInputData: <T>(inputName: string) => { data: T | undefined | null; isConnected: boolean };
 
   outputs: {
     name: WorkflowOutputName;
@@ -163,15 +184,15 @@ export interface WorkflowRuntimeNode {
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
   getOutputData: <T>(outputName: string) => {
-    data: T | undefined;
+    data: T | undefined | null;
     isConnected: boolean;
   };
 
-  data: WorkflowRuntimeValue;
+  data: WorkflowRuntimeValue<undefined | WorkflowJsonObject>;
   getData: <T extends WorkflowJsonObject>(
     _fake: undefined,
   ) => {
-    data: T | undefined;
+    data: T | undefined | null;
   };
 
   mode?: `passthrough` | `disabled`;
@@ -182,6 +203,9 @@ export interface WorkflowRuntimeNode {
         kind: `missing-type-definition`;
       }[];
 }
+
+export type WorkflowRuntimeNodeInput = WorkflowRuntimeNode['inputs'][number];
+export type WorkflowRuntimeNodeOutput = WorkflowRuntimeNode['outputs'][number];
 
 export interface WorkflowRuntimeEdge {
   id: WorkflowEdgeId;
@@ -207,64 +231,13 @@ export interface WorkflowRuntimeEdge {
       }[];
 }
 
-export type WorkflowRuntimeValue = PlainObject<{
-  box$: unknown;
-  getValue: <T = unknown>() => T | undefined;
-  setValue: <T = unknown>(v: T | undefined) => void;
+/** null indicates the value was set to undefined or null, undefined means it is unset */
+export type WorkflowRuntimeValue<TBase = unknown> = PlainObject<{
+  box$: undefined | null | TBase;
+  getValue: <T = TBase>() => undefined | null | T;
+  setValue: <T = TBase>(v: undefined | null | T) => void;
   readonly dataChangeCounter: number;
 }>;
-
-type SymbolOpaque = keyof OpaqueObject<unknown>;
-const symbolOpaque: SymbolOpaque = Symbol.for(
-  '@@legendapp/state/OpaqueObject/opaque',
-) as SymbolOpaque;
-export type WorkflowRuntimeValue2 = {
-  box: OpaqueObject<{
-    [symbolOpaque]: true;
-    // __type: T;
-    // __brand: 'WorkflowRuntimeValue';
-    // test: OpaqueObject<OpaqueObject<{ box$: Observable<{ test: string }> }>>;
-    // box: OpaqueObject<OpaqueObject<{ content: T }>>;
-    getValue: <T = unknown>() => T | undefined;
-    setValue: <T = unknown>(v: T | undefined) => void;
-    get dataChangeCounter(): number;
-    // get meta(): {
-    //   type: WorkflowValueType;
-    //   source: {
-    //     nodeId: WorkflowNodeId;
-    //     outputName: WorkflowOutputName;
-    //     timestamp: WorkflowTimestamp;
-    //   };
-    // };
-  }>;
-};
-
-// export const WorkflowRuntimeValue = {
-//   unbox: <T>(v: WorkflowRuntimeValue<unknown>): WorkflowRuntimeBox<T> => {
-//     return v as unknown as WorkflowRuntimeBox<T>;
-//   },
-//   box: <T>(v: WorkflowRuntimeBox<T>): WorkflowRuntimeValue<T> => {
-//     return v as unknown as WorkflowRuntimeValue<T>;
-//   },
-// };
-
-// export type WorkflowRuntimeBox<T = unknown> = {
-//   box$: Observable<OpaqueObject<{ content: T }>>;
-//   /** increment each time data changes, used for change tracking */
-//   dataChangeCounter$: Observable<number>;
-//   meta$: Observable<
-//     | undefined
-//     | {
-//         type: WorkflowValueType;
-//         source: {
-//           nodeId: WorkflowNodeId;
-//           outputName: WorkflowOutputName;
-//           timestamp: WorkflowTimestamp;
-//         };
-//       }
-//   >;
-// };
-
 export interface WorkflowRuntimeStore {
   nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
