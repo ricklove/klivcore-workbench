@@ -1,7 +1,7 @@
 // import { TempComponent } from "./temp-01";
 
 import { Component, useEffect, useState } from 'react';
-import { NodeWrapperSimple } from './node-wrapper';
+import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import type { WorkflowComponentProps } from './types';
 
 class ErrorBoundary extends Component<
@@ -63,7 +63,7 @@ export const TempWrapper = (props: WorkflowComponentProps) => {
 
   return (
     <>
-      <NodeWrapperSimple {...props}>
+      <WorkflowNodeWrapperSimple {...props}>
         <div>
           {ComponentObj && 'Component' in ComponentObj && (
             <ErrorBoundary message={`Error rendering Component`}>
@@ -75,7 +75,7 @@ export const TempWrapper = (props: WorkflowComponentProps) => {
           )}
           {!ComponentObj && <div>Loading component...</div>}
         </div>
-      </NodeWrapperSimple>
+      </WorkflowNodeWrapperSimple>
     </>
   );
 };

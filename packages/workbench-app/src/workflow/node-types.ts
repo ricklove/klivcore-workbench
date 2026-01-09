@@ -1,12 +1,13 @@
-import { NodeDefault } from './node-wrapper';
+import { WorkflowNodeDefault } from './node-wrapper';
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from './types';
 import { StringNodeComponent } from './nodes';
 import { TempWrapper } from './node-temp-wrapper';
+import { NodeTypeWrapComponent } from './node-types-wrapper';
 
 export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   default: {
     type: WorkflowBrandedTypes.typeName(`default`),
-    getComponent: () => ({ Component: NodeDefault }),
+    getComponent: () => ({ Component: WorkflowNodeDefault }),
     inputs: [],
     outputs: [],
     execute: async () => {
@@ -15,7 +16,7 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   string: {
     type: WorkflowBrandedTypes.typeName(`string`),
-    getComponent: () => ({ Component: StringNodeComponent }),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(StringNodeComponent) }),
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`value`),

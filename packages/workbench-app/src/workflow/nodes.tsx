@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { NodeWrapperSimple } from './node-wrapper';
+import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import type { WorkflowComponentProps, WorkflowRuntimeValue } from './types';
 
 export const StringNodeComponent = (props: WorkflowComponentProps) => {
@@ -18,7 +18,7 @@ export const StringNodeComponent = (props: WorkflowComponentProps) => {
 
   return (
     <>
-      <NodeWrapperSimple {...props}>
+      <WorkflowNodeWrapperSimple {...props}>
         <textarea
           className="w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan"
           value={text}
@@ -31,7 +31,7 @@ export const StringNodeComponent = (props: WorkflowComponentProps) => {
             };
           }}
         />
-      </NodeWrapperSimple>
+      </WorkflowNodeWrapperSimple>
     </>
   );
 };
