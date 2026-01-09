@@ -14,12 +14,13 @@ import { CustomEdge } from './edge';
 import { createExampleWorkflowDocumentChain } from './example-document';
 import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-store';
 import { useReactFlowStore } from './store-fast/create-react-flow-store';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { persistStoreToDocument } from './store-fast/save-document';
 import type { WorkflowDocumentData } from './types';
 import { createWorkflowEngine } from './store/engine';
 import { demo_observeBatched } from './store-fast/observe-batched';
 import { observe } from '@legendapp/state';
+import { optimizationStore } from './optimization-store';
 
 const edgeTypes = {
   custom: CustomEdge,
@@ -136,6 +137,26 @@ const WorkflowViewInner = () => {
     typeof storeEngine.tickSpeed === 'number' ? storeEngine.tickSpeed : 1000,
   );
 
+  useLayoutEffect(() => {
+    const isMultiSelection = (() => {
+      let selectedCount = 0;
+      for (const n of nodes as { selected?: boolean }[]) {
+        if (n.selected) {
+          selectedCount++;
+          if (selectedCount > 1) {
+            return true;
+          }
+        }
+      }
+      return false;
+    })();
+
+    if (optimizationStore.isMultiSelection$.get() === isMultiSelection) {
+      return;
+    }
+    optimizationStore.isMultiSelection$.set(isMultiSelection);
+  }, [nodes]);
+
   return (
     <div className="w-full h-full bg-slate-900 text-white">
       <ReactFlow
@@ -151,6 +172,9 @@ const WorkflowViewInner = () => {
         minZoom={0.1}
         maxZoom={4}
         deleteKeyCode={[`Delete`]}
+        onlyRenderVisibleElements={true}
+        snapToGrid={true}
+        snapGrid={[8, 8]}
       >
         {/* <Background /> */}
         <Controls />

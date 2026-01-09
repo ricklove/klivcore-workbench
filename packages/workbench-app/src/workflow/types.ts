@@ -168,7 +168,9 @@ export interface WorkflowRuntimeNode {
   };
 
   data: WorkflowRuntimeValue<undefined | JsonObject>;
-  getData: <T>() => {
+  getData: <T extends JsonObject>(
+    _fake: undefined,
+  ) => {
     data: T | undefined;
   };
 

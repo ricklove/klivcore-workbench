@@ -2,6 +2,7 @@ import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useState } from 'react';
 import { WorkflowBrandedTypes, type WorkflowComponentProps } from './types';
 import { Computed, Memo, useValue } from '@legendapp/state/react';
+import { optimizationStore } from './optimization-store';
 
 export const WorkflowNodeDefault = (props: WorkflowComponentProps) => {
   return (
@@ -35,9 +36,15 @@ const WorkflowNodeWrapper = ({
 }: WorkflowComponentProps & {
   children: React.ReactNode;
 }) => {
+  const isMultiSelect = useValue(() => optimizationStore.isMultiSelection$.get());
   return (
     <>
-      <WorkflowNodeWrapperInner id={id} selected={selected} data={dataReactFlow} />
+      <WorkflowNodeWrapperInner
+        id={id}
+        selected={selected}
+        isMultiSelect={isMultiSelect}
+        data={dataReactFlow}
+      />
       {children}
     </>
   );
@@ -47,8 +54,11 @@ const WorkflowNodeWrapperInner = memo(
   ({
     id: nodeIdRaw,
     selected,
+    isMultiSelect,
     data: dataReactFlow,
-  }: Pick<WorkflowComponentProps, 'id' | 'selected' | 'data'>) => {
+  }: Pick<WorkflowComponentProps, 'id' | 'selected' | 'data'> & {
+    isMultiSelect: boolean;
+  }) => {
     // console.log(`[NodeWrapper] rendering node ${id}`, { data });
     const { deleteElements, fitView } = useReactFlow();
 
@@ -87,7 +97,7 @@ const WorkflowNodeWrapperInner = memo(
 
     return (
       <>
-        <NodeResizer isVisible={selected} />
+        <NodeResizer isVisible={selected && !isMultiSelect} />
         <div className="absolute top-0 left-0 right-0 z-10 h-0">
           <div className="absolute bottom-0 left-0 right-0 ">
             {expandInfo && (
@@ -185,15 +195,16 @@ const WorkflowNodeWrapperInner = memo(
             </div>
           </div>
         </div>
-        <Memo>
-          {Object.values(node$.inputs).map((input$, index) => {
-            const key = input$.name.get();
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const edgeId = input$.edgeId.get();
-            const edge = input$.getEdge();
-            return (
-              <React.Fragment key={key}>
-                {/* {debug && (
+        <Computed>
+          {() =>
+            Object.values(node$.inputs).map((input$, index) => {
+              const key = input$.name.get();
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const edgeId = input$.edgeId.get();
+              const edge = input$.getEdge();
+              return (
+                <React.Fragment key={key}>
+                  {/* {debug && (
                   <div
                     className="absolute top-0 left-0 p-1 text-xs text-white bg-black rounded opacity-90"
                     style={{
@@ -204,51 +215,53 @@ const WorkflowNodeWrapperInner = memo(
                     in {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
                   </div>
                 )} */}
-                <Handle
-                  type="target"
-                  position={Position.Left}
-                  id={key}
-                  style={{
-                    width: `12px`,
-                    height: `12px`,
-                    ...(edge
-                      ? { background: `#44aa44`, borderColor: `#44aa44` }
-                      : { background: `#777777`, borderColor: `#777777` }),
-                    top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                    left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                    borderTopRightRadius: `0px`,
-                    borderBottomRightRadius: `0px`,
-                  }}
-                  // className="hover:top-0"
-                >
-                  <div className="absolute right-0 opacity-0 hover:opacity-100">
-                    <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
-                      {edge && (
-                        <div
-                          className="pointer-events-auto cursor-pointer"
-                          onClick={() => moveToNode(edge.source.nodeId)}
-                          title={`Go to '${edge.source.nodeId}'`}
-                        >
-                          🔗
-                        </div>
-                      )}
-                      <div>{key}</div>
+                  <Handle
+                    type="target"
+                    position={Position.Left}
+                    id={key}
+                    style={{
+                      width: `12px`,
+                      height: `12px`,
+                      ...(edge
+                        ? { background: `#44aa44`, borderColor: `#44aa44` }
+                        : { background: `#777777`, borderColor: `#777777` }),
+                      top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                      left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                      borderTopRightRadius: `0px`,
+                      borderBottomRightRadius: `0px`,
+                    }}
+                    // className="hover:top-0"
+                  >
+                    <div className="absolute right-0 opacity-0 hover:opacity-100">
+                      <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
+                        {edge && (
+                          <div
+                            className="pointer-events-auto cursor-pointer"
+                            onClick={() => moveToNode(edge.source.nodeId)}
+                            title={`Go to '${edge.source.nodeId}'`}
+                          >
+                            🔗
+                          </div>
+                        )}
+                        <div>{key}</div>
+                      </div>
                     </div>
-                  </div>
-                </Handle>
-              </React.Fragment>
-            );
-          })}
-        </Memo>
-        <Memo>
-          {Object.values(node$.outputs).map((output$, index) => {
-            const key = output$.name.get();
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const edgeIds = output$.edgeIds.get();
-            const edges = output$.getEdges();
-            return (
-              <React.Fragment key={key}>
-                {/* {debug && (
+                  </Handle>
+                </React.Fragment>
+              );
+            })
+          }
+        </Computed>
+        <Computed>
+          {() =>
+            Object.values(node$.outputs).map((output$, index) => {
+              const key = output$.name.get();
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const edgeIds = output$.edgeIds.get();
+              const edges = output$.getEdges();
+              return (
+                <React.Fragment key={key}>
+                  {/* {debug && (
             <div
               className="absolute left-0 p-1 text-xs text-white bg-black rounded top-16 opacity-90"
               style={{
@@ -259,32 +272,33 @@ const WorkflowNodeWrapperInner = memo(
               out {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
             </div>
           )} */}
-                <Handle
-                  type="source"
-                  position={Position.Right}
-                  id={key}
-                  style={{
-                    width: `12px`,
-                    height: `12px`,
-                    ...(edges.length
-                      ? { background: `#44aa44`, borderColor: `#44aa44` }
-                      : { background: `#777777`, borderColor: `#777777` }),
-                    top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                    right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                    borderTopLeftRadius: `0px`,
-                    borderBottomLeftRadius: `0px`,
-                  }}
-                >
-                  <div className="absolute left-0 opacity-0 hover:opacity-100">
-                    <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
-                      {key}
+                  <Handle
+                    type="source"
+                    position={Position.Right}
+                    id={key}
+                    style={{
+                      width: `12px`,
+                      height: `12px`,
+                      ...(edges.length
+                        ? { background: `#44aa44`, borderColor: `#44aa44` }
+                        : { background: `#777777`, borderColor: `#777777` }),
+                      top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                      right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                      borderTopLeftRadius: `0px`,
+                      borderBottomLeftRadius: `0px`,
+                    }}
+                  >
+                    <div className="absolute left-0 opacity-0 hover:opacity-100">
+                      <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
+                        {key}
+                      </div>
                     </div>
-                  </div>
-                </Handle>
-              </React.Fragment>
-            );
-          })}
-        </Memo>
+                  </Handle>
+                </React.Fragment>
+              );
+            })
+          }
+        </Computed>
       </>
     );
   },
