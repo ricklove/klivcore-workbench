@@ -1,9 +1,9 @@
+import type { Observable } from '@legendapp/state';
+
 // type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 // type JsonArray = JsonValue[];
 // interface JsonObject {
 //   [key: string]: JsonValue;
-
-import type { Observable } from '@legendapp/state';
 
 // }
 type JsonObject = Record<
@@ -92,11 +92,11 @@ export interface WorkflowReactFlowStore {
     parentId: undefined | WorkflowNodeId;
     extent: undefined | 'parent';
     data: {
-      node: WorkflowRuntimeNode;
-      store: WorkflowRuntimeStore;
-      inputs: WorkflowRuntimeNode['inputs'];
-      outputs: WorkflowRuntimeNode['outputs'];
-      data: WorkflowRuntimeNode['data'];
+      node$: Observable<WorkflowRuntimeNode>;
+      store$: Observable<WorkflowRuntimeStore>;
+      inputs$: Observable<WorkflowRuntimeNode['inputs']>;
+      outputs$: Observable<WorkflowRuntimeNode['outputs']>;
+      data$: Observable<WorkflowRuntimeNode['data']>;
     };
   }[];
   edges: {
@@ -116,6 +116,23 @@ export interface WorkflowReactFlowStore {
 export type WorkflowComponentProps = WorkflowReactFlowStore['nodes'][number] & {
   selected: boolean;
 };
+// export type WorkflowComponentPropsTyped<TInputs,TOutputs,TData extends JsonObject> = Omit<WorkflowComponentProps, 'data'> & {
+//   data: {
+//       node$: Observable<WorkflowRuntimeNode>;
+//       store$: Observable<WorkflowRuntimeStore>;
+//       inputs$: Observable<WorkflowRuntimeNode['inputs']>;
+//       outputs$: Observable<WorkflowRuntimeNode['outputs']>;
+//       data$: Observable<WorkflowRuntimeValue<undefined | TData>>;
+//     }
+// }
+
+// export type WorkflowRuntimeNodeInputsTyped<T extends Record<string, unknown>> = {
+//     name: WorkflowInputName;
+//     type: WorkflowValueType;
+//     value: WorkflowRuntimeValue<T[keyof T]>;
+//     edgeId?: WorkflowEdgeId;
+//     getEdge: () => undefined | WorkflowRuntimeEdge;
+// }
 
 export interface WorkflowRuntimeNode {
   id: WorkflowNodeId;

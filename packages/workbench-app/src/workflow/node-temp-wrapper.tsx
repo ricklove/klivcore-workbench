@@ -3,6 +3,7 @@
 import { Component, useEffect, useState } from 'react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import type { WorkflowComponentProps } from './types';
+import { useValue } from '@legendapp/state/react';
 
 class ErrorBoundary extends Component<
   { children: React.ReactNode; message: string },
@@ -36,9 +37,12 @@ class ErrorBoundary extends Component<
 }
 
 export const TempWrapper = (props: WorkflowComponentProps) => {
-  const importPath = props.data.node.inputs.find((x) => x.name === 'importPath')?.value?.data as
-    | undefined
-    | string;
+  const importPath = useValue(
+    () =>
+      props.data.node$.inputs.find((x) => x.name.get() === 'importPath')?.value?.data as
+        | undefined
+        | string,
+  );
 
   const [ComponentObj, setComponentObj] = useState(
     undefined as undefined | { Component: React.ComponentType } | { error: { message: string } },

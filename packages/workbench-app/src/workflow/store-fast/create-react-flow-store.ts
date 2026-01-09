@@ -131,67 +131,69 @@ export const useReactFlowStore = (
         },
       );
 
-      observeBatched((e) => {
-        if (e.num > 0) {
-          console.log(
-            `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content changed`,
-            {
-              e,
-              nodeId,
-              node$,
-              node: node$.peek(),
-            },
-          );
-        } else {
-          console.log(
-            `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content subscribing`,
-            {
-              e,
-              nodeId,
-              node$,
-              node: node$.peek(),
-            },
-          );
-        }
-
-        if (!node$.id.get()) {
-          handleNodeMissing(nodeId, e);
-          return;
-        }
-        nodesByOldId.set(nodeId, node$.peek());
-
-        const oldId = nodeId !== node$.id.get() ? nodeId : undefined;
-
-        const node: WorkflowReactFlowStore[`nodes`][number] = {
-          id: node$.id.get(),
-          type: node$.type.get(),
-          position: { x: node$.position.x.peek(), y: node$.position.y.peek() },
-          width: node$.position.width.peek(),
-          height: node$.position.height.peek(),
-          parentId: node$.parentId.get(),
-          extent: node$.parentId.get() ? 'parent' : undefined,
-          data: {
-            node: node$.peek(),
-            store: store$.peek(),
-            inputs: node$.inputs.get(),
-            outputs: node$.outputs.get(),
-            data: node$.data.get(),
-          },
-        };
-
-        setNodes((s) => {
-          const index = s.findIndex((x) => x.id === (oldId ?? node.id));
-          if (index === -1) {
-            return [...s, node];
+      unsubs.push(
+        observeBatched((e) => {
+          if (e.num > 0) {
+            console.log(
+              `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content changed`,
+              {
+                e,
+                nodeId,
+                node$,
+                node: node$.peek(),
+              },
+            );
+          } else {
+            console.log(
+              `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content subscribing`,
+              {
+                e,
+                nodeId,
+                node$,
+                node: node$.peek(),
+              },
+            );
           }
-          const newNodes = [...s];
-          newNodes[index] = {
-            ...newNodes[index],
-            ...node,
+
+          if (!node$.id.get()) {
+            handleNodeMissing(nodeId, e);
+            return;
+          }
+          nodesByOldId.set(nodeId, node$.peek());
+
+          const oldId = nodeId !== node$.id.get() ? nodeId : undefined;
+
+          const node: WorkflowReactFlowStore[`nodes`][number] = {
+            id: node$.id.get(),
+            type: node$.type.get(),
+            position: { x: node$.position.x.peek(), y: node$.position.y.peek() },
+            width: node$.position.width.peek(),
+            height: node$.position.height.peek(),
+            parentId: node$.parentId.get(),
+            extent: node$.parentId.get() ? 'parent' : undefined,
+            data: {
+              node$,
+              store$,
+              inputs$: node$.inputs,
+              outputs$: node$.outputs,
+              data$: node$.data,
+            },
           };
-          return newNodes;
-        });
-      }, trigger);
+
+          setNodes((s) => {
+            const index = s.findIndex((x) => x.id === (oldId ?? node.id));
+            if (index === -1) {
+              return [...s, node];
+            }
+            const newNodes = [...s];
+            newNodes[index] = {
+              ...newNodes[index],
+              ...node,
+            };
+            return newNodes;
+          });
+        }, trigger),
+      );
     };
 
     unsubs.push(
@@ -233,54 +235,56 @@ export const useReactFlowStore = (
         return;
       }
 
-      observeBatched((e) => {
-        const edge$ = store$.edges[edgeId];
-        if (!edge$?.id.get()) {
-          handleEdgeMissing(edgeId, e);
-          return;
-        }
-
-        console.log(
-          `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
-          {
-            e,
-            edgeId,
-            edge$,
-            edge: edge$.peek(),
-          },
-        );
-
-        setEdges((s) => {
-          const index = s.findIndex((x) => x.id === edgeId);
-          if (index === -1) {
-            return [
-              ...s,
-              {
-                id: edge$.id.get(),
-                type: `custom`,
-                source: edge$.source.nodeId.get(),
-                sourceHandle: edge$.source.outputName.get(),
-                target: edge$.target.nodeId.get(),
-                targetHandle: edge$.target.inputName.get(),
-                data: {
-                  edge$,
-                  store$,
-                },
-              },
-            ];
+      unsubs.push(
+        observeBatched((e) => {
+          const edge$ = store$.edges[edgeId];
+          if (!edge$?.id.get()) {
+            handleEdgeMissing(edgeId, e);
+            return;
           }
-          const newEdges = [...s];
-          newEdges[index] = {
-            ...newEdges[index]!,
-            id: edge$.id.get(),
-            source: edge$.source.nodeId.get(),
-            sourceHandle: edge$.source.outputName.get(),
-            target: edge$.target.nodeId.get(),
-            targetHandle: edge$.target.inputName.get(),
-          };
-          return newEdges;
-        });
-      }, trigger);
+
+          console.log(
+            `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
+            {
+              e,
+              edgeId,
+              edge$,
+              edge: edge$.peek(),
+            },
+          );
+
+          setEdges((s) => {
+            const index = s.findIndex((x) => x.id === edgeId);
+            if (index === -1) {
+              return [
+                ...s,
+                {
+                  id: edge$.id.get(),
+                  type: `custom`,
+                  source: edge$.source.nodeId.get(),
+                  sourceHandle: edge$.source.outputName.get(),
+                  target: edge$.target.nodeId.get(),
+                  targetHandle: edge$.target.inputName.get(),
+                  data: {
+                    edge$,
+                    store$,
+                  },
+                },
+              ];
+            }
+            const newEdges = [...s];
+            newEdges[index] = {
+              ...newEdges[index]!,
+              id: edge$.id.get(),
+              source: edge$.source.nodeId.get(),
+              sourceHandle: edge$.source.outputName.get(),
+              target: edge$.target.nodeId.get(),
+              targetHandle: edge$.target.inputName.get(),
+            };
+            return newEdges;
+          });
+        }, trigger),
+      );
     };
 
     unsubs.push(
