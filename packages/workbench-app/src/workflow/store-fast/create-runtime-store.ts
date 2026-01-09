@@ -2,8 +2,10 @@ import {
   WorkflowBrandedTypes,
   type WorkflowDocumentData,
   type WorkflowEdgeId,
+  type WorkflowInputName,
   type WorkflowNodeId,
   type WorkflowNodeTypeName,
+  type WorkflowOutputName,
   type WorkflowRuntimeEdge,
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
@@ -36,6 +38,34 @@ const getters = {
         }
         return x.edgeIds.map((id) => storeObj.edges[id]).filter((e) => !!e);
       },
+    },
+    getInputData: <T>(
+      storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
+      node: WorkflowRuntimeNode,
+      inputName: WorkflowInputName,
+    ): { data: T | undefined; isConnected: boolean } => {
+      const input = node.inputs.find((i) => i.name === inputName);
+      const isConnected = !!input?.edgeId;
+      const data = input ? (input.value.data as unknown as T | undefined) : undefined;
+      return { data, isConnected };
+    },
+    getOutputData: <T>(
+      storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
+      node: WorkflowRuntimeNode,
+      outputName: WorkflowOutputName,
+    ): { data: T | undefined; isConnected: boolean } => {
+      const output = node.outputs.find((o) => o.name === outputName);
+      const isConnected = !!output?.edgeIds && output.edgeIds.length > 0;
+      const data = output ? (output.value.data as unknown as T | undefined) : undefined;
+      return { data, isConnected };
+    },
+    getData: <T>(
+      storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
+      node: WorkflowRuntimeNode,
+    ): { data: T | undefined } => {
+      const nData = node.data;
+      const data = nData ? (nData.data as unknown as T | undefined) : undefined;
+      return { data };
     },
     getGraphErrors(
       storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
@@ -149,6 +179,13 @@ const loadWorkflowStoreFromDocument = (
           return getters.node.inputs.getEdge(storeObj, this);
         },
       })),
+      getInputData: <T>(inputName: string) => {
+        return getters.node.getInputData<T>(
+          storeObj,
+          runtimeNode,
+          WorkflowBrandedTypes.inputName(inputName),
+        );
+      },
       outputs: n.outputs.map((x) => ({
         name: x.name,
         type: x.type,
@@ -158,6 +195,16 @@ const loadWorkflowStoreFromDocument = (
           return getters.node.outputs.getEdges(storeObj, this);
         },
       })),
+      getOutputData: <T>(outputName: string) => {
+        return getters.node.getOutputData<T>(
+          storeObj,
+          runtimeNode,
+          WorkflowBrandedTypes.outputName(outputName),
+        );
+      },
+      getData: <T>() => {
+        return getters.node.getData<T>(storeObj, runtimeNode);
+      },
       data: createRuntimeValue({ data: n.data || {} }),
       mode: n.mode,
       getGraphErrors() {
@@ -292,20 +339,39 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         const nodeId = WorkflowBrandedTypes.nodeId(args.id);
         const nodeType = store$.nodeTypes[args.type]?.get();
         if (!nodeType) {
-          store$.nodes[nodeId]?.set({
+          const runtimeNode: WorkflowRuntimeNode = {
             ...args,
             id: nodeId,
             inputs: [],
             outputs: [],
             data: createRuntimeValue({ data: {} }),
-            getGraphErrors() {
-              return getters.node.getGraphErrors(store$.get(), this as WorkflowRuntimeNode);
+            getInputData: <T>(inputName: string) => {
+              return getters.node.getInputData<T>(
+                store$.get(),
+                runtimeNode,
+                WorkflowBrandedTypes.inputName(inputName),
+              );
             },
-          });
+            getOutputData: <T>(outputName: string) => {
+              return getters.node.getOutputData<T>(
+                store$.get(),
+                runtimeNode,
+                WorkflowBrandedTypes.outputName(outputName),
+              );
+            },
+            getData: <T>() => {
+              return getters.node.getData<T>(store$.get(), runtimeNode);
+            },
+            getGraphErrors() {
+              return getters.node.getGraphErrors(store$.get(), runtimeNode);
+            },
+          };
+
+          store$.nodes[nodeId]?.set(runtimeNode);
           return;
         }
 
-        store$.nodes[nodeId]?.set({
+        const runtimeNode: WorkflowRuntimeNode = {
           ...args,
           id: nodeId,
           inputs: nodeType.inputs.map((i) => ({
@@ -327,10 +393,28 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
             },
           })),
           data: createRuntimeValue({ data: {} }),
-          getGraphErrors() {
-            return getters.node.getGraphErrors(store$.get(), this as WorkflowRuntimeNode);
+          getInputData: <T>(inputName: string) => {
+            return getters.node.getInputData<T>(
+              store$.get(),
+              runtimeNode,
+              WorkflowBrandedTypes.inputName(inputName),
+            );
           },
-        });
+          getOutputData: <T>(outputName: string) => {
+            return getters.node.getOutputData<T>(
+              store$.get(),
+              runtimeNode,
+              WorkflowBrandedTypes.outputName(outputName),
+            );
+          },
+          getData: <T>() => {
+            return getters.node.getData<T>(store$.get(), runtimeNode);
+          },
+          getGraphErrors: () => {
+            return getters.node.getGraphErrors(store$.get(), runtimeNode);
+          },
+        };
+        store$.nodes[nodeId]?.set(runtimeNode);
       },
       deleteNode: (nodeId) => {
         store$.nodes[nodeId]?.delete();

@@ -145,6 +145,7 @@ export interface WorkflowRuntimeNode {
     height: number;
     extent?: 'parent';
   };
+
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;
@@ -152,6 +153,8 @@ export interface WorkflowRuntimeNode {
     edgeId?: WorkflowEdgeId;
     getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
+  getInputData: <T>(inputName: string) => { data: T | undefined; isConnected: boolean };
+
   outputs: {
     name: WorkflowOutputName;
     type: WorkflowValueType;
@@ -159,7 +162,16 @@ export interface WorkflowRuntimeNode {
     edgeIds?: WorkflowEdgeId[];
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
+  getOutputData: <T>(outputName: string) => {
+    data: T | undefined;
+    isConnected: boolean;
+  };
+
   data: WorkflowRuntimeValue<undefined | JsonObject>;
+  getData: <T>() => {
+    data: T | undefined;
+  };
+
   mode?: `passthrough` | `disabled`;
   executionState?: WorkflowRuntimeExecutionState;
   getGraphErrors():
