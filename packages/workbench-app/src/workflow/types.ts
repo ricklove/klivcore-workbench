@@ -174,7 +174,7 @@ export interface WorkflowRuntimeNode {
     edgeId?: WorkflowEdgeId;
     getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
-  getInputData: <T>(inputName: string) => { data: T | undefined | null; isConnected: boolean };
+  getInputInfo: <T>(inputName: string) => { data: T | undefined | null; isConnected: boolean };
 
   outputs: {
     name: WorkflowOutputName;
@@ -183,7 +183,7 @@ export interface WorkflowRuntimeNode {
     edgeIds?: WorkflowEdgeId[];
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
-  getOutputData: <T>(outputName: string) => {
+  getOutputInfo: <T>(outputName: string) => {
     data: T | undefined | null;
     isConnected: boolean;
   };
@@ -235,7 +235,8 @@ export interface WorkflowRuntimeEdge {
 export type WorkflowRuntimeValue<TBase = unknown> = PlainObject<{
   box$: undefined | null | TBase;
   getValue: <T = TBase>() => undefined | null | T;
-  setValue: <T = TBase>(v: undefined | null | T) => void;
+  setValue: <T = TBase>(v: null | T) => void;
+  clearValue: (v?: undefined) => void;
   readonly dataChangeCounter: number;
 }>;
 export interface WorkflowRuntimeStore {

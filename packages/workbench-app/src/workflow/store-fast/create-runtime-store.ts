@@ -143,7 +143,11 @@ const createRuntimeValue = <TBase = unknown>({
   const inner$ = observable(ObservableHint.opaque({ content: data }));
   const dataChangeCounter$ = observable(0);
 
-  const v: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
+  const obj: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
+    ...{
+      inner$,
+      dataChangeCounter$,
+    },
     box$: linked({
       get: () => inner$.get().content,
       set: (v) => {
@@ -152,16 +156,19 @@ const createRuntimeValue = <TBase = unknown>({
       },
     }),
     getValue: <T>() => {
+      console.log(`[createRuntimeValue.getValue]`, { obj, inner$ });
       return inner$.get().content as T | undefined;
     },
-    setValue: <T>(v: T | undefined) => {
-      inner$.set(ObservableHint.opaque({ content: (v ?? null) as TBase }));
+    setValue: <T>(value: T | null) => {
+      console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
+      inner$.set(ObservableHint.opaque({ content: (value ?? null) as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },
     clearValue: () => {
       if (inner$.get().content === undefined) {
         return;
       }
+      console.log(`[createRuntimeValue.clearValue]`, { obj, inner$ });
       inner$.set(ObservableHint.opaque({ content: undefined as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },
@@ -171,7 +178,7 @@ const createRuntimeValue = <TBase = unknown>({
     // meta,
   });
 
-  return v;
+  return obj;
 };
 
 // const createRuntimeValue = ({
@@ -236,7 +243,7 @@ const loadWorkflowStoreFromDocument = (
           return getters.node.inputs.getEdge(storeObj, this);
         },
       })),
-      getInputData: <T>(inputName: string) => {
+      getInputInfo: <T>(inputName: string) => {
         return getters.node.getInputData<T>(
           storeObj,
           runtimeNode,
@@ -252,7 +259,7 @@ const loadWorkflowStoreFromDocument = (
           return getters.node.outputs.getEdges(storeObj, this);
         },
       })),
-      getOutputData: <T>(outputName: string) => {
+      getOutputInfo: <T>(outputName: string) => {
         return getters.node.getOutputData<T>(
           storeObj,
           runtimeNode,
@@ -313,6 +320,7 @@ const loadWorkflowStoreFromDocument = (
       const targetInput = targetNode.inputs.find((i) => i.name === input.name);
       if (targetInput) {
         targetInput.edgeId = edge.id;
+        targetInput.value.setValue(null);
       }
 
       const sourceOutput = sourceNode?.outputs.find((o) => o.name === input.source!.name);
@@ -402,14 +410,14 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
             inputs: [],
             outputs: [],
             data: createRuntimeValue({ data: undefined }),
-            getInputData: <T>(inputName: string) => {
+            getInputInfo: <T>(inputName: string) => {
               return getters.node.getInputData<T>(
                 store$.get(),
                 runtimeNode,
                 WorkflowBrandedTypes.inputName(inputName),
               );
             },
-            getOutputData: <T>(outputName: string) => {
+            getOutputInfo: <T>(outputName: string) => {
               return getters.node.getOutputData<T>(
                 store$.get(),
                 runtimeNode,
@@ -450,14 +458,14 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
             },
           })),
           data: createRuntimeValue({ data: undefined }),
-          getInputData: <T>(inputName: string) => {
+          getInputInfo: <T>(inputName: string) => {
             return getters.node.getInputData<T>(
               store$.get(),
               runtimeNode,
               WorkflowBrandedTypes.inputName(inputName),
             );
           },
-          getOutputData: <T>(outputName: string) => {
+          getOutputInfo: <T>(outputName: string) => {
             return getters.node.getOutputData<T>(
               store$.get(),
               runtimeNode,
@@ -569,6 +577,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         // update nodes
         if (targetInput) {
           targetInput.edgeId = edgeId;
+          targetInput.value.setValue(null);
         }
 
         if (sourceOutput) {
@@ -603,6 +612,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
 
         if (targetInput) {
           targetInput.edgeId = undefined;
+          targetInput.value.clearValue(undefined);
         }
 
         if (sourceOutput) {

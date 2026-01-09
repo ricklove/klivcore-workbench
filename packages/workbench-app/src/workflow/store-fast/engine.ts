@@ -9,6 +9,7 @@ import {
   type WorkflowRuntimeExecutionState,
   WorkflowBrandedTypes,
   type WorkflowExecutionArgs,
+  type WorkflowJsonObject,
 } from '../types';
 
 const executeNode = async ({
@@ -38,7 +39,7 @@ const executeNode = async ({
     //   }
   );
   const executionState$ = node$.executionState;
-  if(!executionState$.peek()) {
+  if (!executionState$.peek()) {
     executionState$.set({
       status: `initial`,
       runState: {},
@@ -64,8 +65,10 @@ const executeNode = async ({
   });
 
   const args: WorkflowExecutionArgs = {
-    inputs: Object.fromEntries(node$.inputs.map((input$) => [input$.name.peek(), input$.value.peek().getValue()])),
-    data: node$.data.peek().getValue(),
+    inputs: Object.fromEntries(
+      node$.inputs.map((input$) => [input$.name.peek(), input$.value.peek().getValue()]),
+    ),
+    data: node$.data.get().getValue<WorkflowJsonObject>() ?? undefined,
     node: node$.peek(),
     store: store$.peek(),
     controller: {
@@ -107,12 +110,12 @@ const executeNode = async ({
     // set outputs
     for (const output of node$.outputs.peek()) {
       if (output === undefined) continue;
-      output.value.setValue((result.outputs[output.name] ?? undefined));
+      output.value.setValue(result.outputs[output.name] ?? null);
     }
 
     // set node data
     if (result.data !== undefined) {
-      node$.data.get().setValue(result.data ?? undefined);
+      node$.data.get().setValue(result.data ?? null);
     }
   } catch (err) {
     if (abortSignal.aborted) {
@@ -146,8 +149,9 @@ const executeNode = async ({
   });
 };
 
-export const createWorkflowEngine = (store$: Observable<WorkflowRuntimeStore>): WorkflowRuntimeEngine => {
-
+export const createWorkflowEngine = (
+  store$: Observable<WorkflowRuntimeStore>,
+): WorkflowRuntimeEngine => {
   const engineState = {
     running: false,
     isProcessing: false,
