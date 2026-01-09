@@ -13,7 +13,7 @@ import {
   type WorkflowRuntimeValue,
 } from '../types';
 import { builtinNodeTypes } from '../node-types';
-import { observable, ObservableHint, type Observable } from '@legendapp/state';
+import { observable, ObservableHint, type Observable, linked } from '@legendapp/state';
 
 const getters = {
   node: {
@@ -46,7 +46,7 @@ const getters = {
     ): { data: T | undefined; isConnected: boolean } => {
       const input = node.inputs.find((i) => i.name === inputName);
       const isConnected = !!input?.edgeId;
-      const data = input ? (input.value.data as unknown as T | undefined) : undefined;
+      const data = input ? input.value.getValue<T>() : undefined;
       return { data, isConnected };
     },
     getOutputData: <T>(
@@ -56,15 +56,14 @@ const getters = {
     ): { data: T | undefined; isConnected: boolean } => {
       const output = node.outputs.find((o) => o.name === outputName);
       const isConnected = !!output?.edgeIds && output.edgeIds.length > 0;
-      const data = output ? (output.value.data as unknown as T | undefined) : undefined;
+      const data = output ? output.value.getValue<T>() : undefined;
       return { data, isConnected };
     },
     getData: <T>(
       storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
     ): { data: T | undefined } => {
-      const nData = node.data;
-      const data = nData ? (nData.data as unknown as T | undefined) : undefined;
+      const data = node.data.getValue<T>();
       return { data };
     },
     getGraphErrors(
@@ -134,28 +133,79 @@ const getters = {
   },
 };
 
-const createRuntimeValue = <T = Record<string, unknown>>({
+const createRuntimeValue = ({
   data,
-  meta,
+  // meta,
 }: {
-  data: T;
-  meta?: WorkflowRuntimeValue['meta'];
-}): WorkflowRuntimeValue<T> => {
-  const box = ObservableHint.opaque({ data });
-  const v = {
-    dataChangeCounter: 0,
-    get data() {
-      return box.data;
-    },
-    set data(value: T) {
-      box.data = value;
-      this.dataChangeCounter++;
-    },
-    meta,
-  };
+  data: unknown;
+  // meta?: WorkflowRuntimeValue['meta'];
+}): WorkflowRuntimeValue => {
+  const inner$ = observable(ObservableHint.opaque({ content: data }));
+  const dataChangeCounter$ = observable(0);
 
-  return v as WorkflowRuntimeValue<T>;
+  const v: WorkflowRuntimeValue = ObservableHint.plain({
+    box$: linked({
+      get: () => inner$.get().content,
+      set: (v: unknown) => {
+        inner$.set(ObservableHint.opaque({ content: v }));
+        dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+      },
+    }),
+    getValue: <T>() => {
+      return inner$.get().content as T | undefined;
+    },
+    setValue: <T>(v: T | undefined) => {
+      inner$.set(ObservableHint.opaque({ content: v as T }));
+      dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+    },
+    get dataChangeCounter() {
+      return dataChangeCounter$.get();
+    },
+    // meta,
+  });
+
+  return v;
 };
+
+// const createRuntimeValue = ({
+//   data,
+//   // meta,
+// }: {
+//   data: unknown;
+//   // meta?: WorkflowRuntimeValue['meta'];
+// }): WorkflowRuntimeValue => {
+//   const inner$ = observable(ObservableHint.opaque({ content: data }));
+//   const dataChangeCounter$ = observable(0);
+
+//   const v: WorkflowRuntimeValue = {
+//     box: ObservableHint.opaque({
+//       getValue: <T>() => {
+//         return inner$.peek().content as T | undefined;
+//       },
+//       setValue: <T>(v: T | undefined) => {
+//         inner$.set(ObservableHint.opaque({ content: v as T }));
+//       },
+//       get dataChangeCounter() {
+//         return dataChangeCounter$.peek();
+//       },
+//       // meta,
+//     }),
+//   };
+
+//   observe(() => {
+//     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//     const _boxChanged = inner$.get();
+//     dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+//   });
+
+//   return {
+//     get box() {
+//       // subscribe to dataChangeCounter to trigger reactivity
+//       dataChangeCounter$.get();
+//       return v.box;
+//     },
+//   };
+// };
 
 const loadWorkflowStoreFromDocument = (
   document: WorkflowDocumentData,

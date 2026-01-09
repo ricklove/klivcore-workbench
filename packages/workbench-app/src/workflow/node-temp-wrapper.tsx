@@ -37,11 +37,11 @@ class ErrorBoundary extends Component<
 }
 
 export const TempWrapper = (props: WorkflowComponentProps) => {
-  const importPath = useValue(
-    () =>
-      props.data.node$.inputs.find((x) => x.name.get() === 'importPath')?.value?.data as
-        | undefined
-        | string,
+  const importPath = useValue(() =>
+    props.data.node$.inputs
+      .find((x) => x.name.get() === 'importPath')
+      ?.value?.get()
+      .getValue<string>(),
   );
 
   const [ComponentObj, setComponentObj] = useState(

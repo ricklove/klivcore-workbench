@@ -1,4 +1,4 @@
-import type { Observable } from '@legendapp/state';
+import { type Observable, type OpaqueObject, type PlainObject } from '@legendapp/state';
 
 // type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 // type JsonArray = JsonValue[];
@@ -6,7 +6,7 @@ import type { Observable } from '@legendapp/state';
 //   [key: string]: JsonValue;
 
 // }
-type JsonObject = Record<
+export type WorkflowJsonObject = Record<
   string,
   string | number | boolean | null | Record<string, unknown> | Array<unknown>
 >;
@@ -76,7 +76,7 @@ export interface WorkflowDocumentData {
       name: WorkflowOutputName;
       type: WorkflowValueType;
     }[];
-    data: undefined | JsonObject;
+    data: undefined | WorkflowJsonObject;
     mode: undefined | `passthrough` | `disabled`;
   }[];
 }
@@ -167,8 +167,8 @@ export interface WorkflowRuntimeNode {
     isConnected: boolean;
   };
 
-  data: WorkflowRuntimeValue<undefined | JsonObject>;
-  getData: <T extends JsonObject>(
+  data: WorkflowRuntimeValue;
+  getData: <T extends WorkflowJsonObject>(
     _fake: undefined,
   ) => {
     data: T | undefined;
@@ -207,23 +207,64 @@ export interface WorkflowRuntimeEdge {
       }[];
 }
 
-export type WorkflowRuntimeValue<T = unknown> = {
-  /** valtio ref() */
-  get data(): T;
-  set data(value: T);
-  /** increment each time data changes, used for change tracking */
-  dataChangeCounter: number;
-  meta?: {
-    type: WorkflowValueType;
-    source: {
-      nodeId: WorkflowNodeId;
-      outputName: WorkflowOutputName;
-      timestamp: WorkflowTimestamp;
-    };
-  };
+export type WorkflowRuntimeValue = PlainObject<{
+  box$: unknown;
+  getValue: <T = unknown>() => T | undefined;
+  setValue: <T = unknown>(v: T | undefined) => void;
+  readonly dataChangeCounter: number;
+}>;
+
+type SymbolOpaque = keyof OpaqueObject<unknown>;
+const symbolOpaque: SymbolOpaque = Symbol.for(
+  '@@legendapp/state/OpaqueObject/opaque',
+) as SymbolOpaque;
+export type WorkflowRuntimeValue2 = {
+  box: OpaqueObject<{
+    [symbolOpaque]: true;
+    // __type: T;
+    // __brand: 'WorkflowRuntimeValue';
+    // test: OpaqueObject<OpaqueObject<{ box$: Observable<{ test: string }> }>>;
+    // box: OpaqueObject<OpaqueObject<{ content: T }>>;
+    getValue: <T = unknown>() => T | undefined;
+    setValue: <T = unknown>(v: T | undefined) => void;
+    get dataChangeCounter(): number;
+    // get meta(): {
+    //   type: WorkflowValueType;
+    //   source: {
+    //     nodeId: WorkflowNodeId;
+    //     outputName: WorkflowOutputName;
+    //     timestamp: WorkflowTimestamp;
+    //   };
+    // };
+  }>;
 };
 
-/** This whole store is a valtio object, just change it directly */
+// export const WorkflowRuntimeValue = {
+//   unbox: <T>(v: WorkflowRuntimeValue<unknown>): WorkflowRuntimeBox<T> => {
+//     return v as unknown as WorkflowRuntimeBox<T>;
+//   },
+//   box: <T>(v: WorkflowRuntimeBox<T>): WorkflowRuntimeValue<T> => {
+//     return v as unknown as WorkflowRuntimeValue<T>;
+//   },
+// };
+
+// export type WorkflowRuntimeBox<T = unknown> = {
+//   box$: Observable<OpaqueObject<{ content: T }>>;
+//   /** increment each time data changes, used for change tracking */
+//   dataChangeCounter$: Observable<number>;
+//   meta$: Observable<
+//     | undefined
+//     | {
+//         type: WorkflowValueType;
+//         source: {
+//           nodeId: WorkflowNodeId;
+//           outputName: WorkflowOutputName;
+//           timestamp: WorkflowTimestamp;
+//         };
+//       }
+//   >;
+// };
+
 export interface WorkflowRuntimeStore {
   nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
@@ -268,11 +309,6 @@ export interface WorkflowExecutionController {
   setProgress: (value: { progressRatio: number; message?: string }) => void;
 }
 
-// type PlainObject<T> =
-//   | (T & {
-//       $$valtioSnapshot: T;
-//     })
-//   | OpaqueObject<T>;
 export interface WorkflowRuntimeNodeTypeDefinition {
   type: WorkflowNodeTypeName;
   getComponent: () => { Component: React.ComponentType<WorkflowComponentProps> };
@@ -298,7 +334,7 @@ export interface WorkflowRuntimeNodeTypeDefinition {
 
 export interface WorkflowExecutionArgs {
   inputs: Record<string, unknown>;
-  data: undefined | JsonObject;
+  data: undefined | WorkflowJsonObject;
   controller: WorkflowExecutionController;
   node: WorkflowRuntimeNode;
   store: WorkflowRuntimeStore;
@@ -307,16 +343,18 @@ export type WorkflowExecutionResult =
   | undefined
   | {
       outputs: Record<string, unknown>;
-      data?: null | JsonObject;
+      data?: null | WorkflowJsonObject;
     };
 
 export interface WorkflowRuntimeExecutionState {
   status: `initial` | `running` | `success` | `error` | `aborted`;
-  startTimestamp?: WorkflowTimestamp;
-  endTimestamp?: WorkflowTimestamp;
-  progressRatio?: number;
-  progressMessage?: string;
-  errorMessage?: string;
+  runState: {
+    startTimestamp?: WorkflowTimestamp;
+    endTimestamp?: WorkflowTimestamp;
+    progressRatio?: number;
+    progressMessage?: string;
+    errorMessage?: string;
+  };
 
   /** Completed execution states */
   history: {

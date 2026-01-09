@@ -1,5 +1,10 @@
 import { observable, type Observable } from '@legendapp/state';
-import type { WorkflowDocumentData, WorkflowRuntimeNode, WorkflowRuntimeStore } from '../types';
+import type {
+  WorkflowDocumentData,
+  WorkflowJsonObject,
+  WorkflowRuntimeNode,
+  WorkflowRuntimeStore,
+} from '../types';
 import { observeBatched } from './observe-batched';
 
 export const persistStoreToDocument = (
@@ -42,7 +47,7 @@ export const persistStoreToDocument = (
             name: output$.name.get(),
             type: output$.type.get(),
           })),
-          data: node$.data.data.get(),
+          data: node$.data.get().getValue<WorkflowJsonObject>(),
           parentId: node$.parentId.get(),
           mode: node$.mode.get(),
         };
