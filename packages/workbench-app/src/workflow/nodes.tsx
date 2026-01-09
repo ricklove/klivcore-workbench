@@ -3,17 +3,16 @@ import { type WorkflowComponentProps } from './types';
 import { useValue } from '@legendapp/state/react';
 
 export const StringNodeComponent = (props: WorkflowComponentProps<{ value: string }>) => {
-  const node$ = props.data.node$;
-  const textInput = useValue(props.data.inputs$.value.get());
+  const { node$, inputs$, data$ } = props.data;
+
+  const textData = useValue(() => data$.value.get());
+  const textInput = useValue(() => inputs$.value.get());
   const textInputSlot = useValue(() => node$.getInputInfo<string>(`value`));
-  const textData = useValue(() => {
-    return node$.data.get().getValue<{ value: string }>()?.value;
-  });
 
   const text = textInput ?? textData ?? '';
   const isReadonly = textInputSlot.isConnected;
 
-  console.log(`[StringNodeComponent]`, { textInput, textData, text, isReadonly });
+  // console.log(`[StringNodeComponent]`, { textInput, textData, text, isReadonly });
 
   return (
     <>

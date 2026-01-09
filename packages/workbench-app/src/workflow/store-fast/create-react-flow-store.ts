@@ -121,15 +121,15 @@ export const useReactFlowStore = (
       }
 
       nodesByOldId.set(nodeId, node$.peek());
-      console.log(
-        `[useReactFlowStore:Object.values(store$.nodes):node$] node '${nodeId}' subscribing`,
-        {
-          e,
-          nodeId,
-          node$,
-          node: node$.peek(),
-        },
-      );
+      // console.log(
+      //   `[useReactFlowStore:Object.values(store$.nodes):node$] node '${nodeId}' subscribing`,
+      //   {
+      //     e,
+      //     nodeId,
+      //     node$,
+      //     node: node$.peek(),
+      //   },
+      // );
 
       unsubs.push(
         observeBatched((e) => {
@@ -143,17 +143,18 @@ export const useReactFlowStore = (
                 node: node$.peek(),
               },
             );
-          } else {
-            console.log(
-              `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content subscribing`,
-              {
-                e,
-                nodeId,
-                node$,
-                node: node$.peek(),
-              },
-            );
           }
+          // else {
+          //   console.log(
+          //     `[useReactFlowStore:Object.values(store$.nodes):node$: content] node '${nodeId}' content subscribing`,
+          //     {
+          //       e,
+          //       nodeId,
+          //       node$,
+          //       node: node$.peek(),
+          //     },
+          //   );
+          // }
 
           if (!node$.id.get()) {
             handleNodeMissing(nodeId, e);
@@ -254,15 +255,15 @@ export const useReactFlowStore = (
             return;
           }
 
-          console.log(
-            `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
-            {
-              e,
-              edgeId,
-              edge$,
-              edge: edge$.peek(),
-            },
-          );
+          // console.log(
+          //   `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
+          //   {
+          //     e,
+          //     edgeId,
+          //     edge$,
+          //     edge: edge$.peek(),
+          //   },
+          // );
 
           setEdges((s) => {
             const index = s.findIndex((x) => x.id === edgeId);

@@ -5,12 +5,11 @@ import {
   type WorkflowRuntimeStore,
   type WorkflowNodeId,
   type WorkflowRuntimeValue,
-  type WorkflowEdgeId,
-  type WorkflowRuntimeExecutionState,
   WorkflowBrandedTypes,
   type WorkflowExecutionArgs,
   type WorkflowJsonObject,
 } from '../types';
+import { observeBatched, type BatchedTriggerKind } from './observe-batched';
 
 const executeNode = async ({
   node$,
@@ -154,215 +153,49 @@ export const createWorkflowEngine = (
 ): WorkflowRuntimeEngine => {
   const engineState = {
     running: false,
-    isProcessing: false,
-    wasRequestedDuringProcessing: false,
-    /** add nodes to the nodeQueue when input changes
-     * remove nodes from the nodeQueue when they finished executing and sent outputs
-     */
-    nodeQueue: new Set<WorkflowNodeId>(),
+
+    engineSubscription: undefined as undefined | { unsubscribe: () => void },
+    nodeSubscriptions: new Map<WorkflowNodeId, { unsubscribe: () => void }>(),
+
     /** nodes to execute, will resume after stop */
-    nodeIdsToExecute: new Set<WorkflowNodeId>(),
+    nodeIdsToExecute: observable(new Set<WorkflowNodeId>()),
     dataChangeCounters: new Map<WorkflowRuntimeValue, number>(),
-    inputEdges: new Map<WorkflowRuntimeNode[`inputs`][number], undefined | WorkflowEdgeId>(),
-    sub: undefined as undefined | { unsubscribe: () => void },
+
     abortController: new AbortController(),
-    tickSpeed: 1000 as number | `slow` | `normal` | `fast`,
+    triggerKind: 1000 as BatchedTriggerKind,
   };
-
-  // const addNodeToQueue = (nodeId: WorkflowNodeId) => {
-  //   engineState.nodeQueue.add(nodeId);
-  // };
-  // const removeNodeFromQueue = (nodeId: WorkflowNodeId) => {
-  //   // engineState.nodeQueue.delete(nodeId);
-  // };
-
-  // const clearNodeQueue = () => {
-  //   // engineState.nodeQueue.clear();
-  // };
-  // const addAllNodesToQueue = (store: WorkflowRuntimeStore) => {
-  //   if (Object.keys(store.nodes).length === engineState.nodeQueue.size) {
-  //     return;
-  //   }
-
-  //   engineState.nodeQueue.clear();
-  //   Object.values(store.nodes).forEach((node) => {
-  //     engineState.nodeQueue.add(node.id);
-  //   });
-  // };
-
-  // const processNodeQueue = () => {
-  //   if (engineState.isProcessing) {
-  //     engineState.wasRequestedDuringProcessing = true;
-  //     return;
-  //   }
-  //   engineState.isProcessing = true;
-  //   engineState.wasRequestedDuringProcessing = false;
-
-  //   queueMicrotask(() => {
-  //     processNodeQueueInner();
-  //   });
-  //   // don't release until macro task
-  //   queueMacrotask(() => {
-  //     engineState.isProcessing = false;
-  //     if (engineState.wasRequestedDuringProcessing) {
-  //       processNodeQueue();
-  //     }
-  //   });
-  // };
-
-  // const processNodeQueueInner = () => {
-  //   // forward data
-  //   for (const nodeId of engineState.nodeQueue) {
-  //     const node = store.nodes[nodeId];
-  //     if (!node) {
-  //       console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
-  //         nodeId,
-  //       });
-  //       removeNodeFromQueue(nodeId);
-  //       continue;
-  //     }
-
-  //     console.log(
-  //       `[createWorkflowEngine:processNodeQueue] Processing node: ${nodeId}`,
-  //       // , { nodeId, node }
-  //     );
-
-  //     // send outputs to target inputs
-  //     for (const output of node.outputs) {
-  //       const hasChanged =
-  //         output.value.dataChangeCounter !== engineState.dataChangeCounters.get(output.value);
-  //       if (!hasChanged) {
-  //         //   console.log(`[createWorkflowEngine:processNodeQueue] Node output has not changed:`, {
-  //         //     nodeId,
-  //         //     outputName: output.name,
-  //         //     output,
-  //         //   });
-  //         continue;
-  //       }
-  //       engineState.dataChangeCounters.set(output.value, output.value.dataChangeCounter);
-
-  //       for (const edge of output.getEdges()) {
-  //         edge.value.data = output.value.data;
-  //         edge.value.meta = output.value.meta;
-
-  //         const targetNode = edge.target.getNode();
-  //         const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
-  //         if (!targetInput) {
-  //           console.warn(
-  //             `[createWorkflowEngine:processNodeQueue] Target node input not found for edge:`,
-  //             { edge },
-  //           );
-  //           continue;
-  //         }
-
-  //         targetInput.value.data = edge.value.data;
-  //         targetInput.value.meta = edge.value.meta;
-  //       }
-  //     }
-
-  //     // check for new input edges, and pull if new edge
-  //     for (const input of node.inputs) {
-  //       if (input.edgeId === engineState.inputEdges.get(input)) {
-  //         continue;
-  //       }
-  //       engineState.inputEdges.set(input, input.edgeId);
-
-  //       // handle edge removal
-  //       if (!input.edgeId) {
-  //         input.value.data = undefined;
-  //         input.value.meta = undefined;
-  //         console.log(`[createWorkflowEngine:processNodeQueue] Input edge removed:`, {
-  //           input,
-  //           node,
-  //         });
-  //         continue;
-  //       }
-
-  //       const edge = store.edges[input.edgeId!];
-  //       if (!edge) {
-  //         console.warn(`[createWorkflowEngine:processNodeQueue] Input edge not found:`, {
-  //           input,
-  //           node,
-  //         });
-  //         continue;
-  //       }
-
-  //       const sourceNode = edge.source.getNode();
-  //       const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
-  //       if (!sourceOutput) {
-  //         console.warn(
-  //           `[createWorkflowEngine:processNodeQueue] Source node output not found for edge:`,
-  //           { edge },
-  //         );
-  //         continue;
-  //       }
-
-  //       input.value.data = edge.value.data = sourceOutput.value.data;
-  //       input.value.meta = edge.value.meta = sourceOutput.value.meta;
-  //     }
-  //   }
-
-  //   // execute nodes
-  //   for (const nodeId of engineState.nodeQueue) {
-  //     const node = store.nodes[nodeId];
-  //     if (!node) {
-  //       console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
-  //         nodeId,
-  //       });
-  //       removeNodeFromQueue(nodeId);
-  //       continue;
-  //     }
-
-  //     const hasInputOrDataChanged =
-  //       node.inputs.some(
-  //         (input) =>
-  //           input.value.dataChangeCounter !== engineState.dataChangeCounters.get(input.value),
-  //       ) || node.data.dataChangeCounter !== engineState.dataChangeCounters.get(node.data);
-  //     if (!hasInputOrDataChanged) {
-  //       // console.log(`[createWorkflowEngine:processNodeQueue] Node inputs have not changed:`, {
-  //       //   nodeId,
-  //       // });
-  //       removeNodeFromQueue(nodeId);
-  //       continue;
-  //     }
-  //     // update data change counters
-  //     for (const input of node.inputs) {
-  //       engineState.dataChangeCounters.set(input.value, input.value.dataChangeCounter);
-  //     }
-  //     engineState.dataChangeCounters.set(node.data, node.data.dataChangeCounter);
-
-  //     removeNodeFromQueue(nodeId);
-  //     engineState.nodeIdsToExecute.add(nodeId);
-  //   }
-
-  //   for (const nodeId of engineState.nodeIdsToExecute) {
-  //     const node = store.nodes[nodeId];
-  //     if (!node) {
-  //       console.warn(`[createWorkflowEngine:processNodeQueue] Node not found in store:`, {
-  //         nodeId,
-  //       });
-  //       continue;
-  //     }
-  //     (async () => {
-  //       await executeNode({ node, store, abortSignal: engineState.abortController.signal });
-  //       // nodeIdsToExecute.push(nodeId);
-  //       // processNodeQueue();
-  //       if (!engineState.abortController.signal.aborted) {
-  //         engineState.nodeIdsToExecute.delete(nodeId);
-  //       }
-  //     })();
-  //   }
-  // };
 
   const engine: WorkflowRuntimeEngine = {
     get running() {
       return engineState.running;
     },
     get tickSpeed() {
-      return engineState.tickSpeed;
+      switch (engineState.triggerKind) {
+        case `MessageChannel`:
+          return `fast`;
+        case `requestAnimationFrame`:
+          return `normal`;
+        case 0:
+          return `slow`;
+        default:
+          return Number(engineState.triggerKind) || 0;
+      }
     },
     set tickSpeed(value) {
-      engineState.tickSpeed = value;
+      switch (value) {
+        case `fast`:
+          engineState.triggerKind = `MessageChannel`;
+          return;
+        case `normal`:
+          engineState.triggerKind = `requestAnimationFrame`;
+          return;
+        case `slow`:
+          engineState.triggerKind = 0;
+          return;
+        default:
+          engineState.triggerKind = value;
+          return;
+      }
     },
     start: () => {
       if (engineState.running) {
@@ -372,62 +205,224 @@ export const createWorkflowEngine = (
 
       console.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
       engineState.running = true;
-      engineState.isProcessing = false;
-      engineState.wasRequestedDuringProcessing = false;
       engineState.abortController = new AbortController();
 
-      // // subscribe to store changes
-      // const sub = observe((ops) => {
-      //   console.log(`[createWorkflowEngine:store.subscribe] Store changed`, { ops });
+      const unsubMain = observeBatched(() => {
+        if (!engineState.running) {
+          unsubMain();
+          return;
+        }
 
-      //   if (!engineState.running) {
-      //     engineState.sub?.unsubscribe();
-      //     engineState.sub = undefined;
-      //     return;
-      //   }
+        // subscribe to every node
+        Object.keys(store$.nodes).forEach((nodeIdKey) => {
+          const nodeId = WorkflowBrandedTypes.nodeId(nodeIdKey);
+          if (!store$.nodes[nodeId]?.id.get()) {
+            // missing node, unsub
+            engineState.nodeSubscriptions.get(nodeId)?.unsubscribe();
+            engineState.nodeSubscriptions.delete(nodeId);
+            return;
+          }
+          if (engineState.nodeSubscriptions.has(nodeId)) {
+            // already subscribed
+            return;
+          }
 
-      //   // for (const op of ops) {
-      //   //   const [, path, , ,] = op;
-      //   //   type _0t = typeof store;
-      //   //   type _1t = _0t[`nodes`];
-      //   //   type _2t = _1t[WorkflowNodeId];
-      //   //   type _3t = _2t[`inputs`] | _2t[`outputs`];
-      //   //   type _4t = _2t[`inputs`][number] | _2t[`outputs`][number];
-      //   //   type _5t = NonNullable<_4t[`value`]>;
+          const node$ = store$.nodes[nodeId];
+          const unsubInputs = observeBatched(() => {
+            if (!engineState.running) {
+              return;
+            }
 
-      //   //   type _0 = keyof _0t;
-      //   //   type _1 = keyof _1t;
-      //   //   type _2 = keyof _2t;
-      //   //   type _3 = number; //keyof _3t;
-      //   //   type _4 = keyof _4t;
-      //   //   type _5 = keyof _5t;
+            console.log(
+              `[createWorkflowEngine:nodeSubscription:inputs] Node data or input changed, queuing execution: ${nodeId}`,
+              {
+                node: node$.peek(),
+              },
+            );
 
-      //   //   const p = path as [_0, _1, _2, _3, _4, _5];
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_inputValues, _inputEdges] = node$.inputs.map((x) => [
+              x.value.getValue(),
+              x.edgeId.get(),
+            ]);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _dataValue = node$.data.get().getValue();
 
-      //   //   // TODO: what if node structure changes? (nodes/edges/inputs/outputs added/removed)
+            // pull any missing input values from new edges
+            for (const input of node$.inputs.peek()) {
+              const val = input.value.getValue() ?? unsubInputs;
+              if (val !== undefined) {
+                continue;
+              }
+              if (!input.edgeId) {
+                continue;
+              }
 
-      //   //   if (
-      //   //     p[0] !== `nodes` ||
-      //   //     (p[2] !== `inputs` && p[2] !== `outputs`) ||
-      //   //     p[4] !== `value` ||
-      //   //     p[5] !== `data`
-      //   //   ) {
-      //   //     continue;
-      //   //   }
+              console.log(
+                `[createWorkflowEngine:nodeSubscription:inputs] Pulling input value from new edge for input: ${input.name} on node: ${nodeId}`,
+                { input },
+              );
 
-      //   //   addNodeToQueue(p[1]);
-      //   // }
+              const edge = store$.edges[input.edgeId]?.peek();
+              if (!edge) {
+                console.warn(
+                  `[createWorkflowEngine:nodeSubscription:inputs] Input edge not found:`,
+                  {
+                    input,
+                    node: node$.peek(),
+                  },
+                );
+                continue;
+              }
 
-      //   // if (!engineState.nodeQueue.size) {
-      //   //   return;
-      //   // }
+              if (edge.value.getValue() !== undefined) {
+                console.log(
+                  `[createWorkflowEngine:nodeSubscription:inputs] Using edge value for input: ${input.name} on node: ${nodeId}`,
+                  { edge },
+                );
+                input.value.setValue(edge.value.getValue());
+                continue;
+              }
 
-      //   // queue all nodes
-      //   addAllNodesToQueue(store);
-      //   processNodeQueue();
-      // });
+              const sourceNode = edge.source.getNode();
+              const sourceOutput = sourceNode?.outputs.find(
+                (o) => o.name === edge.source.outputName,
+              );
+              if (!sourceOutput) {
+                console.warn(
+                  `[createWorkflowEngine:nodeSubscription:inputs] Source node output not found for edge:`,
+                  { edge },
+                );
+                continue;
+              }
 
-      // engineState.sub = { unsubscribe: sub };
+              console.log(
+                `[createWorkflowEngine:nodeSubscription:inputs] Pulling value from source output for input: ${input.name} on node: ${nodeId}`,
+                { sourceOutput },
+              );
+              edge.value.setValue(sourceOutput.value.getValue());
+              input.value.setValue(sourceOutput.value.getValue());
+            }
+
+            // queue node for execution
+            engineState.nodeIdsToExecute.add(nodeId);
+          }, engineState.triggerKind);
+
+          const unsubPropogateOutputs = observeBatched(() => {
+            if (!engineState.running) {
+              return;
+            }
+
+            console.log(
+              `[createWorkflowEngine:nodeSubscription:outputs] Node outputs changed, propogating outputs: ${nodeId}`,
+              {
+                node: node$.peek(),
+              },
+            );
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_outputValues] = node$.outputs.map((x) => [x.value.getValue()]);
+
+            // send outputs to target inputs
+            for (const output of node$.outputs.peek()) {
+              const hasChanged =
+                output.value.dataChangeCounter !== engineState.dataChangeCounters.get(output.value);
+
+              if (!hasChanged) {
+                //   console.log(
+                //     `[createWorkflowEngine:nodeSubscription:outputs] Node output has not changed:`,
+                //     {
+                //       nodeId,
+                //       outputName: output.name,
+                //       output,
+                //     },
+                //   );
+                continue;
+              }
+
+              // send the output through edges
+              engineState.dataChangeCounters.set(output.value, output.value.dataChangeCounter);
+              for (const edge of output.getEdges()) {
+                edge.value.setValue(output.value.getValue());
+
+                const targetNode = edge.target.getNode();
+                const targetInput = targetNode?.inputs.find(
+                  (i) => i.name === edge.target.inputName,
+                );
+                if (!targetInput) {
+                  console.warn(
+                    `[createWorkflowEngine:nodeSubscription:outputs] Target node input not found for edge:`,
+                    { edge },
+                  );
+                  continue;
+                }
+                targetInput.value.setValue(edge.value.getValue());
+              }
+            }
+          }, engineState.triggerKind);
+
+          engineState.nodeSubscriptions.set(nodeId, {
+            unsubscribe: () => {
+              unsubInputs();
+              unsubPropogateOutputs();
+            },
+          });
+        });
+
+        return () => {
+          Object.values(engineState.nodeSubscriptions).forEach((unsub) => unsub.unsubscribe());
+          engineState.nodeSubscriptions.clear();
+        };
+      }, engineState.triggerKind);
+
+      const unsubExecuteNodes = observeBatched(() => {
+        if (!engineState.running) {
+          unsubExecuteNodes();
+          return;
+        }
+
+        const nodeIdsToExecute = Array.from(engineState.nodeIdsToExecute.get());
+        if (nodeIdsToExecute.length === 0) {
+          return;
+        }
+
+        console.log(`[createWorkflowEngine:executeNodes] Executing queued nodes:`, {
+          nodeIdsToExecute,
+        });
+
+        (async () => {
+          const promises = nodeIdsToExecute.map(async (nodeId) => {
+            const node$ = store$.nodes[nodeId];
+            if (!node$?.id.get()) {
+              console.warn(
+                `[createWorkflowEngine:executeNodes] Node not found, skipping execution:`,
+                {
+                  nodeId,
+                },
+              );
+              engineState.nodeIdsToExecute.delete(nodeId);
+              return;
+            }
+
+            await executeNode({
+              node$,
+              store$,
+              abortSignal: engineState.abortController.signal,
+            });
+
+            engineState.nodeIdsToExecute.delete(nodeId);
+          });
+
+          await Promise.all(promises);
+        })();
+      }, engineState.triggerKind);
+
+      engineState.engineSubscription = {
+        unsubscribe: () => {
+          unsubMain();
+          unsubExecuteNodes();
+        },
+      };
 
       // // queue all nodes
       // addAllNodesToQueue(store$.get());
@@ -441,14 +436,15 @@ export const createWorkflowEngine = (
 
       console.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, { engine });
       engineState.running = false;
-      engineState.sub?.unsubscribe();
-      engineState.sub = undefined;
+      engineState.engineSubscription?.unsubscribe();
+      engineState.engineSubscription = undefined;
 
       if (shouldAbort) {
         engineState.abortController.abort();
       }
     },
     queueNode: (nodeId) => {
+      engineState.nodeIdsToExecute.add(nodeId);
       // addNodeToQueue(nodeId);
       // processNodeQueue();
     },

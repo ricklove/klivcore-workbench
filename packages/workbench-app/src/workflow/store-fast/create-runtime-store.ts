@@ -156,11 +156,11 @@ const createRuntimeValue = <TBase = unknown>({
       },
     }),
     getValue: <T>() => {
-      console.log(`[createRuntimeValue.getValue]`, { obj, inner$ });
+      // console.log(`[createRuntimeValue.getValue]`, { obj, inner$ });
       return inner$.get().content as T | undefined;
     },
     setValue: <T>(value: T | null) => {
-      console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
+      // console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
       inner$.set(ObservableHint.opaque({ content: (value ?? null) as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },
@@ -168,7 +168,7 @@ const createRuntimeValue = <TBase = unknown>({
       if (inner$.get().content === undefined) {
         return;
       }
-      console.log(`[createRuntimeValue.clearValue]`, { obj, inner$ });
+      // console.log(`[createRuntimeValue.clearValue]`, { obj, inner$ });
       inner$.set(ObservableHint.opaque({ content: undefined as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },
@@ -342,10 +342,10 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
     return;
   }
 
-  console.log(
-    `Populating node ${node.id} of type ${node.type}`,
-    // , { node, typeDef, store }
-  );
+  // console.log(
+  //   `Populating node ${node.id} of type ${node.type}`,
+  //   // , { node, typeDef, store }
+  // );
 
   // add type input and outputs
   for (const typeInput of typeDef.inputs) {
