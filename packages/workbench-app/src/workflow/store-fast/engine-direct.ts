@@ -1,4 +1,4 @@
-import { observable, type Observable } from '@legendapp/state';
+import { type Observable } from '@legendapp/state';
 import {
   type WorkflowRuntimeEngine,
   type WorkflowRuntimeNode,
@@ -13,12 +13,13 @@ import {
 } from '../types';
 import { createBatchTrigger, observeBatched, type BatchedTriggerKind } from './observe-batched';
 
+const loggingEnabled = true;
+
 type Logger = {
   log: typeof console.log;
   warn: typeof console.warn;
   error: typeof console.error;
 };
-const loggingEnabled = false;
 const logger: Logger = {
   log: (...args: unknown[]) => {
     if (!loggingEnabled) return;
@@ -215,18 +216,17 @@ export const createWorkflowEngine = (
     nodeIdsToExecute: new Set<WorkflowNodeId>(),
     nodeIdsExecuting: new Set<WorkflowNodeId>(),
 
-    /** @deprecated nodes to execute, will resume after stop */
-    nodeIdsToExecute$: observable(new Set<WorkflowNodeId>()),
-
     dataChangeCounters: new Map<WorkflowRuntimeValue, number>(),
     abortController: new AbortController(),
     triggerKind: 1000 as BatchedTriggerKind,
   };
 
   const propagateValues = () => {
+    logger.log(`[createWorkflowEngine:propagateValues] Propagating values...`, { engineState });
+
     // process output values
     for (const ov of engineState.outputValues) {
-      const currentCounter = engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? 0;
+      const currentCounter = engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? -1;
       const newCounter = ov.sourceOutputRuntimeValue.dataChangeCounter;
 
       if (newCounter === currentCounter) {
@@ -247,7 +247,7 @@ export const createWorkflowEngine = (
 
     // process node data values
     for (const nv of engineState.nodeDataValues) {
-      const currentCounter = engineState.dataChangeCounters.get(nv.dataRuntimeValue) ?? 0;
+      const currentCounter = engineState.dataChangeCounters.get(nv.dataRuntimeValue) ?? -1;
       const newCounter = nv.dataRuntimeValue.dataChangeCounter;
       if (newCounter === currentCounter) {
         continue;
@@ -261,6 +261,10 @@ export const createWorkflowEngine = (
   };
 
   const executeNodesInParallel = async () => {
+    logger.log(`[createWorkflowEngine:executeNodesInParallel] Executing nodes in parallel...`, {
+      engineState,
+    });
+
     const promises = [] as Promise<void>[];
     for (const nodeId of engineState.nodeIdsExecuting) {
       const node$ = store$.nodes[nodeId];
@@ -297,11 +301,27 @@ export const createWorkflowEngine = (
       );
       engineState.nodeIdsExecuting.clear();
     }
+
+    queueTick();
+  };
+
+  const queueTick = () => {
+    engineState.tickTriggerSubscription?.unsubscribe();
+    engineState.tickTriggerSubscription = {
+      unsubscribe: createBatchTrigger(engineState.triggerKind)(tick),
+    };
   };
 
   const tick = () => {
+    logger.log(`[createWorkflowEngine:tick] ...`, { engineState });
+    engineState.tickTriggerSubscription = undefined;
+
     // don't overlap ticks
     if (engineState.nodeIdsExecuting.size > 0) {
+      return;
+    }
+
+    if (!engineState.running) {
       return;
     }
 
@@ -314,6 +334,8 @@ export const createWorkflowEngine = (
     engineState.nodeIdsToExecute.clear();
 
     if (engineState.nodeIdsExecuting.size === 0) {
+      logger.log(`[createWorkflowEngine:tick] No nodes to execute, skipping.`, { engineState });
+      queueTick();
       return;
     }
 
@@ -357,13 +379,9 @@ export const createWorkflowEngine = (
           break;
       }
 
-      if (!engineState.tickTriggerSubscription) {
-        return;
+      if (engineState.running) {
+        queueTick();
       }
-      engineState.tickTriggerSubscription.unsubscribe();
-      engineState.tickTriggerSubscription = {
-        unsubscribe: createBatchTrigger(engineState.triggerKind)(tick),
-      };
 
       return;
     },
@@ -436,13 +454,14 @@ export const createWorkflowEngine = (
         return () => {};
       }, engineState.triggerKind);
 
+      engineState.engineSubscription = {
+        unsubscribe: unsubMain,
+      };
+
       // resume if stopped executing
 
       // begin ticking
-      engineState.tickTriggerSubscription?.unsubscribe();
-      engineState.tickTriggerSubscription = {
-        unsubscribe: createBatchTrigger(engineState.triggerKind)(tick),
-      };
+      queueTick();
     },
     stop: ({ shouldAbort }) => {
       if (!engineState.running) {
@@ -460,7 +479,7 @@ export const createWorkflowEngine = (
       }
     },
     queueNode: (nodeId) => {
-      engineState.nodeIdsToExecute$.add(nodeId);
+      engineState.nodeIdsToExecute.add(nodeId);
     },
   };
 
