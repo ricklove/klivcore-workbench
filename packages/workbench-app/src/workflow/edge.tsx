@@ -185,7 +185,14 @@ const CustomEdgeInner = memo(
                       {() => (
                         <textarea
                           className="flex-1 resize-none bg-black p-1"
-                          value={JSON.stringify(props.data.edge$.value.get(), null, 2)}
+                          value={JSON.stringify(
+                            {
+                              value: props.data.edge$.value.getValue(),
+                              dataChangeCounter: props.data.edge$.value.dataChangeCounter.get(),
+                            },
+                            null,
+                            2,
+                          )}
                           readOnly
                         />
                       )}

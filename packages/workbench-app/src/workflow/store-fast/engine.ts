@@ -413,10 +413,10 @@ export const createWorkflowEngine = (
               targetInput.value.setValue(outputInfo.outputValue);
             }
 
-            console.log(
-              `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propagating output '${nodeId}:${outputInfo.output.name}':`,
-              { outputInfo },
-            );
+            // console.log(
+            //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propagating output '${nodeId}:${outputInfo.output.name}':`,
+            //   { outputInfo },
+            // );
           }
 
           console.log(
