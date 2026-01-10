@@ -327,6 +327,7 @@ export interface WorkflowRuntimeExecutionState {
     startTimestamp?: WorkflowTimestamp;
     endTimestamp?: WorkflowTimestamp;
     asyncExecutionTime?: number;
+    asyncMicrotaskLagTime?: number;
     progressRatio?: number;
     progressMessage?: string;
     errorMessage?: string;
@@ -338,6 +339,7 @@ export interface WorkflowRuntimeExecutionState {
     startTimestamp: WorkflowTimestamp;
     endTimestamp: WorkflowTimestamp;
     asyncExecutionTime?: number;
+    asyncMicrotaskLagTime?: number;
     errorMessage?: string;
   }[];
 }

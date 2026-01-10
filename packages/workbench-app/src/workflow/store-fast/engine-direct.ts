@@ -118,14 +118,18 @@ const executeNode = async ({
   // });
 
   try {
-    const startTime = performance.now();
+    const asyncStartTime = performance.now();
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
+    const asyncMicrotaskLagTime = performance.now() - asyncStartTime;
+
     const result = await typeDef.execute(args);
-    const asyncExecutionTime = performance.now() - startTime;
+    const asyncExecutionTime = performance.now() - asyncStartTime;
     abortSignal.throwIfAborted();
 
     executionState$.status.set(`success`);
     executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
     executionState$.runState.asyncExecutionTime.set(asyncExecutionTime);
+    executionState$.runState.asyncMicrotaskLagTime.set(asyncMicrotaskLagTime);
 
     logger.log(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
@@ -176,12 +180,14 @@ const executeNode = async ({
     }
   }
 
+  const rs = executionState$.runState.peek()!;
   executionState$.history.push({
     status: executionState$.status.peek() as `success` | `error` | `aborted`,
-    startTimestamp: executionState$.runState.startTimestamp.peek()!,
-    endTimestamp: executionState$.runState.endTimestamp.peek()!,
-    asyncExecutionTime: executionState$.runState.asyncExecutionTime.peek() ?? 0,
-    errorMessage: executionState$.runState.errorMessage.peek(),
+    startTimestamp: rs.startTimestamp!,
+    endTimestamp: rs.endTimestamp!,
+    asyncExecutionTime: rs.asyncExecutionTime ?? 0,
+    asyncMicrotaskLagTime: rs.asyncMicrotaskLagTime ?? 0,
+    errorMessage: rs.errorMessage,
   });
 };
 
@@ -240,6 +246,12 @@ export const createWorkflowEngine = (
       get executionAverageTime() {
         return this.executionCount === 0 ? 0 : this.executionTotalTime / this.executionCount;
       },
+      executionMicrotaskLagTotalTime: 0,
+      get executionMicrotaskLagAverageTime() {
+        return this.executionCount === 0
+          ? 0
+          : this.executionMicrotaskLagTotalTime / this.executionCount;
+      },
       get executionHistoryCount() {
         return Object.values(store$.nodes.peek())
           .map((x) => x.executionState?.history.length ?? 0)
@@ -275,11 +287,26 @@ export const createWorkflowEngine = (
         const count = this.executionHistoryCount;
         return count === 0 ? 0 : this.executionHistoryAsyncTotalTime / count;
       },
+      get executionHistoryAsyncMicrotaskLagTotalTime() {
+        return Object.values(store$.nodes.peek())
+          .map(
+            (x) =>
+              x.executionState?.history.reduce(
+                (acc, cur) => acc + (cur.asyncMicrotaskLagTime ?? 0),
+                0,
+              ) ?? 0,
+          )
+          .reduce((acc, cur) => acc + cur, 0);
+      },
+      get executionHistoryAsyncMicrotaskLagAverageTime() {
+        const count = this.executionHistoryCount;
+        return count === 0 ? 0 : this.executionHistoryAsyncMicrotaskLagTotalTime / count;
+      },
     },
   };
   const stats = engineState.stats;
 
-  const propagationKind = `subscription` as `polling` | `subscription`;
+  const propagationKind = `polling` as `polling` | `subscription`;
   const propagateValues = () => {
     if (propagationKind !== `polling`) {
       return;
@@ -341,6 +368,18 @@ export const createWorkflowEngine = (
 
     stats.executionCount++;
     const startTime = performance.now();
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
+    stats.executionMicrotaskLagTotalTime += performance.now() - startTime;
+
+    let isInBatch = true;
+    beginBatch();
+
+    setTimeout(() => {
+      if (isInBatch) {
+        isInBatch = false;
+        endBatch();
+      }
+    }, 10);
 
     const promises = [] as Promise<void>[];
     for (const nodeId of engineState.nodeIdsExecuting) {
@@ -367,6 +406,11 @@ export const createWorkflowEngine = (
     }
 
     await Promise.all(promises);
+
+    if (isInBatch) {
+      isInBatch = false;
+      endBatch();
+    }
 
     if (engineState.nodeIdsExecuting.size > 0) {
       // this should not be possible
