@@ -175,20 +175,17 @@ export const useReactFlowStore = (
             data: {
               node$,
               store$,
-              // inputs$: (key: WorkflowInputName) => {
-              //   return node$.inputs.find((input$) => input$.name.get() === key)?.value.box$;
-              // },
-              inputs$: observable(() =>
+              inputs$: observable(
                 Object.fromEntries(
-                  node$.inputs.map((input$) => [input$.name.get(), input$.value.box$]),
+                  node$.inputs.map((input$) => [input$.name.get(), input$.value.box]),
                 ),
               ),
-              outputs$: observable(() =>
+              outputs$: observable(
                 Object.fromEntries(
-                  node$.outputs.map((output$) => [output$.name.get(), output$.value.box$]),
+                  node$.outputs.map((output$) => [output$.name.get(), output$.value.box]),
                 ),
               ),
-              data$: node$.data.box$,
+              data$: node$.data.box,
             },
           };
 

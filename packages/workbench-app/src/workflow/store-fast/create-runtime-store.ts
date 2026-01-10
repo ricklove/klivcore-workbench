@@ -13,7 +13,7 @@ import {
   type WorkflowRuntimeValue,
 } from '../types';
 import { builtinNodeTypes } from '../node-types';
-import { observable, ObservableHint, type Observable, linked } from '@legendapp/state';
+import { linked, observable, ObservableHint, type Observable } from '@legendapp/state';
 
 const getters = {
   node: {
@@ -144,15 +144,14 @@ const createRuntimeValue = <TBase = unknown>({
   const dataChangeCounter$ = observable(0);
 
   const obj: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
-    ...{
-      inner$,
-      dataChangeCounter$,
-    },
-    box$: linked({
-      get: () => inner$.get().content,
+    // ...{
+    //   inner$,
+    //   dataChangeCounter$,
+    // },
+    box: linked({
+      get: () => obj.getValue<TBase>(),
       set: (v) => {
-        inner$.set(ObservableHint.opaque({ content: (v ?? null) as TBase }));
-        dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+        obj.setValue<TBase>(v as TBase);
       },
     }),
     getValue: <T>() => {
@@ -160,7 +159,7 @@ const createRuntimeValue = <TBase = unknown>({
       return inner$.get().content as T | undefined;
     },
     setValue: <T>(value: T | null) => {
-      // console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
+      console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
       inner$.set(ObservableHint.opaque({ content: (value ?? null) as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },

@@ -1,4 +1,4 @@
-import { observable, type Observable } from '@legendapp/state';
+import { observable, type Observable, type ObserveEvent } from '@legendapp/state';
 import {
   type WorkflowRuntimeEngine,
   type WorkflowRuntimeNode,
@@ -83,6 +83,11 @@ const executeNode = async ({
       },
     },
   };
+
+  await new Promise<void>((resolve) => {
+    // queue microtask to allow UI to update
+    queueMicrotask(() => resolve());
+  });
 
   try {
     const result = await typeDef.execute(args);
@@ -207,166 +212,238 @@ export const createWorkflowEngine = (
       engineState.running = true;
       engineState.abortController = new AbortController();
 
-      const unsubMain = observeBatched(() => {
+      // subscribe to every node
+      const subscribeNode = (nodeId: WorkflowNodeId, e: ObserveEvent<unknown>) => {
+        console.log(`[createWorkflowEngine:subscribeNode] Setup node subscription...`, {
+          nodeId,
+          e,
+        });
+
+        if (!store$.nodes[nodeId]?.id.get()) {
+          // missing node, unsub
+          engineState.nodeSubscriptions.get(nodeId)?.unsubscribe();
+          engineState.nodeSubscriptions.delete(nodeId);
+          return;
+        }
+        if (engineState.nodeSubscriptions.has(nodeId)) {
+          // already subscribed
+          return;
+        }
+
+        const node$ = store$.nodes[nodeId];
+        const unsubInputs = observeBatched((e) => {
+          console.log(
+            `[createWorkflowEngine:subscribeNode:subInputs:observeBatched] Setup node subscriptions...`,
+            { e },
+          );
+          if (!engineState.running) {
+            return;
+          }
+
+          console.log(
+            `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Node data or input changed, queuing execution: ${nodeId}`,
+            {
+              node: node$.peek(),
+            },
+          );
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const [_inputValues, _inputEdges] = node$.inputs.map((x) => [
+            x.value.getValue(),
+            x.edgeId.get(),
+          ]);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const _dataValue = node$.data.get().getValue();
+
+          // pull any missing input values from new edges
+          for (const input of node$.inputs.peek()) {
+            const val = input.value.getValue() ?? unsubInputs;
+            if (val !== undefined) {
+              continue;
+            }
+            if (!input.edgeId) {
+              continue;
+            }
+
+            console.log(
+              `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Pulling input value from new edge for input: ${input.name} on node: ${nodeId}`,
+              { input },
+            );
+
+            const edge = store$.edges[input.edgeId]?.peek();
+            if (!edge) {
+              console.warn(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Input edge not found:`,
+                {
+                  input,
+                  node: node$.peek(),
+                },
+              );
+              continue;
+            }
+
+            if (edge.value.getValue() !== undefined) {
+              console.log(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Using edge value for input: ${input.name} on node: ${nodeId}`,
+                { edge },
+              );
+              input.value.setValue(edge.value.getValue());
+              continue;
+            }
+
+            const sourceNode = edge.source.getNode();
+            const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
+            if (!sourceOutput) {
+              console.warn(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Source node output not found for edge:`,
+                { edge },
+              );
+              continue;
+            }
+
+            console.log(
+              `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Pulling value from source output for input: ${input.name} on node: ${nodeId}`,
+              { sourceOutput },
+            );
+            edge.value.setValue(sourceOutput.value.getValue());
+            input.value.setValue(sourceOutput.value.getValue());
+          }
+
+          // queue node for execution
+          engineState.nodeIdsToExecute.add(nodeId);
+        }, engineState.triggerKind);
+
+        const unsubPropogateOutputs = observeBatched((e) => {
+          console.log(
+            `[createWorkflowEngine:subscribeNode:subPropogateOutputs:observeBatched] Propogate outputs...`,
+            { e },
+          );
+          if (!engineState.running) {
+            return;
+          }
+
+          const outputInfos = node$.outputs.get().map((x) => ({
+            output: x,
+            outputRuntimeValue: x.value,
+            outputValue: x.value.getValue(),
+            dataChangeCounter: x.value.dataChangeCounter,
+          }));
+
+          console.log(
+            `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propogating outputs for node '${nodeId}':`,
+            {
+              values: outputInfos.map((info) => info.outputValue),
+              names: outputInfos.map((info) => info.output.name),
+              outputInfos,
+            },
+          );
+
+          // send outputs to target inputs
+          for (const outputInfo of outputInfos) {
+            const hasChanged =
+              outputInfo.dataChangeCounter !==
+              engineState.dataChangeCounters.get(outputInfo.outputRuntimeValue);
+
+            if (!hasChanged) {
+              console.log(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Node output has not changed:`,
+                {
+                  nodeId,
+                  outputInfo,
+                },
+              );
+              continue;
+            }
+
+            // send the output through edges
+            engineState.dataChangeCounters.set(
+              outputInfo.outputRuntimeValue,
+              outputInfo.outputRuntimeValue.dataChangeCounter,
+            );
+
+            const edges = outputInfo.output.getEdges();
+
+            if (!edges.length) {
+              console.log(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] No edges to propogate output '${nodeId}:${outputInfo.output.name}'`,
+                {
+                  nodeId,
+                  outputInfo,
+                },
+              );
+              continue;
+            }
+
+            console.log(
+              `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propogating output '${nodeId}:${outputInfo.output.name}':`,
+              {
+                nodeId,
+                outputInfo,
+                edges,
+              },
+            );
+
+            for (const edge of edges) {
+              console.warn(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings edge value:`,
+                {
+                  edge,
+                  outputInfo,
+                },
+              );
+
+              edge.value.setValue(outputInfo.outputValue);
+
+              const targetNode = edge.target.getNode();
+              const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
+              if (!targetInput) {
+                console.warn(
+                  `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Target node input not found for edge:`,
+                  { edge, outputInfo, targetNode, targetInput },
+                );
+                continue;
+              }
+
+              console.warn(
+                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings target node input:`,
+                { edge, outputInfo, targetNode, targetInput },
+              );
+
+              targetInput.value.setValue(outputInfo.outputValue);
+            }
+
+            console.warn(
+              `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propogating output '${nodeId}:${outputInfo.output.name}':`,
+              { outputInfo },
+            );
+          }
+
+          console.warn(
+            `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propogating outputs '${nodeId}':`,
+            { outputInfos },
+          );
+        }, engineState.triggerKind);
+
+        engineState.nodeSubscriptions.set(nodeId, {
+          unsubscribe: () => {
+            unsubInputs();
+            unsubPropogateOutputs();
+          },
+        });
+      };
+
+      const unsubMain = observeBatched((e) => {
+        console.log(
+          `[createWorkflowEngine:mainSubscription:observeBatched] Setup node subscriptions...`,
+          { e },
+        );
         if (!engineState.running) {
           unsubMain();
           return;
         }
 
-        // subscribe to every node
-        Object.keys(store$.nodes).forEach((nodeIdKey) => {
-          const nodeId = WorkflowBrandedTypes.nodeId(nodeIdKey);
-          if (!store$.nodes[nodeId]?.id.get()) {
-            // missing node, unsub
-            engineState.nodeSubscriptions.get(nodeId)?.unsubscribe();
-            engineState.nodeSubscriptions.delete(nodeId);
-            return;
-          }
-          if (engineState.nodeSubscriptions.has(nodeId)) {
-            // already subscribed
-            return;
-          }
-
-          const node$ = store$.nodes[nodeId];
-          const unsubInputs = observeBatched(() => {
-            if (!engineState.running) {
-              return;
-            }
-
-            console.log(
-              `[createWorkflowEngine:nodeSubscription:inputs] Node data or input changed, queuing execution: ${nodeId}`,
-              {
-                node: node$.peek(),
-              },
-            );
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const [_inputValues, _inputEdges] = node$.inputs.map((x) => [
-              x.value.getValue(),
-              x.edgeId.get(),
-            ]);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const _dataValue = node$.data.get().getValue();
-
-            // pull any missing input values from new edges
-            for (const input of node$.inputs.peek()) {
-              const val = input.value.getValue() ?? unsubInputs;
-              if (val !== undefined) {
-                continue;
-              }
-              if (!input.edgeId) {
-                continue;
-              }
-
-              console.log(
-                `[createWorkflowEngine:nodeSubscription:inputs] Pulling input value from new edge for input: ${input.name} on node: ${nodeId}`,
-                { input },
-              );
-
-              const edge = store$.edges[input.edgeId]?.peek();
-              if (!edge) {
-                console.warn(
-                  `[createWorkflowEngine:nodeSubscription:inputs] Input edge not found:`,
-                  {
-                    input,
-                    node: node$.peek(),
-                  },
-                );
-                continue;
-              }
-
-              if (edge.value.getValue() !== undefined) {
-                console.log(
-                  `[createWorkflowEngine:nodeSubscription:inputs] Using edge value for input: ${input.name} on node: ${nodeId}`,
-                  { edge },
-                );
-                input.value.setValue(edge.value.getValue());
-                continue;
-              }
-
-              const sourceNode = edge.source.getNode();
-              const sourceOutput = sourceNode?.outputs.find(
-                (o) => o.name === edge.source.outputName,
-              );
-              if (!sourceOutput) {
-                console.warn(
-                  `[createWorkflowEngine:nodeSubscription:inputs] Source node output not found for edge:`,
-                  { edge },
-                );
-                continue;
-              }
-
-              console.log(
-                `[createWorkflowEngine:nodeSubscription:inputs] Pulling value from source output for input: ${input.name} on node: ${nodeId}`,
-                { sourceOutput },
-              );
-              edge.value.setValue(sourceOutput.value.getValue());
-              input.value.setValue(sourceOutput.value.getValue());
-            }
-
-            // queue node for execution
-            engineState.nodeIdsToExecute.add(nodeId);
-          }, engineState.triggerKind);
-
-          const unsubPropogateOutputs = observeBatched(() => {
-            if (!engineState.running) {
-              return;
-            }
-
-            console.log(
-              `[createWorkflowEngine:nodeSubscription:outputs] Node outputs changed, propogating outputs: ${nodeId}`,
-              {
-                node: node$.peek(),
-              },
-            );
-
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const [_outputValues] = node$.outputs.map((x) => [x.value.getValue()]);
-
-            // send outputs to target inputs
-            for (const output of node$.outputs.peek()) {
-              const hasChanged =
-                output.value.dataChangeCounter !== engineState.dataChangeCounters.get(output.value);
-
-              if (!hasChanged) {
-                //   console.log(
-                //     `[createWorkflowEngine:nodeSubscription:outputs] Node output has not changed:`,
-                //     {
-                //       nodeId,
-                //       outputName: output.name,
-                //       output,
-                //     },
-                //   );
-                continue;
-              }
-
-              // send the output through edges
-              engineState.dataChangeCounters.set(output.value, output.value.dataChangeCounter);
-              for (const edge of output.getEdges()) {
-                edge.value.setValue(output.value.getValue());
-
-                const targetNode = edge.target.getNode();
-                const targetInput = targetNode?.inputs.find(
-                  (i) => i.name === edge.target.inputName,
-                );
-                if (!targetInput) {
-                  console.warn(
-                    `[createWorkflowEngine:nodeSubscription:outputs] Target node input not found for edge:`,
-                    { edge },
-                  );
-                  continue;
-                }
-                targetInput.value.setValue(edge.value.getValue());
-              }
-            }
-          }, engineState.triggerKind);
-
-          engineState.nodeSubscriptions.set(nodeId, {
-            unsubscribe: () => {
-              unsubInputs();
-              unsubPropogateOutputs();
-            },
-          });
+        Object.keys(store$.nodes).forEach((nodeIdRaw: string) => {
+          subscribeNode(WorkflowBrandedTypes.nodeId(nodeIdRaw), e);
         });
 
         return () => {
@@ -375,7 +452,10 @@ export const createWorkflowEngine = (
         };
       }, engineState.triggerKind);
 
-      const unsubExecuteNodes = observeBatched(() => {
+      const unsubExecuteNodes = observeBatched((e) => {
+        console.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Proopegate outputs...`, {
+          e,
+        });
         if (!engineState.running) {
           unsubExecuteNodes();
           return;
