@@ -10,6 +10,7 @@ import {
   type WorkflowJsonObject,
   type WorkflowEdgeId,
   type WorkflowRuntimeEdge,
+  type WorkflowRuntimeExecutionState,
 } from '../types';
 import { createBatchTrigger, observeBatched, type BatchedTriggerKind } from './observe-batched';
 
@@ -36,17 +37,15 @@ const logger: Logger = {
 };
 
 const executeNode = async ({
-  node$,
-  store$,
-  abortSignal,
+  node,
+  store,
+  controller,
 }: {
-  node$: Observable<WorkflowRuntimeNode>;
-  store$: Observable<WorkflowRuntimeStore>;
-  abortSignal: AbortSignal;
-}) => {
-  const node = node$.peek();
+  node: WorkflowRuntimeNode;
+  store: WorkflowRuntimeStore;
+  controller: WorkflowExecutionArgs['controller'];
+}): Promise<undefined | WorkflowRuntimeExecutionState> => {
   const nodeId = node.id;
-  const store = store$.peek();
 
   const typeDef = store.nodeTypes[node.type];
   if (!typeDef) {
@@ -54,7 +53,7 @@ const executeNode = async ({
       nodeId,
       type: node.type,
     });
-    return;
+    return undefined;
   }
 
   logger.log(
@@ -64,49 +63,38 @@ const executeNode = async ({
     //     node,
     //   }
   );
-  const executionState$ = node$.executionState;
-  if (!executionState$.peek()) {
-    executionState$.set({
-      status: `initial`,
-      runState: {},
-      history: [],
-    });
-  }
 
-  if (executionState$.status.peek() === `running`) {
+  if (node.executionState?.status === `running`) {
     logger.warn(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node is already running, skipping execution:`,
       {
         nodeId,
         node,
-        executionState: executionState$.peek(),
+        executionState: node.executionState,
       },
     );
-    return;
+    return undefined;
   }
 
-  executionState$.status.set(`running`);
-  executionState$.runState.set({
+  const executionState = {
+    ...(node.executionState ?? {
+      status: `initial`,
+      runState: {},
+      history: [],
+    }),
+  };
+
+  executionState.status = `running`;
+  executionState.runState = {
     startTimestamp: WorkflowBrandedTypes.now(),
-  });
+  };
 
   const args: WorkflowExecutionArgs = {
     inputs: Object.fromEntries(node.inputs.map((input) => [input.name, input.value.getValue()])),
     data: node.data.getValue<WorkflowJsonObject>() ?? undefined,
     node,
     store,
-    controller: {
-      abortSignal,
-      setProgress: ({ progressRatio, message }) => {
-        logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
-          nodeId,
-          progressRatio,
-          message,
-        });
-        executionState$.runState.progressRatio.set(progressRatio);
-        executionState$.runState.progressMessage.set(message);
-      },
-    },
+    controller,
   };
 
   // await new Promise<void>((resolve) => {
@@ -124,12 +112,12 @@ const executeNode = async ({
 
     const result = await typeDef.execute(args);
     const asyncExecutionTime = performance.now() - asyncStartTime;
-    abortSignal.throwIfAborted();
+    controller.abortSignal.throwIfAborted();
 
-    executionState$.status.set(`success`);
-    executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
-    executionState$.runState.asyncExecutionTime.set(asyncExecutionTime);
-    executionState$.runState.asyncMicrotaskLagTime.set(asyncMicrotaskLagTime);
+    executionState.status = `success`;
+    executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
+    executionState.runState.asyncExecutionTime = asyncExecutionTime;
+    executionState.runState.asyncMicrotaskLagTime = asyncMicrotaskLagTime;
 
     logger.log(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
@@ -143,7 +131,7 @@ const executeNode = async ({
     );
 
     if (!result) {
-      return;
+      return executionState;
     }
 
     // set outputs
@@ -157,17 +145,17 @@ const executeNode = async ({
       node.data.setValue(result.data ?? null);
     }
   } catch (err) {
-    if (abortSignal.aborted) {
-      executionState$.status.set(`aborted`);
-      executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
+    if (controller.abortSignal.aborted) {
+      executionState.status = `aborted`;
+      executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
       logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
         nodeId,
         args,
       });
     } else {
-      executionState$.status.set(`error`);
-      executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
-      executionState$.runState.errorMessage.set((err as Error)?.message ?? `Unknown error`);
+      executionState.status = `error`;
+      executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
+      executionState.runState.errorMessage = (err as Error)?.message ?? `Unknown error`;
 
       logger.error(
         `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
@@ -180,15 +168,17 @@ const executeNode = async ({
     }
   }
 
-  const rs = executionState$.runState.peek()!;
-  executionState$.history.push({
-    status: executionState$.status.peek() as `success` | `error` | `aborted`,
+  const rs = executionState.runState;
+  executionState.history.push({
+    status: executionState.status as `success` | `error` | `aborted`,
     startTimestamp: rs.startTimestamp!,
     endTimestamp: rs.endTimestamp!,
     asyncExecutionTime: rs.asyncExecutionTime ?? 0,
     asyncMicrotaskLagTime: rs.asyncMicrotaskLagTime ?? 0,
     errorMessage: rs.errorMessage,
   });
+
+  return executionState;
 };
 
 export const createWorkflowEngine = (
@@ -384,11 +374,15 @@ export const createWorkflowEngine = (
       }
     }, 10);
 
-    const promises = [] as Promise<void>[];
+    const store = store$.peek();
+    const promises = [] as Promise<{
+      nodeId: WorkflowNodeId;
+      executionState: undefined | WorkflowRuntimeExecutionState;
+    }>[];
     for (const nodeId of engineState.nodeIdsExecuting) {
-      const node$ = store$.nodes[nodeId];
+      const node = store.nodes[nodeId];
 
-      if (!node$?.id.get()) {
+      if (!node) {
         logger.warn(`[createWorkflowEngine:executeNodes] Node not found, skipping execution:`, {
           nodeId,
         });
@@ -397,18 +391,51 @@ export const createWorkflowEngine = (
       }
 
       const promise = (async () => {
-        await executeNode({
-          node$,
-          store$,
-          abortSignal: engineState.abortController.signal,
+        const executionState = await executeNode({
+          node,
+          store,
+          controller: {
+            abortSignal: engineState.abortController.signal,
+            setProgress: ({ progressRatio, message }) => {
+              logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
+                nodeId,
+                progressRatio,
+                message,
+              });
+
+              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+              const executionState$ = store$.nodes[nodeId]?.executionState!;
+              if (!executionState$.peek()) {
+                executionState$.set({
+                  status: `running`,
+                  runState: {},
+                  history: [],
+                });
+              }
+              executionState$.status.set(`running`);
+              executionState$.runState.progressRatio.set(progressRatio);
+              executionState$.runState.progressMessage.set(message);
+            },
+          },
         });
+        // if (executionState) {
+        //   node$.executionState.assign(executionState);
+        // }
+
         engineState.nodeIdsExecuting.delete(nodeId);
+        return { nodeId, executionState };
       })();
 
       promises.push(promise);
     }
 
-    await Promise.all(promises);
+    const results = await Promise.all(promises);
+    for (const result of results) {
+      const node$ = store$.nodes[result.nodeId]!;
+      if (result.executionState) {
+        node$.executionState.set(result.executionState);
+      }
+    }
 
     if (isInBatch) {
       isInBatch = false;
