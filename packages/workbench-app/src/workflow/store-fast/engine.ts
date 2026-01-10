@@ -11,6 +11,27 @@ import {
 } from '../types';
 import { observeBatched, type BatchedTriggerKind } from './observe-batched';
 
+type Logger = {
+  log: typeof console.log;
+  warn: typeof console.warn;
+  error: typeof console.error;
+};
+const loggingEnabled = false;
+const logger: Logger = {
+  log: (...args: unknown[]) => {
+    if (!loggingEnabled) return;
+    console.log(...args);
+  },
+  warn: (...args: unknown[]) => {
+    if (!loggingEnabled) return;
+    console.warn(...args);
+  },
+  error: (...args: unknown[]) => {
+    if (!loggingEnabled) return;
+    console.error(...args);
+  },
+};
+
 const executeNode = async ({
   node$,
   store$,
@@ -23,14 +44,14 @@ const executeNode = async ({
   const nodeId = node$.id.peek();
   const typeDef = store$.nodeTypes[node$.type.peek()]?.peek();
   if (!typeDef) {
-    console.warn(`[createWorkflowEngine:processNodeQueue] Node type definition not found:`, {
+    logger.warn(`[createWorkflowEngine:processNodeQueue] Node type definition not found:`, {
       nodeId,
       type: node$.type.peek(),
     });
     return;
   }
 
-  console.log(
+  logger.log(
     `[createWorkflowEngine:processNodeQueue:executeNode] Executing node: ${nodeId}`,
     //     , {
     //     nodeId,
@@ -47,7 +68,7 @@ const executeNode = async ({
   }
 
   if (executionState$.status.peek() === `running`) {
-    console.warn(
+    logger.warn(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node is already running, skipping execution:`,
       {
         nodeId,
@@ -73,7 +94,7 @@ const executeNode = async ({
     controller: {
       abortSignal,
       setProgress: ({ progressRatio, message }) => {
-        console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
+        logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
           nodeId,
           progressRatio,
           message,
@@ -84,10 +105,13 @@ const executeNode = async ({
     },
   };
 
-  await new Promise<void>((resolve) => {
-    // queue microtask to allow UI to update
-    queueMicrotask(() => resolve());
-  });
+  // await new Promise<void>((resolve) => {
+  //   // queue microtask to allow UI to update
+  //   queueMicrotask(() => resolve());
+  // });
+  // await new Promise<void>((resolve) => {
+  //   resolve();
+  // });
 
   try {
     const result = await typeDef.execute(args);
@@ -96,7 +120,7 @@ const executeNode = async ({
     executionState$.status.set(`success`);
     executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
 
-    console.log(
+    logger.log(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
       //     , {
       //   nodeId,
@@ -125,7 +149,7 @@ const executeNode = async ({
     if (abortSignal.aborted) {
       executionState$.status.set(`aborted`);
       executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
-      console.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
+      logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
         nodeId,
         args,
       });
@@ -134,7 +158,7 @@ const executeNode = async ({
       executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
       executionState$.runState.errorMessage.set((err as Error)?.message ?? `Unknown error`);
 
-      console.error(
+      logger.error(
         `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
         //     , {
         //     nodeId,
@@ -204,11 +228,11 @@ export const createWorkflowEngine = (
     },
     start: () => {
       if (engineState.running) {
-        console.warn(`[createWorkflowEngine:start] Engine is already running`, { engine });
+        logger.warn(`[createWorkflowEngine:start] Engine is already running`, { engine });
         return;
       }
 
-      console.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
+      logger.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
       engineState.running = true;
       engineState.abortController = new AbortController();
 
@@ -225,7 +249,7 @@ export const createWorkflowEngine = (
           return;
         }
 
-        console.log(`[createWorkflowEngine:subscribeNode] Setup node subscription...`, {
+        logger.log(`[createWorkflowEngine:subscribeNode] Setup node subscription...`, {
           nodeId,
           e,
         });
@@ -233,7 +257,7 @@ export const createWorkflowEngine = (
         const node$ = store$.nodes[nodeId];
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const unsubInputs = observeBatched((e) => {
-          // console.log(
+          // logger.log(
           //   `[createWorkflowEngine:subscribeNode:subInputs:observeBatched] Setup node subscriptions...`,
           //   { e },
           // );
@@ -241,7 +265,7 @@ export const createWorkflowEngine = (
             return;
           }
 
-          // console.log(
+          // logger.log(
           //   `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Node data or input changed, queuing execution: ${nodeId}`,
           //   {
           //     node: node$.peek(),
@@ -266,14 +290,14 @@ export const createWorkflowEngine = (
               continue;
             }
 
-            // console.log(
+            // logger.log(
             //   `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Pulling input value from new edge for input: ${input.name} on node: ${nodeId}`,
             //   { input },
             // );
 
             const edge = store$.edges[input.edgeId]?.peek();
             if (!edge) {
-              console.warn(
+              logger.warn(
                 `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Input edge not found:`,
                 {
                   input,
@@ -284,7 +308,7 @@ export const createWorkflowEngine = (
             }
 
             if (edge.value.getValue() !== undefined) {
-              console.log(
+              logger.log(
                 `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Using edge value for input: ${input.name} on node: ${nodeId}`,
                 { edge },
               );
@@ -295,14 +319,14 @@ export const createWorkflowEngine = (
             const sourceNode = edge.source.getNode();
             const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
             if (!sourceOutput) {
-              console.warn(
+              logger.warn(
                 `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Source node output not found for edge:`,
                 { edge },
               );
               continue;
             }
 
-            console.log(
+            logger.log(
               `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Pulling value from source output for input: ${input.name} on node: ${nodeId}`,
               { sourceOutput },
             );
@@ -316,7 +340,7 @@ export const createWorkflowEngine = (
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const unsubPropagateOutputs = observeBatched((e) => {
-          // console.log(
+          // logger.log(
           //   `[createWorkflowEngine:subscribeNode:subPropagateOutputs:observeBatched] Propagate outputs...`,
           //   { e },
           // );
@@ -331,7 +355,7 @@ export const createWorkflowEngine = (
             dataChangeCounter: x.value.dataChangeCounter,
           }));
 
-          // console.log(
+          // logger.log(
           //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propagating outputs for node '${nodeId}':`,
           //   {
           //     values: outputInfos.map((info) => info.outputValue),
@@ -347,7 +371,7 @@ export const createWorkflowEngine = (
               engineState.dataChangeCounters.get(outputInfo.outputRuntimeValue);
 
             if (!hasChanged) {
-              // console.log(
+              // logger.log(
               //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Node output has not changed:`,
               //   {
               //     nodeId,
@@ -366,7 +390,7 @@ export const createWorkflowEngine = (
             const edges = outputInfo.output.getEdges();
 
             if (!edges.length) {
-              // console.log(
+              // logger.log(
               //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] No edges to Propagate output '${nodeId}:${outputInfo.output.name}'`,
               //   {
               //     nodeId,
@@ -376,7 +400,7 @@ export const createWorkflowEngine = (
               continue;
             }
 
-            // console.log(
+            // logger.log(
             //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propagating output '${nodeId}:${outputInfo.output.name}':`,
             //   {
             //     nodeId,
@@ -386,7 +410,7 @@ export const createWorkflowEngine = (
             // );
 
             for (const edge of edges) {
-              // console.warn(
+              // logger.warn(
               //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings edge value:`,
               //   {
               //     edge,
@@ -399,14 +423,14 @@ export const createWorkflowEngine = (
               const targetNode = edge.target.getNode();
               const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
               if (!targetInput) {
-                console.warn(
+                logger.warn(
                   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Target node input not found for edge:`,
                   { edge, outputInfo, targetNode, targetInput },
                 );
                 continue;
               }
 
-              // console.warn(
+              // logger.warn(
               //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings target node input:`,
               //   { edge, outputInfo, targetNode, targetInput },
               // );
@@ -414,13 +438,13 @@ export const createWorkflowEngine = (
               targetInput.value.setValue(outputInfo.outputValue);
             }
 
-            // console.log(
+            // logger.log(
             //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propagating output '${nodeId}:${outputInfo.output.name}':`,
             //   { outputInfo },
             // );
           }
 
-          console.log(
+          logger.log(
             `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propagating outputs '${nodeId}':`,
             { outputInfos },
           );
@@ -435,7 +459,7 @@ export const createWorkflowEngine = (
       };
 
       const unsubMain = observeBatched((e) => {
-        console.log(
+        logger.log(
           `[createWorkflowEngine:mainSubscription:observeBatched] Setup node subscriptions...`,
           { e },
         );
@@ -456,7 +480,7 @@ export const createWorkflowEngine = (
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const unsubExecuteNodes = observeBatched((e) => {
-        // console.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Execute nodes...`, {
+        // logger.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Execute nodes...`, {
         //   e,
         // });
         if (!engineState.running) {
@@ -469,7 +493,7 @@ export const createWorkflowEngine = (
           return;
         }
 
-        console.log(`[createWorkflowEngine:executeNodes] Executing queued nodes:`, {
+        logger.log(`[createWorkflowEngine:executeNodes] Executing queued nodes:`, {
           nodeIdsToExecute,
         });
 
@@ -477,7 +501,7 @@ export const createWorkflowEngine = (
           const promises = nodeIdsToExecute.map(async (nodeId) => {
             const node$ = store$.nodes[nodeId];
             if (!node$?.id.get()) {
-              console.warn(
+              logger.warn(
                 `[createWorkflowEngine:executeNodes] Node not found, skipping execution:`,
                 {
                   nodeId,
@@ -513,11 +537,11 @@ export const createWorkflowEngine = (
     },
     stop: ({ shouldAbort }) => {
       if (!engineState.running) {
-        console.warn(`[createWorkflowEngine:stop] Engine is not running`, { engine });
+        logger.warn(`[createWorkflowEngine:stop] Engine is not running`, { engine });
         return;
       }
 
-      console.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, { engine });
+      logger.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, { engine });
       engineState.running = false;
       engineState.engineSubscription?.unsubscribe();
       engineState.engineSubscription = undefined;

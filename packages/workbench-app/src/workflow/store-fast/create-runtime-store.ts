@@ -159,7 +159,7 @@ const createRuntimeValue = <TBase = unknown>({
       return inner$.get().content as T | undefined;
     },
     setValue: <T>(value: T | null) => {
-      console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
+      // console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
       inner$.set(ObservableHint.opaque({ content: (value ?? null) as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
     },
