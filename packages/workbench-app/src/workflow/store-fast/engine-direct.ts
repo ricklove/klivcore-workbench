@@ -306,12 +306,11 @@ export const createWorkflowEngine = (
   };
   const stats = engineState.stats;
 
-  const propagationKind = `subscription` as `polling` | `subscription`;
+  const propagationKind = `polling` as `polling` | `subscription`;
   const propagateValues = () => {
     if (propagationKind !== `polling`) {
       return;
     }
-    stats.propagationCount++;
     const startTime = performance.now();
 
     logger.log(`[createWorkflowEngine:propagateValues] Propagating values...`, { engineState });
@@ -326,6 +325,8 @@ export const createWorkflowEngine = (
       if (newCounter === currentCounter) {
         continue;
       }
+
+      stats.propagationCount++;
 
       // source output value has changed
       engineState.dataChangeCounters.set(ov.sourceOutputRuntimeValue, newCounter);
@@ -346,6 +347,8 @@ export const createWorkflowEngine = (
       if (newCounter === currentCounter) {
         continue;
       }
+
+      stats.propagationCount++;
 
       // node data value has changed
       engineState.dataChangeCounters.set(nv.dataRuntimeValue, newCounter);
