@@ -231,21 +231,22 @@ export const createWorkflowEngine = (
         }
 
         const node$ = store$.nodes[nodeId];
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const unsubInputs = observeBatched((e) => {
-          console.log(
-            `[createWorkflowEngine:subscribeNode:subInputs:observeBatched] Setup node subscriptions...`,
-            { e },
-          );
+          // console.log(
+          //   `[createWorkflowEngine:subscribeNode:subInputs:observeBatched] Setup node subscriptions...`,
+          //   { e },
+          // );
           if (!engineState.running) {
             return;
           }
 
-          console.log(
-            `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Node data or input changed, queuing execution: ${nodeId}`,
-            {
-              node: node$.peek(),
-            },
-          );
+          // console.log(
+          //   `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Node data or input changed, queuing execution: ${nodeId}`,
+          //   {
+          //     node: node$.peek(),
+          //   },
+          // );
 
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const [_inputValues, _inputEdges] = node$.inputs.map((x) => [
@@ -265,10 +266,10 @@ export const createWorkflowEngine = (
               continue;
             }
 
-            console.log(
-              `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Pulling input value from new edge for input: ${input.name} on node: ${nodeId}`,
-              { input },
-            );
+            // console.log(
+            //   `[createWorkflowEngine:subscribeNode:nodeSubscription:inputs] Pulling input value from new edge for input: ${input.name} on node: ${nodeId}`,
+            //   { input },
+            // );
 
             const edge = store$.edges[input.edgeId]?.peek();
             if (!edge) {
@@ -313,9 +314,9 @@ export const createWorkflowEngine = (
           engineState.nodeIdsToExecute.add(nodeId);
         }, engineState.triggerKind);
 
-        const unsubPropogateOutputs = observeBatched((e) => {
+        const unsubPropagateOutputs = observeBatched((e) => {
           console.log(
-            `[createWorkflowEngine:subscribeNode:subPropogateOutputs:observeBatched] Propogate outputs...`,
+            `[createWorkflowEngine:subscribeNode:subPropagateOutputs:observeBatched] Propagate outputs...`,
             { e },
           );
           if (!engineState.running) {
@@ -329,14 +330,14 @@ export const createWorkflowEngine = (
             dataChangeCounter: x.value.dataChangeCounter,
           }));
 
-          console.log(
-            `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propogating outputs for node '${nodeId}':`,
-            {
-              values: outputInfos.map((info) => info.outputValue),
-              names: outputInfos.map((info) => info.output.name),
-              outputInfos,
-            },
-          );
+          // console.log(
+          //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propagating outputs for node '${nodeId}':`,
+          //   {
+          //     values: outputInfos.map((info) => info.outputValue),
+          //     names: outputInfos.map((info) => info.output.name),
+          //     outputInfos,
+          //   },
+          // );
 
           // send outputs to target inputs
           for (const outputInfo of outputInfos) {
@@ -345,13 +346,13 @@ export const createWorkflowEngine = (
               engineState.dataChangeCounters.get(outputInfo.outputRuntimeValue);
 
             if (!hasChanged) {
-              console.log(
-                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Node output has not changed:`,
-                {
-                  nodeId,
-                  outputInfo,
-                },
-              );
+              // console.log(
+              //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Node output has not changed:`,
+              //   {
+              //     nodeId,
+              //     outputInfo,
+              //   },
+              // );
               continue;
             }
 
@@ -364,33 +365,33 @@ export const createWorkflowEngine = (
             const edges = outputInfo.output.getEdges();
 
             if (!edges.length) {
-              console.log(
-                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] No edges to propogate output '${nodeId}:${outputInfo.output.name}'`,
-                {
-                  nodeId,
-                  outputInfo,
-                },
-              );
+              // console.log(
+              //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] No edges to Propagate output '${nodeId}:${outputInfo.output.name}'`,
+              //   {
+              //     nodeId,
+              //     outputInfo,
+              //   },
+              // );
               continue;
             }
 
-            console.log(
-              `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propogating output '${nodeId}:${outputInfo.output.name}':`,
-              {
-                nodeId,
-                outputInfo,
-                edges,
-              },
-            );
+            // console.log(
+            //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Propagating output '${nodeId}:${outputInfo.output.name}':`,
+            //   {
+            //     nodeId,
+            //     outputInfo,
+            //     edges,
+            //   },
+            // );
 
             for (const edge of edges) {
-              console.warn(
-                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings edge value:`,
-                {
-                  edge,
-                  outputInfo,
-                },
-              );
+              // console.warn(
+              //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings edge value:`,
+              //   {
+              //     edge,
+              //     outputInfo,
+              //   },
+              // );
 
               edge.value.setValue(outputInfo.outputValue);
 
@@ -404,22 +405,22 @@ export const createWorkflowEngine = (
                 continue;
               }
 
-              console.warn(
-                `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings target node input:`,
-                { edge, outputInfo, targetNode, targetInput },
-              );
+              // console.warn(
+              //   `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Settings target node input:`,
+              //   { edge, outputInfo, targetNode, targetInput },
+              // );
 
               targetInput.value.setValue(outputInfo.outputValue);
             }
 
-            console.warn(
-              `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propogating output '${nodeId}:${outputInfo.output.name}':`,
+            console.log(
+              `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propagating output '${nodeId}:${outputInfo.output.name}':`,
               { outputInfo },
             );
           }
 
-          console.warn(
-            `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propogating outputs '${nodeId}':`,
+          console.log(
+            `[createWorkflowEngine:subscribeNode:nodeSubscription:outputs] Done propagating outputs '${nodeId}':`,
             { outputInfos },
           );
         }, engineState.triggerKind);
@@ -427,7 +428,7 @@ export const createWorkflowEngine = (
         engineState.nodeSubscriptions.set(nodeId, {
           unsubscribe: () => {
             unsubInputs();
-            unsubPropogateOutputs();
+            unsubPropagateOutputs();
           },
         });
       };
@@ -453,7 +454,7 @@ export const createWorkflowEngine = (
       }, engineState.triggerKind);
 
       const unsubExecuteNodes = observeBatched((e) => {
-        console.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Proopegate outputs...`, {
+        console.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Propagate outputs...`, {
           e,
         });
         if (!engineState.running) {

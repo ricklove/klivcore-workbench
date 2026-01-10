@@ -130,7 +130,7 @@ const WorkflowNodeWrapperInner = memo(
                           value={JSON.stringify(
                             expandInfo === `data`
                               ? {
-                                  // inputs: dataReactFlow.inputs$.get(),
+                                  inputs: dataReactFlow.inputs$.get(),
                                   data: dataReactFlow.data$.get(),
                                   outputs: dataReactFlow.outputs$.get(),
                                   node: {
