@@ -352,7 +352,7 @@ export const createWorkflowEngine = (
             output: x,
             outputRuntimeValue: x.value,
             outputValue: x.value.getValue(),
-            dataChangeCounter: x.value.dataChangeCounter,
+            changeCounter: x.value.getImmediateChangeCounter(),
           }));
 
           // logger.log(
@@ -367,7 +367,7 @@ export const createWorkflowEngine = (
           // send outputs to target inputs
           for (const outputInfo of outputInfos) {
             const hasChanged =
-              outputInfo.dataChangeCounter !==
+              outputInfo.changeCounter !==
               engineState.dataChangeCounters.get(outputInfo.outputRuntimeValue);
 
             if (!hasChanged) {
@@ -384,7 +384,7 @@ export const createWorkflowEngine = (
             // send the output through edges
             engineState.dataChangeCounters.set(
               outputInfo.outputRuntimeValue,
-              outputInfo.outputRuntimeValue.dataChangeCounter,
+              outputInfo.outputRuntimeValue.getImmediateChangeCounter(),
             );
 
             const edges = outputInfo.output.getEdges();

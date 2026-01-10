@@ -306,7 +306,7 @@ export const createWorkflowEngine = (
   };
   const stats = engineState.stats;
 
-  const propagationKind = `polling` as `polling` | `subscription`;
+  const propagationKind = `subscription` as `polling` | `subscription`;
   const propagateValues = () => {
     if (propagationKind !== `polling`) {
       return;
@@ -321,7 +321,7 @@ export const createWorkflowEngine = (
     // process output values
     for (const ov of engineState.outputValues) {
       const currentCounter = engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? -1;
-      const newCounter = ov.sourceOutputRuntimeValue.dataChangeCounter;
+      const newCounter = ov.sourceOutputRuntimeValue.getImmediateChangeCounter();
 
       if (newCounter === currentCounter) {
         continue;
@@ -342,7 +342,7 @@ export const createWorkflowEngine = (
     // process node data values
     for (const nv of engineState.nodeDataValues) {
       const currentCounter = engineState.dataChangeCounters.get(nv.dataRuntimeValue) ?? -1;
-      const newCounter = nv.dataRuntimeValue.dataChangeCounter;
+      const newCounter = nv.dataRuntimeValue.getImmediateChangeCounter();
       if (newCounter === currentCounter) {
         continue;
       }

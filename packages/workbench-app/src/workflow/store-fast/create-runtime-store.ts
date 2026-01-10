@@ -13,7 +13,7 @@ import {
   type WorkflowRuntimeValue,
 } from '../types';
 import { builtinNodeTypes } from '../node-types';
-import { linked, observable, ObservableHint, observe, type Observable } from '@legendapp/state';
+import { linked, observable, ObservableHint, type Observable } from '@legendapp/state';
 
 const getters = {
   node: {
@@ -140,8 +140,43 @@ const createRuntimeValue = <TBase = unknown>({
   data: TBase;
   // meta?: WorkflowRuntimeValue['meta'];
 }): WorkflowRuntimeValue<TBase> => {
-  const inner$ = observable(ObservableHint.opaque({ content: data }));
-  const dataChangeCounter$ = observable(0);
+  let inner = data;
+  let changeCount = 0;
+  const subscribers = new Set<(v: TBase | undefined | null) => void>();
+  const slowChangeCount = observable(changeCount);
+
+  const SLOW_TIME = 1000;
+
+  let timeoutId = 0 as unknown as ReturnType<typeof setTimeout>;
+  const triggerSlowUpdate = () => {
+    if (timeoutId) {
+      return;
+    }
+    timeoutId = setTimeout(() => {
+      timeoutId = 0;
+      slowChangeCount.set(changeCount);
+    }, SLOW_TIME);
+    // timeoutId = requestAnimationFrame(() => {
+    //   timeoutId = 0;
+    //   slowChangeCount.set(changeCount);
+    // });
+  };
+
+  const updateDirectSubscribers = () => {
+    if (!subscribers.size) {
+      return;
+    }
+    const changeCountAtCall = changeCount;
+    queueMicrotask(() => {
+      if (changeCountAtCall !== changeCount) {
+        return;
+      }
+
+      for (const cb of subscribers) {
+        cb(inner);
+      }
+    });
+  };
 
   const obj: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
     // ...{
@@ -156,29 +191,41 @@ const createRuntimeValue = <TBase = unknown>({
     }),
     getValue: <T>() => {
       // console.log(`[createRuntimeValue.getValue]`, { obj, inner$ });
-      return inner$.get().content as T | undefined;
+
+      // subscribe to slowChangeCount to trigger reactivity
+      slowChangeCount.get();
+
+      return inner as T | undefined;
     },
     setValue: <T>(value: T | null) => {
       // console.log(`[createRuntimeValue.setValue]`, { value, obj, inner$ });
-      inner$.set(ObservableHint.opaque({ content: (value ?? null) as TBase }));
-      dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+      inner = (value ?? null) as TBase;
+      changeCount++;
+      triggerSlowUpdate();
+      updateDirectSubscribers();
     },
     clearValue: () => {
-      if (inner$.get().content === undefined) {
+      if (inner === undefined) {
         return;
       }
       // console.log(`[createRuntimeValue.clearValue]`, { obj, inner$ });
-      inner$.set(ObservableHint.opaque({ content: undefined as TBase }));
-      dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+      inner = undefined as TBase;
+      changeCount++;
+      triggerSlowUpdate();
+      updateDirectSubscribers();
     },
     subscribeDirect: (callback: (v: TBase | undefined | null) => void) => {
-      return observe(() => {
-        const val = inner$.get().content as TBase | undefined | null;
-        callback(val);
-      });
+      subscribers.add(callback);
+      callback(inner);
+      return () => {
+        subscribers.delete(callback);
+      };
     },
-    get dataChangeCounter() {
-      return dataChangeCounter$.get();
+    get changeCounter() {
+      return slowChangeCount.get();
+    },
+    getImmediateChangeCounter: () => {
+      return changeCount;
     },
     // meta,
   });
