@@ -4,7 +4,7 @@ export function observeBatched(
   compute: (e: { num: number; eInner: ObserveEvent<unknown> }) => void,
   triggerKind: BatchedTriggerKind = `requestAnimationFrame`,
 ): () => void {
-  const trigger = createTrigger(triggerKind);
+  const trigger = createBatchTrigger(triggerKind);
   let disposeTrigger: (() => void) | undefined;
   let disposeObserver: (() => void) | undefined;
 
@@ -47,7 +47,7 @@ export type BatchedTriggerKind =
   | `requestAnimationFrame`
   | `MessageChannel`
   | Observable<boolean>;
-const createTrigger = (triggerKind: BatchedTriggerKind) => {
+export const createBatchTrigger = (triggerKind: BatchedTriggerKind) => {
   if (triggerKind === `requestAnimationFrame`) {
     return (cb: () => void) => {
       const id = requestAnimationFrame(cb);

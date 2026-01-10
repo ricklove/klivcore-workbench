@@ -1,0 +1,468 @@
+import { observable, type Observable } from '@legendapp/state';
+import {
+  type WorkflowRuntimeEngine,
+  type WorkflowRuntimeNode,
+  type WorkflowRuntimeStore,
+  type WorkflowNodeId,
+  type WorkflowRuntimeValue,
+  WorkflowBrandedTypes,
+  type WorkflowExecutionArgs,
+  type WorkflowJsonObject,
+  type WorkflowEdgeId,
+  type WorkflowRuntimeEdge,
+} from '../types';
+import { createBatchTrigger, observeBatched, type BatchedTriggerKind } from './observe-batched';
+
+type Logger = {
+  log: typeof console.log;
+  warn: typeof console.warn;
+  error: typeof console.error;
+};
+const loggingEnabled = false;
+const logger: Logger = {
+  log: (...args: unknown[]) => {
+    if (!loggingEnabled) return;
+    console.log(...args);
+  },
+  warn: (...args: unknown[]) => {
+    if (!loggingEnabled) return;
+    console.warn(...args);
+  },
+  error: (...args: unknown[]) => {
+    if (!loggingEnabled) return;
+    console.error(...args);
+  },
+};
+
+const executeNode = async ({
+  node$,
+  store$,
+  abortSignal,
+}: {
+  node$: Observable<WorkflowRuntimeNode>;
+  store$: Observable<WorkflowRuntimeStore>;
+  abortSignal: AbortSignal;
+}) => {
+  const node = node$.peek();
+  const nodeId = node.id;
+  const store = store$.peek();
+
+  const typeDef = store.nodeTypes[node.type];
+  if (!typeDef) {
+    logger.warn(`[createWorkflowEngine:processNodeQueue] Node type definition not found:`, {
+      nodeId,
+      type: node.type,
+    });
+    return;
+  }
+
+  logger.log(
+    `[createWorkflowEngine:processNodeQueue:executeNode] Executing node: ${nodeId}`,
+    //     , {
+    //     nodeId,
+    //     node,
+    //   }
+  );
+  const executionState$ = node$.executionState;
+  if (!executionState$.peek()) {
+    executionState$.set({
+      status: `initial`,
+      runState: {},
+      history: [],
+    });
+  }
+
+  if (executionState$.status.peek() === `running`) {
+    logger.warn(
+      `[createWorkflowEngine:processNodeQueue:executeNode] Node is already running, skipping execution:`,
+      {
+        nodeId,
+        node,
+        executionState: executionState$.peek(),
+      },
+    );
+    return;
+  }
+
+  executionState$.status.set(`running`);
+  executionState$.runState.set({
+    startTimestamp: WorkflowBrandedTypes.now(),
+  });
+
+  const args: WorkflowExecutionArgs = {
+    inputs: Object.fromEntries(node.inputs.map((input) => [input.name, input.value.getValue()])),
+    data: node.data.getValue<WorkflowJsonObject>() ?? undefined,
+    node,
+    store,
+    controller: {
+      abortSignal,
+      setProgress: ({ progressRatio, message }) => {
+        logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
+          nodeId,
+          progressRatio,
+          message,
+        });
+        executionState$.runState.progressRatio.set(progressRatio);
+        executionState$.runState.progressMessage.set(message);
+      },
+    },
+  };
+
+  // await new Promise<void>((resolve) => {
+  //   // queue microtask to allow UI to update
+  //   queueMicrotask(() => resolve());
+  // });
+  // await new Promise<void>((resolve) => {
+  //   resolve();
+  // });
+
+  try {
+    const result = await typeDef.execute(args);
+    abortSignal.throwIfAborted();
+
+    executionState$.status.set(`success`);
+    executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
+
+    logger.log(
+      `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
+      //     , {
+      //   nodeId,
+      //   result,
+      //   executionState,
+      //   node,
+      //   args,
+      // }
+    );
+
+    if (!result) {
+      return;
+    }
+
+    // set outputs
+    for (const output of node.outputs) {
+      if (output === undefined) continue;
+      output.value.setValue(result.outputs[output.name] ?? null);
+    }
+
+    // set node data
+    if (result.data !== undefined) {
+      node.data.setValue(result.data ?? null);
+    }
+  } catch (err) {
+    if (abortSignal.aborted) {
+      executionState$.status.set(`aborted`);
+      executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
+      logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
+        nodeId,
+        args,
+      });
+    } else {
+      executionState$.status.set(`error`);
+      executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
+      executionState$.runState.errorMessage.set((err as Error)?.message ?? `Unknown error`);
+
+      logger.error(
+        `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
+        //     , {
+        //     nodeId,
+        //     err,
+        //     args,
+        //   }
+      );
+    }
+  }
+
+  executionState$.history.push({
+    status: executionState$.status.peek() as `success` | `error` | `aborted`,
+    startTimestamp: executionState$.runState.startTimestamp.peek()!,
+    endTimestamp: executionState$.runState.endTimestamp.peek()!,
+    errorMessage: executionState$.runState.errorMessage.peek(),
+  });
+};
+
+export const createWorkflowEngine = (
+  store$: Observable<WorkflowRuntimeStore>,
+): WorkflowRuntimeEngine => {
+  const engineState = {
+    running: false,
+
+    engineSubscription: undefined as undefined | { unsubscribe: () => void },
+    tickTriggerSubscription: undefined as undefined | { unsubscribe: () => void },
+
+    /** process:
+     * - one subscription (edge key or node key changes)
+     * - any edge key change => outputValues list
+     * - outputValues are polled to:
+     *     - update target edge and input values
+     *     - queue node exection
+     * - any node key change => nodeDataValues list
+     * - nodeDataValues are polled to update node data values
+     *     - queue node exection
+     */
+    outputValues: [] as {
+      sourceOutputRuntimeValue: WorkflowRuntimeValue;
+      targetInputRuntimeValue: WorkflowRuntimeValue;
+      targetEdgeRuntimeValue: WorkflowRuntimeValue;
+      edgeId: WorkflowEdgeId;
+      // sourceNodeId: WorkflowNodeId;
+      targetNodeId: WorkflowNodeId;
+    }[],
+    nodeDataValues: [] as {
+      dataRuntimeValue: WorkflowRuntimeValue;
+      nodeId: WorkflowNodeId;
+    }[],
+
+    nodeIdsToExecute: new Set<WorkflowNodeId>(),
+    nodeIdsExecuting: new Set<WorkflowNodeId>(),
+
+    /** @deprecated nodes to execute, will resume after stop */
+    nodeIdsToExecute$: observable(new Set<WorkflowNodeId>()),
+
+    dataChangeCounters: new Map<WorkflowRuntimeValue, number>(),
+    abortController: new AbortController(),
+    triggerKind: 1000 as BatchedTriggerKind,
+  };
+
+  const propagateValues = () => {
+    // process output values
+    for (const ov of engineState.outputValues) {
+      const currentCounter = engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? 0;
+      const newCounter = ov.sourceOutputRuntimeValue.dataChangeCounter;
+
+      if (newCounter === currentCounter) {
+        continue;
+      }
+
+      // source output value has changed
+      engineState.dataChangeCounters.set(ov.sourceOutputRuntimeValue, newCounter);
+      const newValue = ov.sourceOutputRuntimeValue.getValue();
+
+      // update target values
+      ov.targetEdgeRuntimeValue.setValue(newValue);
+      ov.targetInputRuntimeValue.setValue(newValue);
+
+      // queue target node for execution
+      engineState.nodeIdsToExecute.add(ov.targetNodeId);
+    }
+
+    // process node data values
+    for (const nv of engineState.nodeDataValues) {
+      const currentCounter = engineState.dataChangeCounters.get(nv.dataRuntimeValue) ?? 0;
+      const newCounter = nv.dataRuntimeValue.dataChangeCounter;
+      if (newCounter === currentCounter) {
+        continue;
+      }
+
+      // node data value has changed
+      engineState.dataChangeCounters.set(nv.dataRuntimeValue, newCounter);
+      // queue node for execution
+      engineState.nodeIdsToExecute.add(nv.nodeId);
+    }
+  };
+
+  const executeNodesInParallel = async () => {
+    const promises = [] as Promise<void>[];
+    for (const nodeId of engineState.nodeIdsExecuting) {
+      const node$ = store$.nodes[nodeId];
+
+      if (!node$?.id.get()) {
+        logger.warn(`[createWorkflowEngine:executeNodes] Node not found, skipping execution:`, {
+          nodeId,
+        });
+        engineState.nodeIdsExecuting.delete(nodeId);
+        continue;
+      }
+
+      const promise = (async () => {
+        await executeNode({
+          node$,
+          store$,
+          abortSignal: engineState.abortController.signal,
+        });
+        engineState.nodeIdsExecuting.delete(nodeId);
+      })();
+
+      promises.push(promise);
+    }
+
+    await Promise.all(promises);
+
+    if (engineState.nodeIdsExecuting.size > 0) {
+      // this should not be possible
+      logger.error(
+        `[createWorkflowEngine:executeNodesInParallel] Some nodes are still executing after execution:`,
+        {
+          nodeIdsExecuting: [...engineState.nodeIdsExecuting],
+        },
+      );
+      engineState.nodeIdsExecuting.clear();
+    }
+  };
+
+  const tick = () => {
+    // don't overlap ticks
+    if (engineState.nodeIdsExecuting.size > 0) {
+      return;
+    }
+
+    propagateValues();
+
+    // execute nodes
+    for (const nodeId of engineState.nodeIdsToExecute) {
+      engineState.nodeIdsExecuting.add(nodeId);
+    }
+    engineState.nodeIdsToExecute.clear();
+
+    if (engineState.nodeIdsExecuting.size === 0) {
+      return;
+    }
+
+    // execute in parallel
+    logger.log(`[createWorkflowEngine:tick] Executing queued nodes:`, {
+      nodeIdsExecuting: engineState.nodeIdsExecuting,
+    });
+
+    void executeNodesInParallel();
+  };
+
+  const engine: WorkflowRuntimeEngine = {
+    get running() {
+      return engineState.running;
+    },
+    get tickSpeed() {
+      switch (engineState.triggerKind) {
+        case `MessageChannel`:
+          return `fast`;
+        case `requestAnimationFrame`:
+          return `normal`;
+        case 0:
+          return `slow`;
+        default:
+          return Number(engineState.triggerKind) || 0;
+      }
+    },
+    set tickSpeed(value) {
+      switch (value) {
+        case `fast`:
+          engineState.triggerKind = `MessageChannel`;
+          break;
+        case `normal`:
+          engineState.triggerKind = `requestAnimationFrame`;
+          break;
+        case `slow`:
+          engineState.triggerKind = 0;
+          break;
+        default:
+          engineState.triggerKind = value;
+          break;
+      }
+
+      if (!engineState.tickTriggerSubscription) {
+        return;
+      }
+      engineState.tickTriggerSubscription.unsubscribe();
+      engineState.tickTriggerSubscription = {
+        unsubscribe: createBatchTrigger(engineState.triggerKind)(tick),
+      };
+
+      return;
+    },
+    start: () => {
+      if (engineState.running) {
+        logger.warn(`[createWorkflowEngine:start] Engine is already running`, { engine });
+        return;
+      }
+
+      logger.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
+      engineState.running = true;
+
+      if (engineState.abortController.signal.aborted) {
+        // resume aborted executions
+        for (const nodeId of engineState.nodeIdsExecuting) {
+          engineState.nodeIdsToExecute.add(nodeId);
+        }
+        engineState.nodeIdsExecuting.clear();
+      }
+
+      engineState.abortController = new AbortController();
+
+      const unsubMain = observeBatched((e) => {
+        logger.log(
+          `[createWorkflowEngine:mainSubscription:observeBatched] Setup node subscriptions...`,
+          { e },
+        );
+        if (!engineState.running) {
+          unsubMain();
+          return;
+        }
+
+        // subscribe to all structure changes (node and edge additions/removals)
+        const edges = Object.values(store$.edges)
+          .map((edge$) => edge$.get() as WorkflowRuntimeEdge)
+          .filter((x) => x);
+        const nodes = Object.values(store$.nodes)
+          .map((node$) => node$.get() as WorkflowRuntimeNode)
+          .filter((x) => x);
+
+        engineState.outputValues = edges.flatMap((edge) => {
+          const sourceNode = edge.source.getNode();
+          const targetNode = edge.target.getNode();
+          if (!sourceNode || !targetNode) {
+            return [];
+          }
+          const sourceOutput = sourceNode.outputs.find((o) => o.name === edge.source.outputName);
+          const targetInput = targetNode.inputs.find((i) => i.name === edge.target.inputName);
+          if (!sourceOutput || !targetInput) {
+            return [];
+          }
+          return [
+            {
+              sourceOutputRuntimeValue: sourceOutput.value,
+              targetInputRuntimeValue: targetInput.value,
+              targetEdgeRuntimeValue: edge.value,
+              edgeId: edge.id,
+              targetNodeId: edge.target.nodeId,
+            },
+          ];
+        });
+
+        engineState.nodeDataValues = nodes.map((node) => {
+          return {
+            dataRuntimeValue: node.data,
+            nodeId: node.id,
+          };
+        });
+
+        return () => {};
+      }, engineState.triggerKind);
+
+      // resume if stopped executing
+
+      // begin ticking
+      engineState.tickTriggerSubscription?.unsubscribe();
+      engineState.tickTriggerSubscription = {
+        unsubscribe: createBatchTrigger(engineState.triggerKind)(tick),
+      };
+    },
+    stop: ({ shouldAbort }) => {
+      if (!engineState.running) {
+        logger.warn(`[createWorkflowEngine:stop] Engine is not running`, { engine });
+        return;
+      }
+
+      logger.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, { engine });
+      engineState.running = false;
+      engineState.engineSubscription?.unsubscribe();
+      engineState.engineSubscription = undefined;
+
+      if (shouldAbort) {
+        engineState.abortController.abort();
+      }
+    },
+    queueNode: (nodeId) => {
+      engineState.nodeIdsToExecute$.add(nodeId);
+    },
+  };
+
+  return engine;
+};
