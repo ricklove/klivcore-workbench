@@ -13,7 +13,7 @@ import {
   type WorkflowRuntimeValue,
 } from '../types';
 import { builtinNodeTypes } from '../node-types';
-import { linked, observable, ObservableHint, type Observable } from '@legendapp/state';
+import { linked, observable, ObservableHint, observe, type Observable } from '@legendapp/state';
 
 const getters = {
   node: {
@@ -170,6 +170,12 @@ const createRuntimeValue = <TBase = unknown>({
       // console.log(`[createRuntimeValue.clearValue]`, { obj, inner$ });
       inner$.set(ObservableHint.opaque({ content: undefined as TBase }));
       dataChangeCounter$.set(dataChangeCounter$.peek() + 1);
+    },
+    subscribeDirect: (callback: (v: TBase | undefined | null) => void) => {
+      return observe(() => {
+        const val = inner$.get().content as TBase | undefined | null;
+        callback(val);
+      });
     },
     get dataChangeCounter() {
       return dataChangeCounter$.get();

@@ -1,4 +1,4 @@
-import { type Observable } from '@legendapp/state';
+import { beginBatch, endBatch, type Observable } from '@legendapp/state';
 import {
   type WorkflowRuntimeEngine,
   type WorkflowRuntimeNode,
@@ -219,10 +219,38 @@ export const createWorkflowEngine = (
     dataChangeCounters: new Map<WorkflowRuntimeValue, number>(),
     abortController: new AbortController(),
     triggerKind: 1000 as BatchedTriggerKind,
-  };
 
+    stats: {
+      tickCount: 0,
+      tickTotalTime: 0,
+      get tickAverageTime() {
+        return this.tickCount === 0 ? 0 : this.tickTotalTime / this.tickCount;
+      },
+      propagationCount: 0,
+      propagationTotalTime: 0,
+      get propagationAverageTime() {
+        return this.propagationCount === 0 ? 0 : this.propagationTotalTime / this.propagationCount;
+      },
+      executionCount: 0,
+      executionTotalTime: 0,
+      get executionAverageTime() {
+        return this.executionCount === 0 ? 0 : this.executionTotalTime / this.executionCount;
+      },
+    },
+  };
+  const stats = engineState.stats;
+
+  const propagationKind = `subscription` as `polling` | `subscription`;
   const propagateValues = () => {
+    if (propagationKind !== `polling`) {
+      return;
+    }
+    stats.propagationCount++;
+    const startTime = performance.now();
+
     logger.log(`[createWorkflowEngine:propagateValues] Propagating values...`, { engineState });
+
+    beginBatch();
 
     // process output values
     for (const ov of engineState.outputValues) {
@@ -258,12 +286,22 @@ export const createWorkflowEngine = (
       // queue node for execution
       engineState.nodeIdsToExecute.add(nv.nodeId);
     }
+
+    endBatch();
+
+    stats.propagationTotalTime += performance.now() - startTime;
   };
 
   const executeNodesInParallel = async () => {
-    logger.log(`[createWorkflowEngine:executeNodesInParallel] Executing nodes in parallel...`, {
-      engineState,
-    });
+    logger.log(
+      `[createWorkflowEngine:executeNodesInParallel] #${stats.executionCount} Executing nodes in parallel...`,
+      {
+        engineState,
+      },
+    );
+
+    stats.executionCount++;
+    const startTime = performance.now();
 
     const promises = [] as Promise<void>[];
     for (const nodeId of engineState.nodeIdsExecuting) {
@@ -302,6 +340,7 @@ export const createWorkflowEngine = (
       engineState.nodeIdsExecuting.clear();
     }
 
+    stats.executionTotalTime += performance.now() - startTime;
     queueTick();
   };
 
@@ -313,17 +352,19 @@ export const createWorkflowEngine = (
   };
 
   const tick = () => {
-    logger.log(`[createWorkflowEngine:tick] ...`, { engineState });
+    logger.log(`[createWorkflowEngine:tick] #${stats.tickCount} ...`, { engineState, stats });
     engineState.tickTriggerSubscription = undefined;
+    if (!engineState.running) {
+      return;
+    }
 
     // don't overlap ticks
     if (engineState.nodeIdsExecuting.size > 0) {
       return;
     }
 
-    if (!engineState.running) {
-      return;
-    }
+    stats.tickCount++;
+    const tickStartTime = performance.now();
 
     propagateValues();
 
@@ -336,6 +377,7 @@ export const createWorkflowEngine = (
     if (engineState.nodeIdsExecuting.size === 0) {
       logger.log(`[createWorkflowEngine:tick] No nodes to execute, skipping.`, { engineState });
       queueTick();
+      stats.tickTotalTime += performance.now() - tickStartTime;
       return;
     }
 
@@ -344,6 +386,7 @@ export const createWorkflowEngine = (
       nodeIdsExecuting: engineState.nodeIdsExecuting,
     });
 
+    stats.tickTotalTime += performance.now() - tickStartTime;
     void executeNodesInParallel();
   };
 
@@ -451,7 +494,30 @@ export const createWorkflowEngine = (
           };
         });
 
-        return () => {};
+        const unsubs = [] as (() => void)[];
+        if (propagationKind === `subscription`) {
+          engineState.outputValues.forEach((ov) => {
+            ov.sourceOutputRuntimeValue.subscribeDirect((x) => {
+              stats.propagationCount++;
+              const startTime = performance.now();
+              ov.targetEdgeRuntimeValue.setValue(x);
+              ov.targetInputRuntimeValue.setValue(x);
+              engineState.nodeIdsToExecute.add(ov.targetNodeId);
+              stats.propagationTotalTime += performance.now() - startTime;
+            });
+          });
+
+          engineState.nodeDataValues.forEach((nv) => {
+            nv.dataRuntimeValue.subscribeDirect(() => {
+              stats.propagationCount++;
+              engineState.nodeIdsToExecute.add(nv.nodeId);
+            });
+          });
+        }
+
+        return () => {
+          unsubs.forEach((u) => u());
+        };
       }, engineState.triggerKind);
 
       engineState.engineSubscription = {

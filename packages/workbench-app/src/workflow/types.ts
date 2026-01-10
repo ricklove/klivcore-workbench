@@ -237,6 +237,7 @@ export type WorkflowRuntimeValue<TBase = unknown> = PlainObject<{
   getValue: <T = TBase>() => undefined | null | T;
   setValue: <T = TBase>(v: null | T) => void;
   clearValue: (v?: undefined) => void;
+  subscribeDirect: (callback: (v: null | TBase | undefined) => void) => () => void;
   readonly dataChangeCounter: number;
 }>;
 export interface WorkflowRuntimeStore {
