@@ -326,6 +326,7 @@ export interface WorkflowRuntimeExecutionState {
   runState: {
     startTimestamp?: WorkflowTimestamp;
     endTimestamp?: WorkflowTimestamp;
+    asyncExecutionTime?: number;
     progressRatio?: number;
     progressMessage?: string;
     errorMessage?: string;
@@ -336,6 +337,7 @@ export interface WorkflowRuntimeExecutionState {
     status: `success` | `error` | `aborted`;
     startTimestamp: WorkflowTimestamp;
     endTimestamp: WorkflowTimestamp;
+    asyncExecutionTime?: number;
     errorMessage?: string;
   }[];
 }

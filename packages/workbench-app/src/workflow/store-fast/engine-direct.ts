@@ -118,11 +118,14 @@ const executeNode = async ({
   // });
 
   try {
+    const startTime = performance.now();
     const result = await typeDef.execute(args);
+    const asyncExecutionTime = performance.now() - startTime;
     abortSignal.throwIfAborted();
 
     executionState$.status.set(`success`);
     executionState$.runState.endTimestamp.set(WorkflowBrandedTypes.now());
+    executionState$.runState.asyncExecutionTime.set(asyncExecutionTime);
 
     logger.log(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
@@ -177,6 +180,7 @@ const executeNode = async ({
     status: executionState$.status.peek() as `success` | `error` | `aborted`,
     startTimestamp: executionState$.runState.startTimestamp.peek()!,
     endTimestamp: executionState$.runState.endTimestamp.peek()!,
+    asyncExecutionTime: executionState$.runState.asyncExecutionTime.peek() ?? 0,
     errorMessage: executionState$.runState.errorMessage.peek(),
   });
 };
@@ -235,6 +239,41 @@ export const createWorkflowEngine = (
       executionTotalTime: 0,
       get executionAverageTime() {
         return this.executionCount === 0 ? 0 : this.executionTotalTime / this.executionCount;
+      },
+      get executionHistoryCount() {
+        return Object.values(store$.nodes.peek())
+          .map((x) => x.executionState?.history.length ?? 0)
+          .reduce((acc, cur) => acc + cur, 0);
+      },
+      get executionHistoryTotalTime() {
+        return Object.values(store$.nodes.peek())
+          .map(
+            (x) =>
+              x.executionState?.history.reduce(
+                (acc, cur) => acc + (cur.endTimestamp - cur.startTimestamp),
+                0,
+              ) ?? 0,
+          )
+          .reduce((acc, cur) => acc + cur, 0);
+      },
+      get executionHistoryAverageTime() {
+        const count = this.executionHistoryCount;
+        return count === 0 ? 0 : this.executionHistoryTotalTime / count;
+      },
+      get executionHistoryAsyncTotalTime() {
+        return Object.values(store$.nodes.peek())
+          .map(
+            (x) =>
+              x.executionState?.history.reduce(
+                (acc, cur) => acc + (cur.asyncExecutionTime ?? 0),
+                0,
+              ) ?? 0,
+          )
+          .reduce((acc, cur) => acc + cur, 0);
+      },
+      get executionHistoryAsyncAverageTime() {
+        const count = this.executionHistoryCount;
+        return count === 0 ? 0 : this.executionHistoryAsyncTotalTime / count;
       },
     },
   };
