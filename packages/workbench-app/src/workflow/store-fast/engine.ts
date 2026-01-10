@@ -214,11 +214,6 @@ export const createWorkflowEngine = (
 
       // subscribe to every node
       const subscribeNode = (nodeId: WorkflowNodeId, e: ObserveEvent<unknown>) => {
-        console.log(`[createWorkflowEngine:subscribeNode] Setup node subscription...`, {
-          nodeId,
-          e,
-        });
-
         if (!store$.nodes[nodeId]?.id.get()) {
           // missing node, unsub
           engineState.nodeSubscriptions.get(nodeId)?.unsubscribe();
@@ -229,6 +224,11 @@ export const createWorkflowEngine = (
           // already subscribed
           return;
         }
+
+        console.log(`[createWorkflowEngine:subscribeNode] Setup node subscription...`, {
+          nodeId,
+          e,
+        });
 
         const node$ = store$.nodes[nodeId];
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -314,11 +314,12 @@ export const createWorkflowEngine = (
           engineState.nodeIdsToExecute.add(nodeId);
         }, engineState.triggerKind);
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const unsubPropagateOutputs = observeBatched((e) => {
-          console.log(
-            `[createWorkflowEngine:subscribeNode:subPropagateOutputs:observeBatched] Propagate outputs...`,
-            { e },
-          );
+          // console.log(
+          //   `[createWorkflowEngine:subscribeNode:subPropagateOutputs:observeBatched] Propagate outputs...`,
+          //   { e },
+          // );
           if (!engineState.running) {
             return;
           }
@@ -453,10 +454,11 @@ export const createWorkflowEngine = (
         };
       }, engineState.triggerKind);
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const unsubExecuteNodes = observeBatched((e) => {
-        console.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Propagate outputs...`, {
-          e,
-        });
+        // console.log(`[createWorkflowEngine:subExecuteNodes:observeBatched] Execute nodes...`, {
+        //   e,
+        // });
         if (!engineState.running) {
           unsubExecuteNodes();
           return;
