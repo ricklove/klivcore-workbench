@@ -54,7 +54,7 @@ const WorkflowNodeWrapper = ({
 
 const WrapperHeader = memo(
   ({ id: nodeIdRaw, data: dataReactFlow }: Pick<WorkflowComponentPropsAny, 'id' | 'data'>) => {
-    console.log(`[NodeWrapper] rendering node ${nodeIdRaw}`, { dataReactFlow });
+    // console.log(`[NodeWrapper] rendering node ${nodeIdRaw}`, { dataReactFlow });
     const { deleteElements } = useReactFlow();
 
     const [nodeId, setNodeId] = useState(WorkflowBrandedTypes.nodeIdToString(nodeIdRaw));
