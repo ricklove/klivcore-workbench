@@ -145,21 +145,21 @@ const createRuntimeValue = <TBase = unknown>({
   const subscribers = new Set<(v: TBase | undefined | null) => void>();
   const slowChangeCount = observable(changeCount);
 
-  const SLOW_TIME = 250;
+  // const SLOW_TIME = 250;
 
   let timeoutId = 0 as unknown as ReturnType<typeof setTimeout>;
   const triggerSlowUpdate = () => {
     if (timeoutId) {
       return;
     }
-    timeoutId = setTimeout(() => {
-      timeoutId = 0;
-      slowChangeCount.set(changeCount);
-    }, SLOW_TIME);
-    // timeoutId = requestAnimationFrame(() => {
+    // timeoutId = setTimeout(() => {
     //   timeoutId = 0;
     //   slowChangeCount.set(changeCount);
-    // });
+    // }, SLOW_TIME);
+    timeoutId = requestAnimationFrame(() => {
+      timeoutId = 0;
+      slowChangeCount.set(changeCount);
+    });
   };
 
   const updateDirectSubscribers = () => {

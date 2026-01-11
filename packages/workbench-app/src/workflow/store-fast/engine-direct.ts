@@ -574,8 +574,9 @@ export const createWorkflowEngine = (
       const unsubMain = observeBatched((e) => {
         logger.log(
           `[createWorkflowEngine:mainSubscription:observeBatched] Setup node subscriptions...`,
-          { e },
+          { e, engineState },
         );
+
         if (!engineState.running) {
           unsubMain();
           return;
@@ -661,7 +662,7 @@ export const createWorkflowEngine = (
         return () => {
           unsubs.forEach((u) => u());
         };
-      }, engineState.triggerKind);
+      }, `requestAnimationFrame`);
 
       engineState.engineSubscription = {
         unsubscribe: unsubMain,
