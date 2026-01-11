@@ -5,6 +5,7 @@ import {
   type WorkflowJsonObject,
   type WorkflowNodeId,
   type WorkflowReactFlowStore,
+  type WorkflowRuntimeEdge,
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
@@ -269,6 +270,8 @@ export const useReactFlowStore = (
     );
 
     // edge changes
+    const edgesByOldId = new Map<WorkflowEdgeId, WorkflowRuntimeEdge>();
+
     const handleEdgeMissing = (edgeId: WorkflowEdgeId, e: ObserveEvent<unknown>) => {
       console.log(
         `[useReactFlowStore:handleEdgeMissing] edge '${edgeId}' not found - deleting from react flow store`,
@@ -289,13 +292,14 @@ export const useReactFlowStore = (
         return;
       }
 
-      if (e.num > 0) {
-        // console.log(
-        //   `[useReactFlowStore:Object.values(store$.edges):edge$] edge '${edgeId}' already subscribed - skipping`,
-        //   { e, edgeId, edge$, edge: edge$.peek() },
-        // );
+      if (edgesByOldId.has(edgeId)) {
+        console.log(
+          `[useReactFlowStore:Object.values(store$.edges):edge$] edge '${edgeId}' already subscribed - skipping`,
+          { e, edgeId, edge$, edge: edge$.peek() },
+        );
         return;
       }
+      edgesByOldId.set(edgeId, edge$.peek());
 
       if (edge$.isDeleted.get()) {
         console.log(
@@ -335,15 +339,15 @@ export const useReactFlowStore = (
             return;
           }
 
-          // console.log(
-          //   `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
-          //   {
-          //     e,
-          //     edgeId,
-          //     edge$,
-          //     edge: edge$.peek(),
-          //   },
-          // );
+          console.log(
+            `[useReactFlowStore:Object.values(store$.edges):edge$: content] edge '${edgeId}' content ${e.num > 0 ? `changed` : `subscribed`}`,
+            {
+              e,
+              edgeId,
+              edge$,
+              edge: edge$.peek(),
+            },
+          );
 
           setEdges((s) => {
             const index = s.findIndex((x) => x.id === edgeId);
@@ -381,9 +385,10 @@ export const useReactFlowStore = (
 
     unsubs.push(
       observeBatched((e) => {
-        console.log(`[useReactFlowStore:edges] edge keys changed `, { e });
+        const edgeKeys = Object.keys(store$.edges);
+        console.log(`[useReactFlowStore:edges] edge keys changed `, { e, edgeKeys });
 
-        Object.keys(store$.edges).forEach((edgeIdRaw) => {
+        edgeKeys.forEach((edgeIdRaw) => {
           subscribeEdge(WorkflowBrandedTypes.edgeIdFormString(edgeIdRaw), e);
         });
       }, trigger),
@@ -502,12 +507,13 @@ export const useReactFlowStore = (
 
       for (const change of changes) {
         if (change.type === 'add') {
-          console.log(`[useReactFlowStore] Unhandled edge add`, { change });
+          console.log(`[useReactFlowStore] Add edge`, { change });
           continue;
         }
 
         const edgeId = WorkflowBrandedTypes.edgeIdFormString(change.id);
         if (change.type === `remove`) {
+          console.log(`[useReactFlowStore] Remove edge`, { change });
           store$.actions.deleteEdge(edgeId);
           continue;
         }
@@ -541,6 +547,7 @@ export const useReactFlowStore = (
         return;
       }
 
+      console.log(`[useReactFlowStore:onConnect] Add edge`, { params });
       store$.actions.createEdge({
         source: {
           nodeId: WorkflowBrandedTypes.nodeId(params.source),
@@ -551,6 +558,8 @@ export const useReactFlowStore = (
           inputName: WorkflowBrandedTypes.inputName(params.targetHandle!),
         },
       });
+
+      // force update edges
     },
   };
 };

@@ -623,7 +623,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
 
       if (targetInput.edgeId) {
         // remove existing edge
-        store$.edges[targetInput.edgeId]?.delete();
+        store$.edges[targetInput.edgeId]?.isDeleted.set(true);
       }
 
       const edgeId = WorkflowBrandedTypes.edgeId(
@@ -664,6 +664,14 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         sourceOutput.edgeIds = sourceOutput.edgeIds || [];
         sourceOutput.edgeIds.push(edgeId);
       }
+
+      console.log(`[createEdge] Created edge ${edgeId}`, {
+        args,
+        store$,
+        edgeId,
+        targetInput,
+        sourceOutput,
+      });
     },
     deleteEdge: (edgeId) => {
       const edge = store$.edges[edgeId]?.get();
@@ -684,7 +692,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
 
       if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
-        console.warn(`[createEdge] Cannot create edge, missing source or target`, {
+        console.warn(`[createEdge] Cannot remove edge, missing source or target`, {
           edge,
           targetNode,
           targetInput,
