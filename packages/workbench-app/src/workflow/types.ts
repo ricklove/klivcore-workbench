@@ -116,7 +116,7 @@ export type WorkflowComponentPropsData<
   store$: Observable<WorkflowRuntimeStore>;
   inputs$: Observable<PartialNull<TInputs>>;
   outputs$: Observable<PartialNull<TOutputs>>;
-  data$: Observable<undefined | null | Partial<TData>>;
+  getData: () => Observable<undefined | null | Partial<TData>>;
 };
 
 type PartialNull<T> = {
@@ -143,7 +143,7 @@ export type WorkflowComponentPropsAny = Omit<WorkflowComponentPropsBase, 'data'>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputs$: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data$: any;
+    getData: () => any;
   };
 };
 

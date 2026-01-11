@@ -3,8 +3,9 @@ import { type WorkflowComponentProps } from './types';
 import { useValue } from '@legendapp/state/react';
 
 export const StringNodeComponent = (props: WorkflowComponentProps<{ value: string }>) => {
-  const { node$, inputs$, data$ } = props.data;
+  const { node$, inputs$, getData } = props.data;
 
+  const data$ = getData();
   const textData = useValue(() => data$.value.get());
   // const textData = useValue(() => node$.data.get().getValue<{ value: string }>()?.value);
   const textInput = useValue(() => inputs$.value.get());

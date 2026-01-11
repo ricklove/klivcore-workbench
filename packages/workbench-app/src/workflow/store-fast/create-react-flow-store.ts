@@ -215,7 +215,8 @@ export const useReactFlowStore = (
                   node$.outputs.map((output$) => [output$.name.get(), output$.value.box]),
                 ),
               ),
-              data$: node$?.get()?.data?.getObservableBox() as Observable<WorkflowJsonObject>,
+              getData: () => node$.data.getObservableBox() as Observable<WorkflowJsonObject>,
+              // data$: node$?.get()?.data?.getObservableBox() as Observable<WorkflowJsonObject>,
               // data$: observable({} as WorkflowJsonObject),
               // data$: observable(
               //   linked({
