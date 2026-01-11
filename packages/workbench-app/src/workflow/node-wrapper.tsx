@@ -120,7 +120,7 @@ const WrapperHeader = memo(
                             expandInfo === `data`
                               ? {
                                   inputs: dataReactFlow.inputs$.get(),
-                                  data: dataReactFlow.data$.get(),
+                                  // data: dataReactFlow.data$.get(),
                                   outputs: dataReactFlow.outputs$.get(),
                                   node: {
                                     inputs: node$.inputs.get(),

@@ -237,6 +237,7 @@ export interface WorkflowRuntimeEdge {
 
 /** null indicates the value was set to undefined or null, undefined means it is unset */
 export type WorkflowRuntimeValue<TBase = unknown> = PlainObject<{
+  getObservableBox: () => unknown;
   box: undefined | null | TBase;
   getValue: <T = TBase>() => undefined | null | T;
   setValue: <T = TBase>(v: null | T) => void;

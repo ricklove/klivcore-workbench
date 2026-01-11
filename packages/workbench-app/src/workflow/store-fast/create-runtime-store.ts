@@ -14,7 +14,7 @@ import {
   type WorkflowRuntimeValue,
 } from '../types';
 import { builtinNodeTypes } from '../node-types';
-import { linked, observable, ObservableHint, type Observable } from '@legendapp/state';
+import { linked, observable, ObservableHint, observe, type Observable } from '@legendapp/state';
 
 const getters = {
   node: {
@@ -180,10 +180,7 @@ const createRuntimeValue = <TBase = unknown>({
   };
 
   const obj: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
-    // ...{
-    //   inner$,
-    //   dataChangeCounter$,
-    // },
+    getObservableBox: () => uiObservableBox$.content.inner,
     box: linked({
       get: () => obj.getValue<TBase>(),
       set: (v) => {
@@ -204,6 +201,7 @@ const createRuntimeValue = <TBase = unknown>({
       changeCount++;
       triggerSlowUpdate();
       updateDirectSubscribers();
+      uiObservableBox$.content.inner.set(inner as undefined | null | Record<string, unknown>);
     },
     clearValue: () => {
       if (inner === undefined) {
@@ -214,6 +212,7 @@ const createRuntimeValue = <TBase = unknown>({
       changeCount++;
       triggerSlowUpdate();
       updateDirectSubscribers();
+      uiObservableBox$.content.inner.set(undefined);
     },
     subscribeDirect: (callback: (v: TBase | undefined | null) => void) => {
       subscribers.add(callback);
@@ -229,6 +228,17 @@ const createRuntimeValue = <TBase = unknown>({
       return changeCount;
     },
     // meta,
+  });
+
+  const uiObservableBox$ = observable({
+    content: { inner: inner as undefined | null | Record<string, unknown> },
+  });
+  observe(() => {
+    const value = uiObservableBox$.content.inner.get();
+    inner = (value ?? null) as TBase;
+    changeCount++;
+    triggerSlowUpdate();
+    updateDirectSubscribers();
   });
 
   return obj;

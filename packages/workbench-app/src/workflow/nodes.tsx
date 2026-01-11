@@ -6,6 +6,7 @@ export const StringNodeComponent = (props: WorkflowComponentProps<{ value: strin
   const { node$, inputs$, data$ } = props.data;
 
   const textData = useValue(() => data$.value.get());
+  // const textData = useValue(() => node$.data.get().getValue<{ value: string }>()?.value);
   const textInput = useValue(() => inputs$.value.get());
   const textInputSlot = useValue(() => node$.getInputInfo<string>(`value`));
 
@@ -22,7 +23,7 @@ export const StringNodeComponent = (props: WorkflowComponentProps<{ value: strin
           value={text}
           readOnly={!props.selected || isReadonly}
           onChange={(e) => {
-            node$.data.setValue({
+            node$.data.get().setValue({
               value: e.target.value,
             });
           }}

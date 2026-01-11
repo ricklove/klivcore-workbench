@@ -2,6 +2,7 @@ import { observable, type Observable, type ObserveEvent } from '@legendapp/state
 import {
   WorkflowBrandedTypes,
   type WorkflowEdgeId,
+  type WorkflowJsonObject,
   type WorkflowNodeId,
   type WorkflowReactFlowStore,
   type WorkflowRuntimeNode,
@@ -214,7 +215,17 @@ export const useReactFlowStore = (
                   node$.outputs.map((output$) => [output$.name.get(), output$.value.box]),
                 ),
               ),
-              data$: observable({ ...node$?.data?.box?.get() }),
+              data$: node$?.get()?.data?.getObservableBox() as Observable<WorkflowJsonObject>,
+              // data$: observable({} as WorkflowJsonObject),
+              // data$: observable(
+              //   linked({
+              //     get: () => node$?.get()?.data.getValue<WorkflowJsonObject>(),
+              //     set: (value) => {
+              //       node$?.get()?.data.setValue(value);
+              //     },
+              //   }),
+              // ),
+              // data$: node$?.data?.box,
             },
           };
 
