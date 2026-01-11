@@ -11,13 +11,19 @@
   - [x] on output => edges => inputs
   - [x] on input values => execute
   - [x] after excute => output value
-- [ ] faster direct engine
-  - [ ] compute a list of all output runtime values => edge,input values (and target nodes)
-  - [ ] check all output runtime values for changes (and compare to subscribing to changes)
-    - [ ] filter all changed output runtime values
-    - [ ] copy to target values
-    - [ ] queue all target nodes that were changed
-  - [ ] execute all queued nodes
+- [x] faster direct engine
+  - [x] compute a list of all output runtime values => edge,input values (and target nodes)
+  - [x] check all output runtime values for changes (and compare to subscribing to changes)
+    - [x] filter all changed output runtime values
+    - [x] copy to target values
+    - [x] queue all target nodes that were changed
+  - [x] execute all queued nodes
+- [ ] fix structural change bugs
+  - [x] fix delete edge
+  - [ ] fix delete node
+  - [ ] fix add edge bug
+  - [ ] fix add node
+  - [ ] fix rename id bug
 
 - [ ] improve workflow storage
   - [ ] clone workflow server from lofr project

@@ -46,6 +46,16 @@ const executeNode = async ({
   controller: WorkflowExecutionArgs['controller'];
 }): Promise<undefined | WorkflowRuntimeExecutionState> => {
   const nodeId = node.id;
+  if (node.isDeleted) {
+    logger.log(
+      `[createWorkflowEngine:processNodeQueue:executeNode] Node is deleted, skipping execution:`,
+      {
+        nodeId,
+        node,
+      },
+    );
+    return undefined;
+  }
 
   const typeDef = store.nodeTypes[node.type];
   if (!typeDef) {
@@ -205,7 +215,7 @@ export const createWorkflowEngine = (
       targetInputRuntimeValue: WorkflowRuntimeValue;
       targetEdgeRuntimeValue: WorkflowRuntimeValue;
       edgeId: WorkflowEdgeId;
-      // sourceNodeId: WorkflowNodeId;
+      sourceNodeId: WorkflowNodeId;
       targetNodeId: WorkflowNodeId;
     }[],
     nodeDataValues: [] as {
@@ -301,6 +311,7 @@ export const createWorkflowEngine = (
     if (propagationKind !== `polling`) {
       return;
     }
+
     const startTime = performance.now();
 
     logger.log(`[createWorkflowEngine:propagateValues] Propagating values...`, { engineState });
@@ -572,11 +583,15 @@ export const createWorkflowEngine = (
 
         // subscribe to all structure changes (node and edge additions/removals)
         const edges = Object.values(store$.edges)
+          .filter((edge$) => !edge$.isDeleted.get())
           .map((edge$) => edge$.get() as WorkflowRuntimeEdge)
           .filter((x) => x);
         const nodes = Object.values(store$.nodes)
+          .filter((node$) => !node$.isDeleted.get())
           .map((node$) => node$.get() as WorkflowRuntimeNode)
           .filter((x) => x);
+
+        const oldOutputValues = engineState.outputValues;
 
         engineState.outputValues = edges.flatMap((edge) => {
           const sourceNode = edge.source.getNode();
@@ -595,10 +610,21 @@ export const createWorkflowEngine = (
               targetInputRuntimeValue: targetInput.value,
               targetEdgeRuntimeValue: edge.value,
               edgeId: edge.id,
+              sourceNodeId: edge.source.nodeId,
               targetNodeId: edge.target.nodeId,
             },
           ];
         });
+
+        const removedOutputValues = oldOutputValues.filter((oldOv) => {
+          return !engineState.outputValues.find((ov) => ov.edgeId === oldOv.edgeId);
+        });
+
+        // clean up removed output values from dataChangeCounters
+        for (const rov of removedOutputValues) {
+          rov.targetInputRuntimeValue.clearValue();
+          engineState.nodeIdsToExecute.add(rov.targetNodeId);
+        }
 
         engineState.nodeDataValues = nodes.map((node) => {
           return {
@@ -610,21 +636,25 @@ export const createWorkflowEngine = (
         const unsubs = [] as (() => void)[];
         if (propagationKind === `subscription`) {
           engineState.outputValues.forEach((ov) => {
-            ov.sourceOutputRuntimeValue.subscribeDirect((x) => {
-              stats.propagationCount++;
-              const startTime = performance.now();
-              ov.targetEdgeRuntimeValue.setValue(x);
-              ov.targetInputRuntimeValue.setValue(x);
-              engineState.nodeIdsToExecute.add(ov.targetNodeId);
-              stats.propagationTotalTime += performance.now() - startTime;
-            });
+            unsubs.push(
+              ov.sourceOutputRuntimeValue.subscribeDirect((x) => {
+                stats.propagationCount++;
+                const startTime = performance.now();
+                ov.targetEdgeRuntimeValue.setValue(x);
+                ov.targetInputRuntimeValue.setValue(x);
+                engineState.nodeIdsToExecute.add(ov.targetNodeId);
+                stats.propagationTotalTime += performance.now() - startTime;
+              }),
+            );
           });
 
           engineState.nodeDataValues.forEach((nv) => {
-            nv.dataRuntimeValue.subscribeDirect(() => {
-              stats.propagationCount++;
-              engineState.nodeIdsToExecute.add(nv.nodeId);
-            });
+            unsubs.push(
+              nv.dataRuntimeValue.subscribeDirect(() => {
+                stats.propagationCount++;
+                engineState.nodeIdsToExecute.add(nv.nodeId);
+              }),
+            );
           });
         }
 

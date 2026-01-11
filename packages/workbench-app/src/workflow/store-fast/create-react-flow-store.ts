@@ -96,7 +96,7 @@ export const useReactFlowStore = (
         },
       );
 
-      nodesByOldId.delete(oldNodeId);
+      // nodesByOldId.delete(oldNodeId);
       setNodes((s) => s.filter((n) => n.id !== oldNodeId));
     };
 
@@ -119,7 +119,6 @@ export const useReactFlowStore = (
         // );
         return;
       }
-
       nodesByOldId.set(nodeId, node$.peek());
       // console.log(
       //   `[useReactFlowStore:Object.values(store$.nodes):node$] node '${nodeId}' subscribing`,
@@ -130,6 +129,11 @@ export const useReactFlowStore = (
       //     node: node$.peek(),
       //   },
       // );
+
+      if (node$.isDeleted.get()) {
+        setNodes((s) => s.filter((n) => n.id !== nodeId));
+        return;
+      }
 
       unsubs.push(
         observeBatched((e) => {
@@ -161,6 +165,11 @@ export const useReactFlowStore = (
             return;
           }
           nodesByOldId.set(nodeId, node$.peek());
+
+          if (node$.isDeleted.get()) {
+            setNodes((s) => s.filter((n) => n.id !== nodeId));
+            return;
+          }
 
           const oldId = nodeId !== node$.id.get() ? nodeId : undefined;
 
@@ -244,11 +253,21 @@ export const useReactFlowStore = (
         return;
       }
 
+      if (edge$.isDeleted.get()) {
+        setEdges((s) => s.filter((e) => e.id !== edgeId));
+        return;
+      }
+
       unsubs.push(
         observeBatched((e) => {
           const edge$ = store$.edges[edgeId];
           if (!edge$?.id.get()) {
             handleEdgeMissing(edgeId, e);
+            return;
+          }
+
+          if (edge$.isDeleted.get()) {
+            setEdges((s) => s.filter((e) => e.id !== edgeId));
             return;
           }
 

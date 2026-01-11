@@ -37,7 +37,7 @@ const runtimeStore$ = createWorkflowStoreFromDocument(
       console.error(`[WorkflowView] Error parsing stored workflow document`, { err });
     }
 
-    return createExampleWorkflowDocumentChain(100);
+    return createExampleWorkflowDocumentChain(4);
   })(),
 );
 const storePersistance$ = persistStoreToDocument(runtimeStore$);

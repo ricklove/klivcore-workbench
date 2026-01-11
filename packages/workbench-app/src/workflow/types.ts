@@ -156,6 +156,8 @@ export type WorkflowComponentPropsAny = Omit<WorkflowComponentPropsBase, 'data'>
 // }
 
 export interface WorkflowRuntimeNode {
+  isDeleted?: boolean;
+
   id: WorkflowNodeId;
   type: WorkflowNodeTypeName;
   parentId?: WorkflowNodeId;
@@ -208,6 +210,8 @@ export type WorkflowRuntimeNodeInput = WorkflowRuntimeNode['inputs'][number];
 export type WorkflowRuntimeNodeOutput = WorkflowRuntimeNode['outputs'][number];
 
 export interface WorkflowRuntimeEdge {
+  isDeleted?: boolean;
+
   id: WorkflowEdgeId;
   source: {
     nodeId: WorkflowNodeId;

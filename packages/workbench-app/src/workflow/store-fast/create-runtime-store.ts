@@ -534,7 +534,28 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         store$.nodes[nodeId]?.set(runtimeNode);
       },
       deleteNode: (nodeId) => {
-        store$.nodes[nodeId]?.delete();
+        const node$ = store$.nodes[nodeId];
+        if (node$?.isDeleted.peek()) {
+          // already deleted
+          return;
+        }
+        node$?.isDeleted.set(true);
+
+        if (!node$?.id.peek()) {
+          console.warn(`[deleteNode] Node with id ${nodeId} does not exist`);
+          return;
+        }
+
+        node$.inputs.forEach((input$) => {
+          const edgeId = input$.edgeId.peek()!;
+          store$.actions.deleteEdge(edgeId);
+        });
+        node$.outputs.forEach((output$) => {
+          output$.edgeIds?.forEach((edgeId$) => {
+            const edgeId = edgeId$.peek()!;
+            store$.actions.deleteEdge(edgeId);
+          });
+        });
       },
       renameNode: ({ oldId, newId }) => {
         const node = store$.nodes[oldId];
@@ -642,7 +663,11 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         if (!edge) {
           return;
         }
-        store$.edges[edgeId]?.delete();
+        if (edge.isDeleted) {
+          // already deleted
+          return;
+        }
+        store$.edges[edgeId]?.isDeleted.set(true);
 
         // remove edge from nodes
         const targetNode = store$.nodes[edge.target.nodeId]?.get();
