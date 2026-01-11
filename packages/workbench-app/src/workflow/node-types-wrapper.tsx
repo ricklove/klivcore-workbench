@@ -1,10 +1,10 @@
 import { memo } from 'react';
-import type { WorkflowComponentProps, WorkflowComponentPropsAny } from './types';
+import type { WorkflowComponentPropsAny_Ops, WorkflowComponentProps } from './types';
 import { ErrorBoundary } from './error-boundary';
 import { useValue } from '@legendapp/state/react';
 
 export const NodeTypeWrapComponent = (
-  InnerComponent: React.ComponentType<WorkflowComponentPropsAny>,
+  InnerComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
 ): React.ComponentType<WorkflowComponentProps> => {
   return memo((props) => {
     const node = useValue(props.data.node$.id.get());
@@ -18,7 +18,7 @@ export const NodeTypeWrapComponent = (
 
     return (
       <ErrorBoundary message={`Error rendering Component`}>
-        <InnerComponent {...props} />
+        <InnerComponent {...props} data={{ ...props.data, data$: props.data.getData() }} />
       </ErrorBoundary>
     );
   });

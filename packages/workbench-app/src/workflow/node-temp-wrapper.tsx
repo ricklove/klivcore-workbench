@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
-import type { WorkflowComponentProps } from './types';
+import type { WorkflowComponentProps_Obs } from './types';
 import { useValue } from '@legendapp/state/react';
 import { ErrorBoundary } from './error-boundary';
 
-export const TempWrapper = (props: WorkflowComponentProps) => {
+export const TempWrapper = (props: WorkflowComponentProps_Obs) => {
   const importPath = useValue(() =>
     props.data.node$.inputs
       .find((x) => x.name.get() === 'importPath')

@@ -119,6 +119,18 @@ export type WorkflowComponentPropsData<
   getData: () => Observable<undefined | null | Partial<TData>>;
 };
 
+export type WorkflowComponentPropsData_Obs<
+  TData extends WorkflowJsonObject = WorkflowJsonObject,
+  TInputs = TData,
+  TOutputs = TData,
+> = {
+  node$: Observable<WorkflowRuntimeNode>;
+  store$: Observable<WorkflowRuntimeStore>;
+  inputs$: Observable<PartialNull<TInputs>>;
+  outputs$: Observable<PartialNull<TOutputs>>;
+  data$: Observable<undefined | null | Partial<TData>>;
+};
+
 type PartialNull<T> = {
   [P in keyof T]?: T[P] | null;
 };
@@ -134,6 +146,14 @@ export type WorkflowComponentProps<
   data: WorkflowComponentPropsData<TData, TInputs, TOutputs>;
 };
 
+export type WorkflowComponentProps_Obs<
+  TData extends WorkflowJsonObject = WorkflowJsonObject,
+  TInputs = TData,
+  TOutputs = TData,
+> = Omit<WorkflowComponentPropsBase, 'data'> & {
+  data: WorkflowComponentPropsData_Obs<TData, TInputs, TOutputs>;
+};
+
 export type WorkflowComponentPropsAny = Omit<WorkflowComponentPropsBase, 'data'> & {
   data: {
     node$: Observable<WorkflowRuntimeNode>;
@@ -143,7 +163,19 @@ export type WorkflowComponentPropsAny = Omit<WorkflowComponentPropsBase, 'data'>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputs$: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getData: () => any;
+    getData: any;
+  };
+};
+export type WorkflowComponentPropsAny_Ops = Omit<WorkflowComponentPropsBase, 'data'> & {
+  data: {
+    node$: Observable<WorkflowRuntimeNode>;
+    store$: Observable<WorkflowRuntimeStore>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    inputs$: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    outputs$: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data$: any;
   };
 };
 

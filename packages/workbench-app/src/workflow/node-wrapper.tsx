@@ -2,7 +2,7 @@ import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useState } from 'react';
 import {
   WorkflowBrandedTypes,
-  type WorkflowComponentPropsAny,
+  type WorkflowComponentPropsAny_Ops as WorkflowComponentPropsAny,
   type WorkflowRuntimeNode,
 } from './types';
 import { Computed, Memo, useValue } from '@legendapp/state/react';

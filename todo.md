@@ -20,8 +20,7 @@
   - [x] execute all queued nodes
 - [ ] fix structural change bugs
   - [x] fix delete edge
-  - [ ] fix delete node
-    - can delete the last item, so maybe something with the array of items in react-flow and legend-state
+  - [x] fix delete node
   - [ ] fix add edge bug
   - [ ] fix add node
   - [ ] fix rename id bug

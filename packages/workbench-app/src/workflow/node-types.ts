@@ -7,7 +7,7 @@ import { NodeTypeWrapComponent } from './node-types-wrapper';
 export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   default: {
     type: WorkflowBrandedTypes.typeName(`default`),
-    getComponent: () => ({ Component: WorkflowNodeDefault }),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(WorkflowNodeDefault) }),
     inputs: [],
     outputs: [],
     execute: async () => {
@@ -42,7 +42,7 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   tempWrapper: {
     type: WorkflowBrandedTypes.typeName(`tempWrapper`),
-    getComponent: () => ({ Component: TempWrapper }),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(TempWrapper) }),
     inputs: [],
     outputs: [],
     execute: async () => {
