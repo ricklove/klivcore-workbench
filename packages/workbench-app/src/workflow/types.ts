@@ -249,7 +249,7 @@ export interface WorkflowRuntimeStore {
   nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
   edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;
-  actions: WorkflowRuntimeStoreActions;
+  actions: PlainObject<WorkflowRuntimeStoreActions>;
 }
 
 /** helpers to simplify some actions */

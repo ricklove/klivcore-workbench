@@ -131,6 +131,16 @@ export const useReactFlowStore = (
       // );
 
       if (node$.isDeleted.get()) {
+        console.log(
+          `[useReactFlowStore:subscribeNode] node '${nodeId}' is deleted - removing from react flow store`,
+          {
+            e,
+            nodeId,
+            node$,
+            node: node$.peek(),
+          },
+        );
+
         setNodes((s) => s.filter((n) => n.id !== nodeId));
         return;
       }
@@ -164,16 +174,26 @@ export const useReactFlowStore = (
             handleNodeMissing(nodeId, e);
             return;
           }
-          nodesByOldId.set(nodeId, node$.peek());
 
           if (node$.isDeleted.get()) {
+            console.log(
+              `[useReactFlowStore:observeBatched:node$] node '${nodeId}' is deleted - removing from react flow store`,
+              {
+                e,
+                nodeId,
+                node$,
+                node: node$.peek(),
+              },
+            );
             setNodes((s) => s.filter((n) => n.id !== nodeId));
             return;
           }
 
+          nodesByOldId.set(nodeId, node$.peek());
           const oldId = nodeId !== node$.id.get() ? nodeId : undefined;
 
           const node: WorkflowReactFlowStore[`nodes`][number] = {
+            // id: nodeId,
             id: node$.id.get(),
             type: node$.type.get(),
             position: { x: node$.position.x.peek(), y: node$.position.y.peek() },
@@ -194,9 +214,21 @@ export const useReactFlowStore = (
                   node$.outputs.map((output$) => [output$.name.get(), output$.value.box]),
                 ),
               ),
-              data$: node$.data.box,
+              data$: observable({ ...node$?.data?.box?.get() }),
             },
           };
+
+          console.log(
+            `[useReactFlowStore:observeBatched:node$] node '${nodeId}' updating/react flow store`,
+            {
+              e,
+              nodeId,
+              oldId,
+              node$,
+              node: node$.peek(),
+              reactFlowNode: node,
+            },
+          );
 
           setNodes((s) => {
             const index = s.findIndex((x) => x.id === (oldId ?? node.id));
@@ -254,6 +286,16 @@ export const useReactFlowStore = (
       }
 
       if (edge$.isDeleted.get()) {
+        console.log(
+          `[useReactFlowStore:subscribeEdge] edge '${edgeId}' is deleted - removing from react flow store`,
+          {
+            e,
+            edgeId,
+            edge$,
+            edge: edge$.peek(),
+          },
+        );
+
         setEdges((s) => s.filter((e) => e.id !== edgeId));
         return;
       }
@@ -267,6 +309,16 @@ export const useReactFlowStore = (
           }
 
           if (edge$.isDeleted.get()) {
+            console.log(
+              `[useReactFlowStore:observeBatched:edge$] edge '${edgeId}' is deleted - removing from react flow store`,
+              {
+                e,
+                edgeId,
+                edge$,
+                edge: edge$.peek(),
+              },
+            );
+
             setEdges((s) => s.filter((e) => e.id !== edgeId));
             return;
           }
@@ -365,16 +417,38 @@ export const useReactFlowStore = (
   //   });
   // }, [store$]);
 
+  console.log(`[useReactFlowStore] render`, { nodeTypes, nodes, edges });
+
   return {
     nodeTypes,
     nodes,
     edges,
     onNodesChange: (changes: NodeChange[]) => {
-      setNodes((s) => applyNodeChanges(changes, s as unknown as Node[]) as typeof nodes);
+      setNodes((s) => {
+        // const filteredChanges = changes.filter((change) => change.type !== 'remove');
+        const filteredChanges = changes;
+        const result = applyNodeChanges(filteredChanges, s as unknown as Node[]) as typeof nodes;
+
+        console.log(`[useReactFlowStore:onNodesChange] applied changes`, {
+          changes,
+          filteredChanges,
+          result,
+          before: s,
+        });
+
+        return result;
+      });
 
       for (const change of changes) {
         if (change.type === 'add') {
           console.log(`[useReactFlowStore] Unhandled node add`, { change });
+          continue;
+        }
+
+        const nodeId = WorkflowBrandedTypes.nodeId(change.id);
+        if (change.type === `remove`) {
+          console.log(`[useReactFlowStore] Deleting node '${nodeId}' from store`, { change });
+          store$.actions.deleteNode(nodeId);
           continue;
         }
 
@@ -408,11 +482,6 @@ export const useReactFlowStore = (
           continue;
         }
 
-        if (change.type === `remove`) {
-          store$.actions.deleteNode(node.id.get());
-          continue;
-        }
-
         console.log(`[useReactFlowStore] Unhandled node change: `, { change, node });
       }
     },
@@ -425,7 +494,13 @@ export const useReactFlowStore = (
           continue;
         }
 
-        const edge = store$.edges[WorkflowBrandedTypes.edgeIdFormString(change.id)];
+        const edgeId = WorkflowBrandedTypes.edgeIdFormString(change.id);
+        if (change.type === `remove`) {
+          store$.actions.deleteEdge(edgeId);
+          continue;
+        }
+
+        const edge = store$.edges[edgeId];
         if (!edge?.id.get()) {
           console.log(`[useReactFlowStore] Edge not found for change`, { change });
           continue;
@@ -433,11 +508,6 @@ export const useReactFlowStore = (
 
         if (change.type === 'select') {
           // ignore
-          continue;
-        }
-
-        if (change.type === `remove`) {
-          store$.actions.deleteEdge(edge.id.get());
           continue;
         }
 

@@ -10,6 +10,7 @@ import {
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
+  type WorkflowRuntimeStoreActions,
   type WorkflowRuntimeValue,
 } from '../types';
 import { builtinNodeTypes } from '../node-types';
@@ -435,80 +436,28 @@ const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode
 };
 
 const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
-  const store$: Observable<WorkflowRuntimeStore> = observable({
-    nodeTypes: {} as Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>,
-    nodes: {} as Record<WorkflowNodeId, WorkflowRuntimeNode>,
-    edges: {} as Record<WorkflowEdgeId, WorkflowRuntimeEdge>,
-    actions: {
-      createNodeType: (definition) => {
-        store$.nodeTypes[definition.type]?.set(definition);
-        // populate existing nodes of this type
-        for (const node of Object.values(store$.nodes.get())) {
-          if (node.type === definition.type) {
-            populateNodeType(store$.get(), node);
-          }
+  const actions: WorkflowRuntimeStoreActions = {
+    createNodeType: (definition) => {
+      store$.nodeTypes[definition.type]?.set(definition);
+      // populate existing nodes of this type
+      for (const node of Object.values(store$.nodes.get())) {
+        if (node.type === definition.type) {
+          populateNodeType(store$.get(), node);
         }
-      },
-      deleteNodeType: (typeName: string) => {
-        store$.nodeTypes[WorkflowBrandedTypes.typeName(typeName)]?.delete();
-      },
-      createNode: (args) => {
-        const nodeId = WorkflowBrandedTypes.nodeId(args.id);
-        const nodeType = store$.nodeTypes[args.type]?.get();
-        if (!nodeType) {
-          const runtimeNode: WorkflowRuntimeNode = {
-            ...args,
-            id: nodeId,
-            inputs: [],
-            outputs: [],
-            data: createRuntimeValue({ data: undefined }),
-            getInputInfo: <T>(inputName: string) => {
-              return getters.node.getInputData<T>(
-                store$.get(),
-                runtimeNode,
-                WorkflowBrandedTypes.inputName(inputName),
-              );
-            },
-            getOutputInfo: <T>(outputName: string) => {
-              return getters.node.getOutputData<T>(
-                store$.get(),
-                runtimeNode,
-                WorkflowBrandedTypes.outputName(outputName),
-              );
-            },
-            getData: <T>() => {
-              return getters.node.getData<T>(store$.get(), runtimeNode);
-            },
-            getGraphErrors() {
-              return getters.node.getGraphErrors(store$.get(), runtimeNode);
-            },
-          };
-
-          store$.nodes[nodeId]?.set(runtimeNode);
-          return;
-        }
-
+      }
+    },
+    deleteNodeType: (typeName: string) => {
+      store$.nodeTypes[WorkflowBrandedTypes.typeName(typeName)]?.delete();
+    },
+    createNode: (args) => {
+      const nodeId = WorkflowBrandedTypes.nodeId(args.id);
+      const nodeType = store$.nodeTypes[args.type]?.get();
+      if (!nodeType) {
         const runtimeNode: WorkflowRuntimeNode = {
           ...args,
           id: nodeId,
-          inputs: nodeType.inputs.map((i) => ({
-            name: i.name,
-            type: i.type,
-            value: createRuntimeValue({ data: undefined }),
-            edgeId: undefined,
-            getEdge() {
-              return getters.node.inputs.getEdge(store$.get(), this);
-            },
-          })),
-          outputs: nodeType.outputs.map((o) => ({
-            name: o.name,
-            type: o.type,
-            value: createRuntimeValue({ data: undefined }),
-            edgeIds: undefined,
-            getEdges() {
-              return getters.node.outputs.getEdges(store$.get(), this);
-            },
-          })),
+          inputs: [],
+          outputs: [],
           data: createRuntimeValue({ data: undefined }),
           getInputInfo: <T>(inputName: string) => {
             return getters.node.getInputData<T>(
@@ -527,177 +476,231 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           getData: <T>() => {
             return getters.node.getData<T>(store$.get(), runtimeNode);
           },
-          getGraphErrors: () => {
+          getGraphErrors() {
             return getters.node.getGraphErrors(store$.get(), runtimeNode);
           },
         };
+
         store$.nodes[nodeId]?.set(runtimeNode);
-      },
-      deleteNode: (nodeId) => {
-        const node$ = store$.nodes[nodeId];
-        if (node$?.isDeleted.peek()) {
-          // already deleted
-          return;
-        }
-        node$?.isDeleted.set(true);
+        return;
+      }
 
-        if (!node$?.id.peek()) {
-          console.warn(`[deleteNode] Node with id ${nodeId} does not exist`);
-          return;
-        }
+      const runtimeNode: WorkflowRuntimeNode = {
+        ...args,
+        id: nodeId,
+        inputs: nodeType.inputs.map((i) => ({
+          name: i.name,
+          type: i.type,
+          value: createRuntimeValue({ data: undefined }),
+          edgeId: undefined,
+          getEdge() {
+            return getters.node.inputs.getEdge(store$.get(), this);
+          },
+        })),
+        outputs: nodeType.outputs.map((o) => ({
+          name: o.name,
+          type: o.type,
+          value: createRuntimeValue({ data: undefined }),
+          edgeIds: undefined,
+          getEdges() {
+            return getters.node.outputs.getEdges(store$.get(), this);
+          },
+        })),
+        data: createRuntimeValue({ data: undefined }),
+        getInputInfo: <T>(inputName: string) => {
+          return getters.node.getInputData<T>(
+            store$.get(),
+            runtimeNode,
+            WorkflowBrandedTypes.inputName(inputName),
+          );
+        },
+        getOutputInfo: <T>(outputName: string) => {
+          return getters.node.getOutputData<T>(
+            store$.get(),
+            runtimeNode,
+            WorkflowBrandedTypes.outputName(outputName),
+          );
+        },
+        getData: <T>() => {
+          return getters.node.getData<T>(store$.get(), runtimeNode);
+        },
+        getGraphErrors: () => {
+          return getters.node.getGraphErrors(store$.get(), runtimeNode);
+        },
+      };
+      store$.nodes[nodeId]?.set(runtimeNode);
+    },
+    deleteNode: (nodeId) => {
+      console.log(`[deleteNode] Deleting node with id ${nodeId}`, { store$ });
 
-        node$.inputs.forEach((input$) => {
-          const edgeId = input$.edgeId.peek()!;
+      const node$ = store$.nodes[nodeId];
+      if (node$?.isDeleted.peek()) {
+        // already deleted
+        return;
+      }
+
+      console.log(`[deleteNode] isDeleted=true ${nodeId}`, { store$ });
+      node$?.isDeleted.set(true);
+
+      if (!node$?.id.peek()) {
+        console.warn(`[deleteNode] Node with id ${nodeId} does not exist`);
+        return;
+      }
+
+      console.log(`[deleteNode] deleting edges ${nodeId}`, { store$ });
+
+      node$.inputs.forEach((input$) => {
+        const edgeId = input$.edgeId.peek()!;
+        store$.actions.deleteEdge(edgeId);
+      });
+      node$.outputs.forEach((output$) => {
+        output$.edgeIds?.forEach((edgeId$) => {
+          const edgeId = edgeId$.peek()!;
           store$.actions.deleteEdge(edgeId);
         });
-        node$.outputs.forEach((output$) => {
-          output$.edgeIds?.forEach((edgeId$) => {
-            const edgeId = edgeId$.peek()!;
-            store$.actions.deleteEdge(edgeId);
-          });
-        });
-      },
-      renameNode: ({ oldId, newId }) => {
-        const node = store$.nodes[oldId];
-        if (!node?.id.get()) {
-          console.warn(`[renameNode] Node with id ${oldId} does not exist`);
-          return;
-        }
-        const newNodeId = WorkflowBrandedTypes.nodeId(newId);
-        if (store$.nodes[newNodeId]?.id.get()) {
-          console.warn(`[renameNode] Node with id ${newId} already exists`);
-          return;
-        }
-
-        node.id.set(newNodeId);
-        store$.nodes[newNodeId]?.set(node.get());
-        store$.nodes[oldId]?.delete();
-
-        // update parents
-        for (const n of Object.values(store$.nodes.get())) {
-          if (n.parentId === oldId) {
-            store$.nodes[n.id]?.parentId.set(newNodeId);
-          }
-        }
-
-        // update edges
-        for (const edge of Object.values(store$.edges.get())) {
-          if (edge.source.nodeId === oldId) {
-            store$.edges[edge.id]?.source.nodeId.set(newNodeId);
-          }
-          if (edge.target.nodeId === oldId) {
-            store$.edges[edge.id]?.target.nodeId.set(newNodeId);
-          }
-        }
-      },
-      createEdge: (args) => {
-        const targetNode = store$.nodes[args.target.nodeId]?.get();
-        const targetInput = targetNode?.inputs.find((i) => i.name === args.target.inputName);
-
-        const sourceNode = store$.nodes[args.source.nodeId]?.get();
-        const sourceOutput = sourceNode?.outputs.find((o) => o.name === args.source.outputName);
-
-        if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
-          console.warn(`[createEdge] Cannot create edge, missing source or target`, {
-            args,
-            targetNode,
-            targetInput,
-            sourceNode,
-            sourceOutput,
-          });
-          return;
-        }
-
-        if (targetInput.edgeId) {
-          // remove existing edge
-          store$.edges[targetInput.edgeId]?.delete();
-        }
-
-        const edgeId = WorkflowBrandedTypes.edgeId(
-          args.source.nodeId,
-          args.source.outputName,
-          args.target.nodeId,
-          args.target.inputName,
-        );
-        store$.edges[edgeId]?.set({
-          id: edgeId,
-          source: {
-            nodeId: args.source.nodeId,
-            outputName: args.source.outputName,
-            getNode() {
-              return getters.edge.source.getNode(
-                store$.get(),
-                this as WorkflowRuntimeEdge['source'],
-              );
-            },
-          },
-          target: {
-            nodeId: args.target.nodeId,
-            inputName: args.target.inputName,
-            getNode() {
-              return getters.edge.target.getNode(
-                store$.get(),
-                this as WorkflowRuntimeEdge['target'],
-              );
-            },
-          },
-          value: createRuntimeValue({ data: undefined }),
-          getGraphErrors() {
-            return getters.edge.getGraphErrors(store$.get(), this as WorkflowRuntimeEdge);
-          },
-        });
-
-        // update nodes
-        if (targetInput) {
-          targetInput.edgeId = edgeId;
-          targetInput.value.setValue(null);
-        }
-
-        if (sourceOutput) {
-          sourceOutput.edgeIds = sourceOutput.edgeIds || [];
-          sourceOutput.edgeIds.push(edgeId);
-        }
-      },
-      deleteEdge: (edgeId) => {
-        const edge = store$.edges[edgeId]?.get();
-        if (!edge) {
-          return;
-        }
-        if (edge.isDeleted) {
-          // already deleted
-          return;
-        }
-        store$.edges[edgeId]?.isDeleted.set(true);
-
-        // remove edge from nodes
-        const targetNode = store$.nodes[edge.target.nodeId]?.get();
-        const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
-
-        const sourceNode = store$.nodes[edge.source.nodeId]?.get();
-        const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
-
-        if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
-          console.warn(`[createEdge] Cannot create edge, missing source or target`, {
-            edge,
-            targetNode,
-            targetInput,
-            sourceNode,
-            sourceOutput,
-          });
-          return;
-        }
-
-        if (targetInput) {
-          targetInput.edgeId = undefined;
-          targetInput.value.clearValue(undefined);
-        }
-
-        if (sourceOutput) {
-          sourceOutput.edgeIds = sourceOutput.edgeIds || [];
-          sourceOutput.edgeIds.splice(sourceOutput.edgeIds.indexOf(edgeId), 1);
-        }
-      },
+      });
     },
+    renameNode: ({ oldId, newId }) => {
+      const node = store$.nodes[oldId];
+      if (!node?.id.get()) {
+        console.warn(`[renameNode] Node with id ${oldId} does not exist`);
+        return;
+      }
+      const newNodeId = WorkflowBrandedTypes.nodeId(newId);
+      if (store$.nodes[newNodeId]?.id.get()) {
+        console.warn(`[renameNode] Node with id ${newId} already exists`);
+        return;
+      }
+
+      node.id.set(newNodeId);
+      store$.nodes[newNodeId]?.set(node.get());
+      store$.nodes[oldId]?.delete();
+
+      // update parents
+      for (const n of Object.values(store$.nodes.get())) {
+        if (n.parentId === oldId) {
+          store$.nodes[n.id]?.parentId.set(newNodeId);
+        }
+      }
+
+      // update edges
+      for (const edge of Object.values(store$.edges.get())) {
+        if (edge.source.nodeId === oldId) {
+          store$.edges[edge.id]?.source.nodeId.set(newNodeId);
+        }
+        if (edge.target.nodeId === oldId) {
+          store$.edges[edge.id]?.target.nodeId.set(newNodeId);
+        }
+      }
+    },
+    createEdge: (args) => {
+      const targetNode = store$.nodes[args.target.nodeId]?.get();
+      const targetInput = targetNode?.inputs.find((i) => i.name === args.target.inputName);
+
+      const sourceNode = store$.nodes[args.source.nodeId]?.get();
+      const sourceOutput = sourceNode?.outputs.find((o) => o.name === args.source.outputName);
+
+      if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
+        console.warn(`[createEdge] Cannot create edge, missing source or target`, {
+          args,
+          targetNode,
+          targetInput,
+          sourceNode,
+          sourceOutput,
+        });
+        return;
+      }
+
+      if (targetInput.edgeId) {
+        // remove existing edge
+        store$.edges[targetInput.edgeId]?.delete();
+      }
+
+      const edgeId = WorkflowBrandedTypes.edgeId(
+        args.source.nodeId,
+        args.source.outputName,
+        args.target.nodeId,
+        args.target.inputName,
+      );
+      store$.edges[edgeId]?.set({
+        id: edgeId,
+        source: {
+          nodeId: args.source.nodeId,
+          outputName: args.source.outputName,
+          getNode() {
+            return getters.edge.source.getNode(store$.get(), this as WorkflowRuntimeEdge['source']);
+          },
+        },
+        target: {
+          nodeId: args.target.nodeId,
+          inputName: args.target.inputName,
+          getNode() {
+            return getters.edge.target.getNode(store$.get(), this as WorkflowRuntimeEdge['target']);
+          },
+        },
+        value: createRuntimeValue({ data: undefined }),
+        getGraphErrors() {
+          return getters.edge.getGraphErrors(store$.get(), this as WorkflowRuntimeEdge);
+        },
+      });
+
+      // update nodes
+      if (targetInput) {
+        targetInput.edgeId = edgeId;
+        targetInput.value.setValue(null);
+      }
+
+      if (sourceOutput) {
+        sourceOutput.edgeIds = sourceOutput.edgeIds || [];
+        sourceOutput.edgeIds.push(edgeId);
+      }
+    },
+    deleteEdge: (edgeId) => {
+      const edge = store$.edges[edgeId]?.get();
+      if (!edge) {
+        return;
+      }
+      if (edge.isDeleted) {
+        // already deleted
+        return;
+      }
+      store$.edges[edgeId]?.isDeleted.set(true);
+
+      // remove edge from nodes
+      const targetNode = store$.nodes[edge.target.nodeId]?.get();
+      const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
+
+      const sourceNode = store$.nodes[edge.source.nodeId]?.get();
+      const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
+
+      if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
+        console.warn(`[createEdge] Cannot create edge, missing source or target`, {
+          edge,
+          targetNode,
+          targetInput,
+          sourceNode,
+          sourceOutput,
+        });
+        return;
+      }
+
+      if (targetInput) {
+        targetInput.edgeId = undefined;
+        targetInput.value.clearValue(undefined);
+      }
+
+      if (sourceOutput) {
+        sourceOutput.edgeIds = sourceOutput.edgeIds || [];
+        sourceOutput.edgeIds.splice(sourceOutput.edgeIds.indexOf(edgeId), 1);
+      }
+    },
+  };
+
+  const store$: Observable<WorkflowRuntimeStore> = observable({
+    nodeTypes: {} as Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>,
+    nodes: {} as Record<WorkflowNodeId, WorkflowRuntimeNode>,
+    edges: {} as Record<WorkflowEdgeId, WorkflowRuntimeEdge>,
+    actions: ObservableHint.plain(actions),
   });
   return store$;
 };
