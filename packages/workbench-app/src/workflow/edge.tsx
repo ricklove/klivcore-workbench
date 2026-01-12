@@ -1,9 +1,11 @@
 import { getBezierPath, useReactFlow, BaseEdge, EdgeLabelRenderer } from '@xyflow/react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import type { WorkflowRuntimeEdge, WorkflowRuntimeStore } from './types';
-import type { Observable } from '@legendapp/state';
+import { observable, type Observable } from '@legendapp/state';
 import { Memo, useValue } from '@legendapp/state/react';
 import { optimizationStore } from './optimization-store';
+
+const expandedInfoByEdge$ = observable({} as Record<string, boolean>);
 
 export const CustomEdge = (props: {
   id: string;
@@ -101,7 +103,11 @@ const CustomEdgeInner = memo(
     }, [props.sourceX, props.sourceY, props.targetX, props.targetY]);
 
     const [expandInfoQuick, setExpandInfoQuick] = useState(false);
-    const [expandInfoSticky, setExpandInfoSticky] = useState(false);
+    const expandInfoSticky = useValue(() => expandedInfoByEdge$[id]?.get());
+    const setExpandInfoSticky = (cb: (prev: boolean) => boolean) => {
+      expandedInfoByEdge$[id]?.set(cb(expandedInfoByEdge$[id]?.peek() ?? false));
+    };
+
     const expandInfo = expandInfoQuick || expandInfoSticky;
 
     return (
@@ -175,7 +181,7 @@ const CustomEdgeInner = memo(
                           `` //expandInfo ? `bg-blue-800` : `bg-blue-400`
                         }`}
                         onClick={() => {
-                          setExpandInfoSticky(false);
+                          setExpandInfoSticky(() => false);
                         }}
                       >
                         ✖

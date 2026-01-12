@@ -173,7 +173,7 @@ const WorkflowViewInner = () => {
     context: MenuContext;
     timestamp: number;
   } | null>(null);
-  const lastClickRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const lastClickRef = useRef<{ time: number; x: number; y: number; count: number } | null>(null);
   const { screenToFlowPosition } = useReactFlow();
   const addNodeToWorkflow = useCallback(
     async (typeNameRaw: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
@@ -240,6 +240,7 @@ const WorkflowViewInner = () => {
     }
 
     onNodesChange([{ id: autoSelectNodeId, type: `select`, selected: true }]);
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAutoSelectNodeId(undefined);
   }, [autoSelectNodeId, nodes]);
@@ -267,26 +268,59 @@ const WorkflowViewInner = () => {
           console.log(`onPaneClick`, { e });
           if (menu && Date.now() > menu.timestamp + 500) {
             setMenu(null);
+            lastClickRef.current = null;
             return;
           }
 
           const now = Date.now();
 
-          if (lastClickRef.current && now - lastClickRef.current.time < 300) {
-            console.log(`Double click detected, opening node selection menu`, {
-              x: e.clientX,
-              y: e.clientY,
-            });
-            setMenu({
-              timestamp: Date.now(),
-              x: e.clientX,
-              y: e.clientY,
-              context: { type: `pane` },
-            });
-            lastClickRef.current = null;
-          } else {
-            lastClickRef.current = { time: now, x: e.clientX, y: e.clientY };
+          // if (
+          //   lastClickRef.current &&
+          //   now - lastClickRef.current.time < 400 &&
+          //   lastClickRef.current.count >= 2
+          // ) {
+          //   console.log(`Triple click detected, adding default node`, {
+          //     x: e.clientX,
+          //     y: e.clientY,
+          //   });
+          //   addNodeToWorkflow(`string`, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
+          //   lastClickRef.current = null;
+          //   return;
+          // }
+
+          if (
+            lastClickRef.current &&
+            now - lastClickRef.current.time < 300 &&
+            lastClickRef.current.count >= 1
+          ) {
+            // wait to see if it's a triple click
+            setTimeout(() => {
+              if (!lastClickRef.current) {
+                // already handled as triple click
+                return;
+              }
+
+              console.log(`Double click detected, opening node selection menu`, {
+                x: e.clientX,
+                y: e.clientY,
+              });
+              setMenu({
+                timestamp: Date.now(),
+                x: e.clientX,
+                y: e.clientY,
+                context: { type: `pane` },
+              });
+              lastClickRef.current = null;
+            }, 0);
+            return;
           }
+
+          lastClickRef.current = {
+            time: now,
+            x: e.clientX,
+            y: e.clientY,
+            count: (lastClickRef.current?.count ?? 0) + 1 || 1,
+          };
         }}
       >
         {/* <Background /> */}

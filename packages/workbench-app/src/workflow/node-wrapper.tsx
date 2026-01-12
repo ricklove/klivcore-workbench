@@ -3,11 +3,12 @@ import React, { memo, useCallback, useState } from 'react';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentPropsAny_Ops as WorkflowComponentPropsAny,
+  type WorkflowNodeId,
   type WorkflowRuntimeNode,
 } from './types';
 import { Computed, Memo, useValue } from '@legendapp/state/react';
 import { optimizationStore } from './optimization-store';
-import type { Observable } from '@legendapp/state';
+import { observable, type Observable } from '@legendapp/state';
 
 export const WorkflowNodeDefault = (props: WorkflowComponentPropsAny) => {
   return (
@@ -50,6 +51,8 @@ const WorkflowNodeWrapper = ({
     </>
   );
 };
+
+const expandedInfoByNode$ = observable({} as Record<WorkflowNodeId, false | `data` | `document`>);
 
 const WrapperHeader = memo(
   ({ id: nodeIdRaw, data: dataReactFlow }: Pick<WorkflowComponentPropsAny, 'id' | 'data'>) => {
@@ -98,7 +101,11 @@ const WrapperHeader = memo(
       deleteElements({ nodes: [{ id: nodeIdRaw }] });
     };
 
-    const [expandInfoRaw, setExpandInfo] = useState(false as false | `data` | `document`);
+    const expandInfoRaw = useValue(() => expandedInfoByNode$[nodeIdRaw]?.get());
+    const setExpandInfo = (value: false | `data` | `document`) => {
+      expandedInfoByNode$[nodeIdRaw]?.set(value);
+    };
+
     const [expandInfoQuick, setExpandInfoQuick] = useState(false);
     const expandInfo = expandInfoRaw || (expandInfoQuick ? `data` : false);
 
@@ -175,7 +182,7 @@ const WrapperHeader = memo(
                 <div
                   className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
                   onClick={() => {
-                    setExpandInfo((s) => (s === `data` ? false : `data`));
+                    setExpandInfo(expandInfoRaw === `data` ? false : `data`);
                     console.log(`dataReactFlow ${nodeId}`, dataReactFlow);
                   }}
                   onMouseEnter={() => setExpandInfoQuick(true)}
@@ -187,7 +194,7 @@ const WrapperHeader = memo(
                   className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
                     expandInfo ? `bg-blue-800` : `bg-blue-400`
                   }`}
-                  onClick={() => setExpandInfo((s) => (s === `document` ? false : `document`))}
+                  onClick={() => setExpandInfo(expandInfoRaw === `document` ? false : `document`)}
                 >
                   {`ℹ`}
                 </div>
