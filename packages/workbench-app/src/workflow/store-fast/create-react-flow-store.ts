@@ -67,7 +67,7 @@ export const useReactFlowStore = (
     //   }, `requestAnimationFrame`),
     // );
 
-    const trigger: BatchedTriggerKind = 250;
+    const trigger: BatchedTriggerKind = 50;
 
     // node changes
     const nodesByOldId = new Map<WorkflowNodeId, WorkflowRuntimeNode>();

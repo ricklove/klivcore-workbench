@@ -17,7 +17,7 @@ import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-sto
 import { useReactFlowStore } from './store-fast/create-react-flow-store';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { persistStoreToDocument } from './store-fast/save-document';
-import { WorkflowBrandedTypes, type WorkflowDocumentData } from './types';
+import { WorkflowBrandedTypes, type WorkflowDocumentData, type WorkflowNodeId } from './types';
 import { createWorkflowEngine as createWorkflowEngine_direct } from './store-fast/engine-direct';
 import { demo_observeBatched } from './store-fast/observe-batched';
 import { observe } from '@legendapp/state';
@@ -165,6 +165,7 @@ const WorkflowViewInner = () => {
     optimizationStore.isMultiSelection$.set(isMultiSelection);
   }, [nodes]);
 
+  const [autoSelectNodeId, setAutoSelectNodeId] = useState(undefined as undefined | WorkflowNodeId);
   type MenuContext = { type: `pane` } | { type: `connection`; params: OnConnectStartParams };
   const [menu, setMenu] = useState<{
     x: number;
@@ -206,22 +207,42 @@ const WorkflowViewInner = () => {
       runtimeStore$.actions.createNode({
         id: newId,
         type: typeName,
-        position: { x: position.x, y: position.y, width: 128, height: 48 },
+        position: { x: position.x - 64, y: position.y - 24, width: 128, height: 24 },
       });
 
-      runtimeStore$.actions.createEdge({
-        source: {
-          nodeId: WorkflowBrandedTypes.nodeId(inputEdge!.fromNodeId),
-          outputName: WorkflowBrandedTypes.outputName(inputEdge!.fromOutputName),
-        },
-        target: {
-          nodeId: newId,
-          inputName: WorkflowBrandedTypes.inputName(inputEdge!.inputName),
-        },
-      });
+      if (inputEdge) {
+        runtimeStore$.actions.createEdge({
+          source: {
+            nodeId: WorkflowBrandedTypes.nodeId(inputEdge!.fromNodeId),
+            outputName: WorkflowBrandedTypes.outputName(inputEdge!.fromOutputName),
+          },
+          target: {
+            nodeId: newId,
+            inputName: WorkflowBrandedTypes.inputName(inputEdge!.inputName),
+          },
+        });
+      }
+
+      setAutoSelectNodeId(newId);
     },
-    [nodeTypes],
+    [nodeTypes, onNodesChange],
   );
+
+  useEffect(() => {
+    if (!autoSelectNodeId) {
+      return;
+    }
+
+    const node = nodes.find((n) => n.id === autoSelectNodeId);
+    if (!node) {
+      console.warn(`[WorkflowView] Auto-select node not found: ${autoSelectNodeId}`);
+      return;
+    }
+
+    onNodesChange([{ id: autoSelectNodeId, type: `select`, selected: true }]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAutoSelectNodeId(undefined);
+  }, [autoSelectNodeId, nodes]);
 
   return (
     <div className="w-full h-full bg-slate-900 text-white">

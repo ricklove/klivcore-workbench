@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import { type WorkflowComponentProps_Obs } from './types';
 import { useValue } from '@legendapp/state/react';
@@ -16,10 +17,18 @@ export const StringNodeComponent = (props: WorkflowComponentProps_Obs<{ value: s
 
   // console.log(`[StringNodeComponent]`, { textInput, textData, text, isReadonly });
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    if (props.selected && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [props.selected]);
+
   return (
     <>
       <WorkflowNodeWrapperSimple {...props}>
         <textarea
+          ref={textareaRef}
           className={`w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan ${isReadonly ? 'bg-gray-800/25' : 'bg-black/25'}`}
           value={text}
           readOnly={!props.selected || isReadonly}
@@ -28,6 +37,7 @@ export const StringNodeComponent = (props: WorkflowComponentProps_Obs<{ value: s
               value: e.target.value,
             });
           }}
+          autoFocus={props.selected}
         />
       </WorkflowNodeWrapperSimple>
     </>
