@@ -29,10 +29,6 @@ export const WorkflowNodeWrapperSimple = (
 
 // const debug = false;
 
-const BASE_HANDLE_TOP_OFFSET_PX = 20;
-const BASE_HANDLE_SIDE_OFFSET_PX = 6;
-const HANDLE_VERTICAL_SPACING_PX = 25;
-
 const WorkflowNodeWrapper = ({
   children,
   id,
@@ -240,6 +236,10 @@ const WrapperHeader = memo(
 );
 
 const WrapperHandles = memo((props: { data: { node$: Observable<WorkflowRuntimeNode> } }) => {
+  const BASE_HANDLE_TOP_OFFSET_PX = 12;
+  const BASE_HANDLE_SIDE_OFFSET_PX = 6;
+  const HANDLE_VERTICAL_SPACING_PX = 24;
+
   const { fitView } = useReactFlow();
 
   const moveToNode = useCallback(
