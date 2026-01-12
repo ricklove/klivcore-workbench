@@ -68,7 +68,7 @@ const WorkflowViewInner = () => {
       }
 
       console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore$ });
-      localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x, null, 2));
+      localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x));
     });
 
     return () => {

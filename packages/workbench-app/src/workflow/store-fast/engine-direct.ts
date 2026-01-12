@@ -9,12 +9,11 @@ import {
   type WorkflowExecutionArgs,
   type WorkflowJsonObject,
   type WorkflowEdgeId,
-  type WorkflowRuntimeEdge,
   type WorkflowRuntimeExecutionState,
 } from '../types';
 import { createBatchTrigger, observeBatched, type BatchedTriggerKind } from './observe-batched';
 
-const loggingEnabled = true;
+const loggingEnabled = false;
 
 type Logger = {
   log: typeof console.log;
@@ -242,6 +241,9 @@ export const createWorkflowEngine = (
      * - nodeDataValues are polled to update node data values
      *     - queue node exection
      */
+    previousEdgeIds: [] as WorkflowEdgeId[],
+    previousNodeIds: [] as WorkflowNodeId[],
+
     outputValues: [] as {
       sourceOutputRuntimeValue: WorkflowRuntimeValue;
       targetInputRuntimeValue: WorkflowRuntimeValue;
@@ -604,14 +606,45 @@ export const createWorkflowEngine = (
         }
 
         // subscribe to all structure changes (node and edge additions/removals)
-        const edges = Object.values(store$.edges)
-          .filter((edge$) => !edge$.isDeleted.get())
-          .map((edge$) => edge$.get() as WorkflowRuntimeEdge)
-          .filter((x) => x);
-        const nodes = Object.values(store$.nodes)
-          .filter((node$) => !node$.isDeleted.get())
-          .map((node$) => node$.get() as WorkflowRuntimeNode)
-          .filter((x) => x);
+        // i.e. only node and edge keys (and if deleted)
+
+        const _edgeIds = Object.keys(store$.edges);
+        const edgesAll = Object.values(store$.edges.peek());
+        for (const edge of edgesAll) {
+          store$.edges[edge.id]?.isDeleted.get();
+        }
+        const edges = edgesAll.filter((x) => !x.isDeleted);
+
+        const _nodeIds = Object.keys(store$.nodes);
+        const nodesAll = Object.values(store$.nodes.peek());
+        for (const node of nodesAll) {
+          store$.nodes[node.id]?.isDeleted.get();
+        }
+        const nodes = nodesAll.filter((x) => !x.isDeleted);
+
+        if (
+          engineState.previousEdgeIds.length === edges.length &&
+          engineState.previousNodeIds.length === nodes.length &&
+          engineState.previousEdgeIds.every((id, i) => id === edges[i]?.id) &&
+          engineState.previousNodeIds.every((id, i) => id === nodes[i]?.id)
+        ) {
+          console.log(
+            `[createWorkflowEngine:mainSubscription] change triggered, but no changes detected - skipping`,
+            {
+              engineState,
+              nodes,
+              edges,
+              _edgeIds,
+              _nodeIds,
+              unsubMain,
+            },
+          );
+
+          return;
+        }
+
+        engineState.previousEdgeIds = edges.map((e) => e.id);
+        engineState.previousNodeIds = nodes.map((n) => n.id);
 
         const oldOutputValues = engineState.outputValues;
 
@@ -682,6 +715,11 @@ export const createWorkflowEngine = (
 
         console.log(`[createWorkflowEngine:mainSubscription] Subscribed to workflow changes`, {
           engineState,
+          nodes,
+          edges,
+          _edgeIds,
+          _nodeIds,
+          unsubMain,
         });
 
         return () => {

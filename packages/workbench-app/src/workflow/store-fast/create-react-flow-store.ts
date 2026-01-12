@@ -294,10 +294,10 @@ export const useReactFlowStore = (
       }
 
       if (edgesByOldId.has(edgeId)) {
-        console.log(
-          `[useReactFlowStore:Object.values(store$.edges):edge$] edge '${edgeId}' already subscribed - skipping`,
-          { e, edgeId, edge$, edge: edge$.peek() },
-        );
+        // console.log(
+        //   `[useReactFlowStore:Object.values(store$.edges):edge$] edge '${edgeId}' already subscribed - skipping`,
+        //   { e, edgeId, edge$, edge: edge$.peek() },
+        // );
         return;
       }
       edgesByOldId.set(edgeId, edge$.peek());
