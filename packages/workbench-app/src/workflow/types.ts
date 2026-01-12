@@ -191,6 +191,7 @@ export interface WorkflowRuntimeNode {
   isDeleted?: boolean;
 
   id: WorkflowNodeId;
+  newIdUntilReload?: WorkflowNodeId;
   type: WorkflowNodeTypeName;
   parentId?: WorkflowNodeId;
   position: {

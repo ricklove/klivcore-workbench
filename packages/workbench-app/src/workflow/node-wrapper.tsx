@@ -42,6 +42,9 @@ const WorkflowNodeWrapper = ({
   children: React.ReactNode;
 }) => {
   const isMultiSelect = useValue(() => optimizationStore.isMultiSelection$.get());
+  // const nodeId = useValue(
+  //   () => dataReactFlow.node$.newIdUntilReload.get() ?? dataReactFlow.node$.id.get(),
+  // );
   return (
     <>
       <NodeResizer isVisible={selected && !isMultiSelect} />
@@ -119,8 +122,10 @@ const WrapperHeader = memo(
                           value={JSON.stringify(
                             expandInfo === `data`
                               ? {
+                                  id: node$.id.get(),
+                                  newIdUntilReload: node$.newIdUntilReload.get(),
                                   inputs: dataReactFlow.inputs$.get(),
-                                  // data: dataReactFlow.data$.get(),
+                                  data: dataReactFlow.data$.get(),
                                   outputs: dataReactFlow.outputs$.get(),
                                   node: {
                                     inputs: node$.inputs.get(),

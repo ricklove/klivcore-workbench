@@ -23,8 +23,8 @@
   - [x] fix delete node
   - [x] fix add edge bug
   - [x] fix multiple edge outputs engine bug
+  - [x] fix rename id bug
   - [ ] fix add node
-  - [ ] fix rename id bug
 
 - [ ] improve workflow storage
   - [ ] clone workflow server from lofr project

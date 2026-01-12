@@ -2,6 +2,7 @@ import { observable, type Observable } from '@legendapp/state';
 import type {
   WorkflowDocumentData,
   WorkflowJsonObject,
+  WorkflowNodeId,
   WorkflowRuntimeNode,
   WorkflowRuntimeStore,
 } from '../types';
@@ -20,6 +21,16 @@ export const persistStoreToDocument = (
       edge$.isDeleted?.get();
     });
 
+    const nodeIdMap = Object.fromEntries(
+      Object.values(store$.nodes)
+        .map((node$: Observable<WorkflowRuntimeNode>) => [
+          node$.id.get(),
+          node$.newIdUntilReload.get(),
+        ])
+        .filter(([, newId]) => !!newId),
+    );
+    const getNodeId = (id: undefined | WorkflowNodeId) => nodeIdMap[id ?? ``] || id;
+
     const document: WorkflowDocumentData = {
       nodes: Object.values(store$.nodes)
         .map((node$: Observable<WorkflowRuntimeNode>) => {
@@ -28,7 +39,7 @@ export const persistStoreToDocument = (
           }
 
           return {
-            id: node$.id.get(),
+            id: getNodeId(node$.id.get()),
             type: node$.type.get(),
             position: {
               x: node$.position.x.get(),
@@ -49,7 +60,7 @@ export const persistStoreToDocument = (
                 source:
                   edge && !edge.isDeleted
                     ? {
-                        nodeId: edge.source.nodeId,
+                        nodeId: getNodeId(edge.source.nodeId),
                         name: edge.source.outputName,
                       }
                     : undefined,
@@ -60,7 +71,7 @@ export const persistStoreToDocument = (
               type: output$.type.get(),
             })),
             data: node$.data.get().getValue<WorkflowJsonObject>() ?? undefined,
-            parentId: node$.parentId.get(),
+            parentId: getNodeId(node$.parentId.get()),
             mode: node$.mode.get(),
           };
         })
