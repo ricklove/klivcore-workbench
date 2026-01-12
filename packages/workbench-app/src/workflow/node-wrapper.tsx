@@ -60,6 +60,7 @@ const WrapperHeader = memo(
     // console.log(`[NodeWrapper] rendering node ${nodeIdRaw}`, { dataReactFlow });
     const { deleteElements } = useReactFlow();
 
+    const [nodeIdWarning, setNodeIdWarning] = useState(undefined as undefined | string);
     const [nodeId, setNodeId] = useState(WorkflowBrandedTypes.nodeIdToString(nodeIdRaw));
     const oldId = React.useRef(nodeIdRaw);
     // eslint-disable-next-line react-hooks/refs
@@ -74,6 +75,25 @@ const WrapperHeader = memo(
     const handleNodeIdChange = useCallback(() => {
       const value = nodeId.trim();
       console.log(`[NodeWrapper] handleNodeIdChange`, { value });
+
+      if (!value) {
+        setNodeIdWarning(`Node ID '${value}' is blank`);
+        return;
+      }
+
+      const hasConflict = Object.values(store$.nodes.get()).some((n) => {
+        if (n.id === nodeIdRaw) {
+          return false;
+        }
+        return (n.newIdUntilReload ?? n.id) === value;
+      });
+
+      if (hasConflict) {
+        setNodeIdWarning(`Node ID '${value}' is already in use`);
+        return;
+      }
+
+      setNodeIdWarning(undefined);
       store$.actions.renameNode({ oldId: nodeIdRaw, newId: value });
     }, [nodeId]);
 
@@ -146,17 +166,8 @@ const WrapperHeader = memo(
               </div>
             )}
             <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
-              <div className="">{`🔷`}</div>
+              <div className="flex-1">{`🔷`}</div>
               <div className="flex flex-row items-center flex-1 min-w-0 gap-1 nowheel nodrag nopan ">
-                <input
-                  type="text"
-                  className={`min-w-0 flex-1 font-bold text-xs text-white`}
-                  // className={`mb-1 flex-1 overflow-hidden border-none font-bold bg-transparent overflow-ellipsis focus:outline-none`}
-                  title={`${nodeId}: ${typeName}`}
-                  value={nodeId}
-                  onChange={(x) => setNodeId(x.target.value)}
-                  onBlur={handleNodeIdChange}
-                />
                 {/* {data.refresh && (
                 <div
                   className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
@@ -191,6 +202,35 @@ const WrapperHeader = memo(
                   {`🗑️`}
                 </div>
               </div>
+            </div>
+            <div className="flex flex-col gap-0">
+              {nodeIdWarning && (
+                <div
+                  className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
+                    nodeIdWarning
+                      ? 'border border-red-500'
+                      : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
+                  }`}
+                >
+                  {`[${nodeIdRaw}] ${nodeIdWarning}`}
+                </div>
+              )}
+              <input
+                type="text"
+                className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
+                  nodeIdWarning
+                    ? 'border border-red-500'
+                    : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
+                }`}
+                title={`${nodeId}: ${typeName}`}
+                value={nodeId}
+                onChange={(x) => setNodeId(x.target.value)}
+                onBlur={handleNodeIdChange}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              />
             </div>
           </div>
         </div>
