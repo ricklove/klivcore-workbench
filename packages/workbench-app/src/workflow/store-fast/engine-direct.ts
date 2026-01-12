@@ -36,6 +36,30 @@ const logger: Logger = {
   },
 };
 
+const createEmptyExecutionState = (): WorkflowRuntimeExecutionState => ({
+  status: `initial`,
+  runState: {},
+  stats: {
+    runCount: 0,
+    successCount: 0,
+    errorCount: 0,
+    abortedCount: 0,
+    totalExecutionTime: 0,
+    totalAsyncExecutionTime: 0,
+    totalAsyncMicrotaskLagTime: 0,
+    errorMessageCounts: {},
+    get averageExecutionTime() {
+      return this.runCount === 0 ? 0 : this.totalExecutionTime / this.runCount;
+    },
+    get averageAsyncExecutionTime() {
+      return this.runCount === 0 ? 0 : this.totalAsyncExecutionTime / this.runCount;
+    },
+    get averageAsyncMicrotaskLagTime() {
+      return this.runCount === 0 ? 0 : this.totalAsyncMicrotaskLagTime / this.runCount;
+    },
+  },
+});
+
 const executeNode = async ({
   node,
   store,
@@ -86,12 +110,8 @@ const executeNode = async ({
     return undefined;
   }
 
-  const executionState = {
-    ...(node.executionState ?? {
-      status: `initial`,
-      runState: {},
-      history: [],
-    }),
+  const executionState: WorkflowRuntimeExecutionState = {
+    ...(node.executionState ?? createEmptyExecutionState()),
   };
 
   executionState.status = `running`;
@@ -178,15 +198,27 @@ const executeNode = async ({
     }
   }
 
-  const rs = executionState.runState;
-  executionState.history.push({
-    status: executionState.status as `success` | `error` | `aborted`,
-    startTimestamp: rs.startTimestamp!,
-    endTimestamp: rs.endTimestamp!,
-    asyncExecutionTime: rs.asyncExecutionTime ?? 0,
-    asyncMicrotaskLagTime: rs.asyncMicrotaskLagTime ?? 0,
-    errorMessage: rs.errorMessage,
-  });
+  const stats = executionState.stats;
+  stats.runCount += 1;
+  stats.successCount += executionState.status === `success` ? 1 : 0;
+  stats.errorCount += executionState.status === `error` ? 1 : 0;
+  stats.abortedCount += executionState.status === `aborted` ? 1 : 0;
+  stats.totalExecutionTime +=
+    executionState.runState.endTimestamp! - executionState.runState.startTimestamp!;
+  stats.totalAsyncExecutionTime += executionState.runState.asyncExecutionTime ?? 0;
+  stats.totalAsyncMicrotaskLagTime += executionState.runState.asyncMicrotaskLagTime ?? 0;
+  if (executionState.status === `error` && executionState.runState.errorMessage) {
+    const errorMessage = executionState.runState.errorMessage;
+    stats.errorMessageCounts[errorMessage] = (stats.errorMessageCounts[errorMessage] ?? 0) + 1;
+  }
+  // executionState.history.push({
+  //   status: executionState.status as `success` | `error` | `aborted`,
+  //   startTimestamp: rs.startTimestamp!,
+  //   endTimestamp: rs.endTimestamp!,
+  //   asyncExecutionTime: rs.asyncExecutionTime ?? 0,
+  //   asyncMicrotaskLagTime: rs.asyncMicrotaskLagTime ?? 0,
+  //   errorMessage: rs.errorMessage,
+  // });
 
   return executionState;
 };
@@ -254,18 +286,12 @@ export const createWorkflowEngine = (
       },
       get executionHistoryCount() {
         return Object.values(store$.nodes.peek())
-          .map((x) => x.executionState?.history.length ?? 0)
+          .map((x) => x.executionState?.stats.runCount ?? 0)
           .reduce((acc, cur) => acc + cur, 0);
       },
       get executionHistoryTotalTime() {
         return Object.values(store$.nodes.peek())
-          .map(
-            (x) =>
-              x.executionState?.history.reduce(
-                (acc, cur) => acc + (cur.endTimestamp - cur.startTimestamp),
-                0,
-              ) ?? 0,
-          )
+          .map((x) => x.executionState?.stats.totalExecutionTime ?? 0)
           .reduce((acc, cur) => acc + cur, 0);
       },
       get executionHistoryAverageTime() {
@@ -274,13 +300,7 @@ export const createWorkflowEngine = (
       },
       get executionHistoryAsyncTotalTime() {
         return Object.values(store$.nodes.peek())
-          .map(
-            (x) =>
-              x.executionState?.history.reduce(
-                (acc, cur) => acc + (cur.asyncExecutionTime ?? 0),
-                0,
-              ) ?? 0,
-          )
+          .map((x) => x.executionState?.stats.totalAsyncExecutionTime ?? 0)
           .reduce((acc, cur) => acc + cur, 0);
       },
       get executionHistoryAsyncAverageTime() {
@@ -289,13 +309,7 @@ export const createWorkflowEngine = (
       },
       get executionHistoryAsyncMicrotaskLagTotalTime() {
         return Object.values(store$.nodes.peek())
-          .map(
-            (x) =>
-              x.executionState?.history.reduce(
-                (acc, cur) => acc + (cur.asyncMicrotaskLagTime ?? 0),
-                0,
-              ) ?? 0,
-          )
+          .map((x) => x.executionState?.stats.totalAsyncMicrotaskLagTime ?? 0)
           .reduce((acc, cur) => acc + cur, 0);
       },
       get executionHistoryAsyncMicrotaskLagAverageTime() {
@@ -426,9 +440,8 @@ export const createWorkflowEngine = (
               const executionState$ = store$.nodes[nodeId]?.executionState!;
               if (!executionState$.peek()) {
                 executionState$.set({
+                  ...createEmptyExecutionState(),
                   status: `running`,
-                  runState: {},
-                  history: [],
                 });
               }
               executionState$.status.set(`running`);

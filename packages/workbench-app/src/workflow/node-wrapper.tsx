@@ -141,7 +141,7 @@ const WrapperHeader = memo(
                     <Computed>
                       {() => (
                         <textarea
-                          className="flex-1 resize-none bg-black p-1"
+                          className="flex-1 resize-none bg-black p-1 text-[8px]"
                           value={JSON.stringify(
                             expandInfo === `data`
                               ? {

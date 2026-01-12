@@ -1,4 +1,4 @@
-import { observable, type Observable, type ObserveEvent } from '@legendapp/state';
+import { observable, ObservableHint, type Observable, type ObserveEvent } from '@legendapp/state';
 import {
   WorkflowBrandedTypes,
   type WorkflowEdgeId,
@@ -206,28 +206,29 @@ export const useReactFlowStore = (
             data: {
               node$,
               store$,
-              inputs$: observable(
-                Object.fromEntries(
-                  node$.inputs.map((input$) => [input$.name.get(), input$.value.box]),
+              getValues: () => ({
+                inputs$: observable(
+                  ObservableHint.plain(
+                    Object.fromEntries(
+                      node$.inputs.map((input$) => [
+                        input$.name.get(),
+                        input$.value.getObservableBox(),
+                      ]),
+                    ),
+                  ),
                 ),
-              ),
-              outputs$: observable(
-                Object.fromEntries(
-                  node$.outputs.map((output$) => [output$.name.get(), output$.value.box]),
+                outputs$: observable(
+                  ObservableHint.plain(
+                    Object.fromEntries(
+                      node$.outputs.map((output$) => [
+                        output$.name.get(),
+                        output$.value.getObservableBox(),
+                      ]),
+                    ),
+                  ),
                 ),
-              ),
-              getData: () => node$.data.getObservableBox() as Observable<WorkflowJsonObject>,
-              // data$: node$?.get()?.data?.getObservableBox() as Observable<WorkflowJsonObject>,
-              // data$: observable({} as WorkflowJsonObject),
-              // data$: observable(
-              //   linked({
-              //     get: () => node$?.get()?.data.getValue<WorkflowJsonObject>(),
-              //     set: (value) => {
-              //       node$?.get()?.data.setValue(value);
-              //     },
-              //   }),
-              // ),
-              // data$: node$?.data?.box,
+                data$: node$.data.getObservableBox() as Observable<WorkflowJsonObject>,
+              }),
             },
           };
 

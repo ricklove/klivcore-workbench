@@ -91,7 +91,7 @@ export interface WorkflowReactFlowStore {
     height: number;
     parentId: undefined | WorkflowNodeId;
     extent: undefined | 'parent';
-    data: WorkflowComponentPropsData<WorkflowJsonObject, unknown, unknown>;
+    data: WorkflowComponentPropsDataAccess<WorkflowJsonObject, unknown, unknown>;
   }[];
   edges: {
     id: WorkflowEdgeId;
@@ -107,16 +107,21 @@ export interface WorkflowReactFlowStore {
   }[];
 }
 
-export type WorkflowComponentPropsData<
+export type WorkflowComponentPropsDataAccess<
   TData extends WorkflowJsonObject = WorkflowJsonObject,
   TInputs = TData,
   TOutputs = TData,
 > = {
   node$: Observable<WorkflowRuntimeNode>;
   store$: Observable<WorkflowRuntimeStore>;
-  inputs$: Observable<PartialNull<TInputs>>;
-  outputs$: Observable<PartialNull<TOutputs>>;
-  getData: () => Observable<undefined | null | Partial<TData>>;
+  getValues: () => {
+    inputs$: TInputs;
+    outputs$: TOutputs;
+    data$: Observable<undefined | null | Partial<TData>>;
+  };
+  // inputs$: Observable<PartialNull<TInputs>>;
+  // outputs$: Observable<PartialNull<TOutputs>>;
+  // getData: () => Observable<undefined | null | Partial<TData>>;
 };
 
 export type WorkflowComponentPropsData_Obs<
@@ -143,7 +148,7 @@ export type WorkflowComponentProps<
   TInputs = TData,
   TOutputs = TData,
 > = Omit<WorkflowComponentPropsBase, 'data'> & {
-  data: WorkflowComponentPropsData<TData, TInputs, TOutputs>;
+  data: WorkflowComponentPropsDataAccess<TData, TInputs, TOutputs>;
 };
 
 export type WorkflowComponentProps_Obs<
@@ -154,18 +159,6 @@ export type WorkflowComponentProps_Obs<
   data: WorkflowComponentPropsData_Obs<TData, TInputs, TOutputs>;
 };
 
-export type WorkflowComponentPropsAny = Omit<WorkflowComponentPropsBase, 'data'> & {
-  data: {
-    node$: Observable<WorkflowRuntimeNode>;
-    store$: Observable<WorkflowRuntimeStore>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    inputs$: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    outputs$: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getData: any;
-  };
-};
 export type WorkflowComponentPropsAny_Ops = Omit<WorkflowComponentPropsBase, 'data'> & {
   data: {
     node$: Observable<WorkflowRuntimeNode>;
@@ -178,14 +171,6 @@ export type WorkflowComponentPropsAny_Ops = Omit<WorkflowComponentPropsBase, 'da
     data$: any;
   };
 };
-
-// type WorkflowRuntimeNodeInputsTyped<T extends Record<string, unknown>> = {
-//     name: WorkflowInputName;
-//     type: WorkflowValueType;
-//     value: WorkflowRuntimeValue<T[keyof T]>;
-//     edgeId?: WorkflowEdgeId;
-//     getEdge: () => undefined | WorkflowRuntimeEdge;
-// }
 
 export interface WorkflowRuntimeNode {
   isDeleted?: boolean;
@@ -373,14 +358,27 @@ export interface WorkflowRuntimeExecutionState {
   };
 
   /** Completed execution states */
-  history: {
-    status: `success` | `error` | `aborted`;
-    startTimestamp: WorkflowTimestamp;
-    endTimestamp: WorkflowTimestamp;
-    asyncExecutionTime?: number;
-    asyncMicrotaskLagTime?: number;
-    errorMessage?: string;
-  }[];
+  // history: {
+  //   status: `success` | `error` | `aborted`;
+  //   startTimestamp: WorkflowTimestamp;
+  //   endTimestamp: WorkflowTimestamp;
+  //   asyncExecutionTime?: number;
+  //   asyncMicrotaskLagTime?: number;
+  //   errorMessage?: string;
+  // }[];
+  stats: {
+    runCount: number;
+    successCount: number;
+    errorCount: number;
+    errorMessageCounts: Record<string, number>;
+    abortedCount: number;
+    totalExecutionTime: number;
+    totalAsyncExecutionTime: number;
+    totalAsyncMicrotaskLagTime: number;
+    readonly averageExecutionTime: number;
+    readonly averageAsyncExecutionTime: number;
+    readonly averageAsyncMicrotaskLagTime: number;
+  };
 }
 
 export interface WorkflowRuntimeEngine {

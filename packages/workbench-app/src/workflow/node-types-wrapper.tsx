@@ -18,7 +18,10 @@ export const NodeTypeWrapComponent = (
 
     return (
       <ErrorBoundary message={`Error rendering Component`}>
-        <InnerComponent {...props} data={{ ...props.data, data$: props.data.getData() }} />
+        <InnerComponent
+          {...props}
+          data={{ node$: props.data.node$, store$: props.data.store$, ...props.data.getValues() }}
+        />
       </ErrorBoundary>
     );
   });
