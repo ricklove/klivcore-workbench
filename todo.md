@@ -21,7 +21,8 @@
 - [ ] fix structural change bugs
   - [x] fix delete edge
   - [x] fix delete node
-  - [ ] fix add edge bug
+  - [x] fix add edge bug
+  - [ ] fix multiple edge outputs engine bug
   - [ ] fix add node
   - [ ] fix rename id bug
 

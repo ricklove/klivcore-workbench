@@ -550,7 +550,6 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       }
 
       console.log(`[deleteNode] isDeleted=true ${nodeId}`, { store$ });
-      node$?.isDeleted.set(true);
 
       if (!node$?.id.peek()) {
         console.warn(`[deleteNode] Node with id ${nodeId} does not exist`);
@@ -569,6 +568,9 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           store$.actions.deleteEdge(edgeId);
         });
       });
+
+      node$?.isDeleted.set(true);
+      // node$?.delete();
     },
     renameNode: ({ oldId, newId }) => {
       const node = store$.nodes[oldId];
@@ -623,7 +625,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
 
       if (targetInput.edgeId) {
         // remove existing edge
-        store$.edges[targetInput.edgeId]?.isDeleted.set(true);
+        store$.actions.deleteEdge(targetInput.edgeId);
       }
 
       const edgeId = WorkflowBrandedTypes.edgeId(
@@ -682,7 +684,6 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         // already deleted
         return;
       }
-      store$.edges[edgeId]?.isDeleted.set(true);
 
       // remove edge from nodes
       const targetNode = store$.nodes[edge.target.nodeId]?.get();
@@ -691,16 +692,16 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       const sourceNode = store$.nodes[edge.source.nodeId]?.get();
       const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
 
-      if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
-        console.warn(`[createEdge] Cannot remove edge, missing source or target`, {
-          edge,
-          targetNode,
-          targetInput,
-          sourceNode,
-          sourceOutput,
-        });
-        return;
-      }
+      // if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
+      //   console.warn(`[createEdge] Cannot remove edge, missing source or target`, {
+      //     edge,
+      //     targetNode,
+      //     targetInput,
+      //     sourceNode,
+      //     sourceOutput,
+      //   });
+      //   return;
+      // }
 
       if (targetInput) {
         targetInput.edgeId = undefined;
@@ -711,6 +712,9 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         sourceOutput.edgeIds = sourceOutput.edgeIds || [];
         sourceOutput.edgeIds.splice(sourceOutput.edgeIds.indexOf(edgeId), 1);
       }
+
+      store$.edges[edgeId]?.isDeleted.set(true);
+      // store$.edges[edgeId]?.delete();
     },
   };
 

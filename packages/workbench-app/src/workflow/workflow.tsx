@@ -64,6 +64,11 @@ const WorkflowViewInner = () => {
   useEffect(() => {
     const unsubscribe = observe(() => {
       const x = storePersistance$.get();
+      if (!x?.nodes.length) {
+        console.warn(`[WorkflowView] Persisted document is empty, skipping save.`);
+        return;
+      }
+
       console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore$ });
       localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x, null, 2));
     });
