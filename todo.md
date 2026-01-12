@@ -18,13 +18,13 @@
     - [x] copy to target values
     - [x] queue all target nodes that were changed
   - [x] execute all queued nodes
-- [ ] fix structural change bugs
+- [x] fix structural change bugs
   - [x] fix delete edge
   - [x] fix delete node
   - [x] fix add edge bug
   - [x] fix multiple edge outputs engine bug
   - [x] fix rename id bug
-  - [ ] fix add node
+  - [x] fix add node
 
 - [ ] improve workflow storage
   - [ ] clone workflow server from lofr project

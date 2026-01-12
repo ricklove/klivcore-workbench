@@ -8,19 +8,21 @@ import {
   ReactFlowProvider,
   type XYPosition,
   Panel,
+  type OnConnectStartParams,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
 import { createExampleWorkflowDocumentChain } from './example-document';
 import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-store';
 import { useReactFlowStore } from './store-fast/create-react-flow-store';
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { persistStoreToDocument } from './store-fast/save-document';
-import type { WorkflowDocumentData } from './types';
+import { WorkflowBrandedTypes, type WorkflowDocumentData } from './types';
 import { createWorkflowEngine as createWorkflowEngine_direct } from './store-fast/engine-direct';
 import { demo_observeBatched } from './store-fast/observe-batched';
 import { observe } from '@legendapp/state';
 import { optimizationStore } from './optimization-store';
+import { NodeSelectionMenu } from './node-selection-menu';
 
 const edgeTypes = {
   custom: CustomEdge,
@@ -163,6 +165,64 @@ const WorkflowViewInner = () => {
     optimizationStore.isMultiSelection$.set(isMultiSelection);
   }, [nodes]);
 
+  type MenuContext = { type: `pane` } | { type: `connection`; params: OnConnectStartParams };
+  const [menu, setMenu] = useState<{
+    x: number;
+    y: number;
+    context: MenuContext;
+    timestamp: number;
+  } | null>(null);
+  const lastClickRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const { screenToFlowPosition } = useReactFlow();
+  const addNodeToWorkflow = useCallback(
+    async (typeNameRaw: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
+      const typeName = WorkflowBrandedTypes.typeName(typeNameRaw);
+      const nodeType = runtimeStore$.nodeTypes[typeName];
+      if (!nodeType) {
+        throw new Error(`Unknown node type: ${typeName}`);
+      }
+      const newId = WorkflowBrandedTypes.nodeId(`n-${typeName}-${Date.now()}`);
+
+      const inputEdge = (() => {
+        const { nodeId, handleId } = connectionParams ?? {};
+        if (!nodeId || !handleId) return;
+
+        const targetInputName =
+          Object.entries(nodeType.inputs).find(([k]) => k === connectionParams?.handleId)?.[0] ??
+          Object.keys(nodeType.inputs)[0];
+
+        if (!targetInputName) {
+          console.warn(`[addNode]  Target input not found: ${handleId} on node type: ${typeName}`);
+          return;
+        }
+
+        return {
+          inputName: targetInputName,
+          fromNodeId: nodeId,
+          fromOutputName: handleId,
+        };
+      })();
+
+      runtimeStore$.actions.createNode({
+        id: newId,
+        type: typeName,
+        position: { x: position.x, y: position.y, width: 128, height: 48 },
+      });
+
+      runtimeStore$.actions.createEdge({
+        source: {
+          nodeId: WorkflowBrandedTypes.nodeId(inputEdge!.fromNodeId),
+          outputName: WorkflowBrandedTypes.outputName(inputEdge!.fromOutputName),
+        },
+        target: {
+          nodeId: newId,
+          inputName: WorkflowBrandedTypes.inputName(inputEdge!.inputName),
+        },
+      });
+    },
+    [nodeTypes],
+  );
+
   return (
     <div className="w-full h-full bg-slate-900 text-white">
       <ReactFlow
@@ -181,6 +241,32 @@ const WorkflowViewInner = () => {
         onlyRenderVisibleElements={true}
         snapToGrid={true}
         snapGrid={[8, 8]}
+        zoomOnDoubleClick={false}
+        onPaneClick={(e) => {
+          console.log(`onPaneClick`, { e });
+          if (menu && Date.now() > menu.timestamp + 500) {
+            setMenu(null);
+            return;
+          }
+
+          const now = Date.now();
+
+          if (lastClickRef.current && now - lastClickRef.current.time < 300) {
+            console.log(`Double click detected, opening node selection menu`, {
+              x: e.clientX,
+              y: e.clientY,
+            });
+            setMenu({
+              timestamp: Date.now(),
+              x: e.clientX,
+              y: e.clientY,
+              context: { type: `pane` },
+            });
+            lastClickRef.current = null;
+          } else {
+            lastClickRef.current = { time: now, x: e.clientX, y: e.clientY };
+          }
+        }}
       >
         {/* <Background /> */}
         <Controls />
@@ -232,6 +318,24 @@ const WorkflowViewInner = () => {
           </div>
         </Panel>
       </ReactFlow>
+      {menu && (
+        <NodeSelectionMenu
+          store$={runtimeStore$}
+          position={menu}
+          onSelect={(type) => {
+            const position = screenToFlowPosition({ x: menu.x, y: menu.y });
+
+            if (menu.context.type === `connection`) {
+              addNodeToWorkflow(type, position, menu.context.params);
+            } else {
+              addNodeToWorkflow(type, position);
+            }
+
+            setMenu(null);
+          }}
+          onClose={() => setMenu(null)}
+        />
+      )}
     </div>
   );
 };
