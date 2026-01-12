@@ -401,13 +401,23 @@ export const createWorkflowEngine = (
 
     let isInBatch = true;
     beginBatch();
+    let rafId = 0;
 
-    setTimeout(() => {
-      if (isInBatch) {
-        isInBatch = false;
-        endBatch();
+    const purgeBatch = () => {
+      if (!isInBatch) {
+        return;
       }
-    }, 10);
+      if (rafId) {
+        return;
+      }
+
+      endBatch();
+      beginBatch();
+
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+      });
+    };
 
     const store = store$.peek();
     const promises = [] as Promise<{
@@ -449,12 +459,20 @@ export const createWorkflowEngine = (
               executionState$.status.set(`running`);
               executionState$.runState.progressRatio.set(progressRatio);
               executionState$.runState.progressMessage.set(message);
+
+              if (progressRatio >= 1) {
+                executionState$.status.set(`success`);
+              }
+
+              purgeBatch();
             },
           },
         });
-        // if (executionState) {
-        //   node$.executionState.assign(executionState);
-        // }
+        if (executionState) {
+          const node$ = store$.nodes[nodeId]!;
+          node$.executionState.assign(executionState);
+          purgeBatch();
+        }
 
         engineState.nodeIdsExecuting.delete(nodeId);
         return { nodeId, executionState };
@@ -463,17 +481,19 @@ export const createWorkflowEngine = (
       promises.push(promise);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const results = await Promise.all(promises);
-    for (const result of results) {
-      const node$ = store$.nodes[result.nodeId]!;
-      if (result.executionState) {
-        node$.executionState.set(result.executionState);
-      }
-    }
+    // for (const result of results) {
+    //   // const node$ = store$.nodes[result.nodeId]!;
+    //   // if (result.executionState) {
+    //   //   node$.executionState.set(result.executionState);
+    //   // }
+    // }
 
     if (isInBatch) {
       isInBatch = false;
       endBatch();
+      cancelAnimationFrame(rafId);
     }
 
     if (engineState.nodeIdsExecuting.size > 0) {
@@ -505,10 +525,11 @@ export const createWorkflowEngine = (
       return;
     }
 
-    // don't overlap ticks
-    if (engineState.nodeIdsExecuting.size > 0) {
-      return;
-    }
+    // // don't overlap ticks
+    // // actually this is ok, each node will track it's own execution state
+    // if (engineState.nodeIdsExecuting.size > 0) {
+    //   return;
+    // }
 
     stats.tickCount++;
     const tickStartTime = performance.now();

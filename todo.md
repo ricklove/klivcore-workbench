@@ -25,7 +25,15 @@
   - [x] fix multiple edge outputs engine bug
   - [x] fix rename id bug
   - [x] fix add node
-
+- [ ] execution emitters
+  - [ ] this allows a node to emit outputs without additional executions, i.e. act like an event, subscribable, etc.
+  - [ ] registerEmitter(emit: ((value:TReturn)=>void) => {unsubscribe: ()=>void})
+- [ ] sub workflows running in background
+  - [ ] compiled workflow execution
+    - [ ] as parallel (normal workflow execution model, each node runs on new input)
+    - [ ] as optimized function (sequential execution of parallelized sections)
+    - [ ] as simple function (sequential execution of each node, no parallelized sections, i.e. simple code)
+  - [ ] component window (special group of nodes that should be rendered as sub workflow node component)
 - [ ] improve workflow storage
   - [ ] clone workflow server from lofr project
   - [ ] load workflow document from workflow server

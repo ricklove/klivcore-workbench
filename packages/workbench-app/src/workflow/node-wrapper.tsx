@@ -170,7 +170,7 @@ const WrapperHeader = memo(
             )}
             <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
               <div className="flex-1">{`🔷`}</div>
-              <div className="flex flex-row items-center flex-1 min-w-0 gap-1 nowheel nodrag nopan ">
+              <div className="flex flex-row items-center min-w-0 gap-1 nowheel nodrag nopan ">
                 {/* {data.refresh && (
                 <div
                   className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
@@ -235,6 +235,27 @@ const WrapperHeader = memo(
                 }}
               />
             </div>
+            <Memo>
+              {() => (
+                <>
+                  <div
+                    className={`transition delay-50 duration-300 text-[8px] ${
+                      node$.executionState.status.get() === 'running'
+                        ? 'bg-green-950 opacity-100'
+                        : node$.executionState.status.get() === 'error'
+                          ? 'bg-red-950 opacity-100'
+                          : node$.executionState.status.get() === 'aborted'
+                            ? 'bg-yellow-950 opacity-50'
+                            : node$.executionState.status.get() === 'success'
+                              ? 'bg-gray-600 opacity-10'
+                              : 'bg-gray-700 opacity-10'
+                    }`}
+                  >
+                    {node$.executionState.status.get()}
+                  </div>
+                </>
+              )}
+            </Memo>
           </div>
         </div>
       </>

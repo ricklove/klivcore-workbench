@@ -29,11 +29,18 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
         type: WorkflowBrandedTypes.valueType(`string`),
       },
     ],
-    execute: async ({ inputs, data }) => {
+    execute: async ({ inputs, data, controller }) => {
       const inputsTyped = inputs as {
         value: undefined | string;
       };
       const dataTyped = data as undefined | { value: undefined | string };
+
+      // TEMP: testing
+      controller.setProgress({ progressRatio: 0, message: 'Starting delay...' });
+      if (Math.random() < 0.02) {
+        await new Promise((resolve) => setTimeout(resolve, 5000 * Math.random()));
+      }
+      controller.setProgress({ progressRatio: 1, message: 'Delay complete' });
 
       return {
         outputs: { value: inputsTyped.value ?? dataTyped?.value ?? null },
