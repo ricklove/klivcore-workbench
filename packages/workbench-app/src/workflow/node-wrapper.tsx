@@ -241,17 +241,20 @@ const WrapperHeader = memo(
                   <div
                     className={`transition delay-50 duration-300 text-[8px] ${
                       node$.executionState.status.get() === 'running'
-                        ? 'bg-green-950 opacity-100'
+                        ? 'bg-green-700 opacity-100'
                         : node$.executionState.status.get() === 'error'
-                          ? 'bg-red-950 opacity-100'
+                          ? 'bg-red-700 opacity-100'
                           : node$.executionState.status.get() === 'aborted'
-                            ? 'bg-yellow-950 opacity-50'
+                            ? 'bg-yellow-700 opacity-50'
                             : node$.executionState.status.get() === 'success'
                               ? 'bg-gray-600 opacity-10'
                               : 'bg-gray-700 opacity-10'
                     }`}
                   >
                     {node$.executionState.status.get()}
+                    {node$.executionState.status.get() === 'error'
+                      ? ` - ${node$.executionState.runState.errorMessage.get() ?? ``}`
+                      : ``}
                   </div>
                 </>
               )}
