@@ -111,7 +111,7 @@ const WrapperHeader = memo(
             {expandInfo && (
               <div className="absolute top-0 left-0 right-0 h-0 scale-50">
                 <div
-                  className="absolute bottom-10 flex min-h-[600px] flex-col justify-end gap-1"
+                  className="absolute bottom-10 flex flex-col justify-end gap-1 min-w-75 min-h-75"
                   style={{ width: `200%`, marginLeft: `-50%` }}
                 >
                   <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
@@ -134,20 +134,20 @@ const WrapperHeader = memo(
                     <Computed>
                       {() => (
                         <textarea
-                          className="min-h-[200px] flex-1 resize-none bg-black p-1"
+                          className="flex-1 resize-none bg-black p-1"
                           value={JSON.stringify(
                             expandInfo === `data`
                               ? {
-                                  id: node$.id.get(),
-                                  newIdUntilReload: node$.newIdUntilReload.get(),
+                                  // id: node$.id.get(),
+                                  // newIdUntilReload: node$.newIdUntilReload.get(),
                                   inputs: dataReactFlow.inputs$.get(),
                                   data: dataReactFlow.data$.get(),
                                   outputs: dataReactFlow.outputs$.get(),
-                                  node: {
-                                    inputs: node$.inputs.get(),
-                                    data: node$.data.get(),
-                                    outputs: node$.outputs.get(),
-                                  },
+                                  // node: {
+                                  //   inputs: node$.inputs.get(),
+                                  //   data: node$.data.get(),
+                                  //   outputs: node$.outputs.get(),
+                                  // },
                                 }
                               : node$.get(),
                             null,
