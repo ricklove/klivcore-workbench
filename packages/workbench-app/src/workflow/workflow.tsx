@@ -17,7 +17,6 @@ import { useReactFlowStore } from './store-fast/create-react-flow-store';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { persistStoreToDocument } from './store-fast/save-document';
 import type { WorkflowDocumentData } from './types';
-import { createWorkflowEngine } from './store-fast/engine';
 import { createWorkflowEngine as createWorkflowEngine_direct } from './store-fast/engine-direct';
 import { demo_observeBatched } from './store-fast/observe-batched';
 import { observe } from '@legendapp/state';
@@ -42,10 +41,7 @@ const runtimeStore$ = createWorkflowStoreFromDocument(
 );
 const storePersistance$ = persistStoreToDocument(runtimeStore$);
 
-const isDirectEngine = true;
-const storeEngine = isDirectEngine
-  ? createWorkflowEngine_direct(runtimeStore$)
-  : createWorkflowEngine(runtimeStore$);
+const storeEngine = createWorkflowEngine_direct(runtimeStore$);
 
 export const WorkflowView = () => {
   return (

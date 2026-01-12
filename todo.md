@@ -22,7 +22,7 @@
   - [x] fix delete edge
   - [x] fix delete node
   - [x] fix add edge bug
-  - [ ] fix multiple edge outputs engine bug
+  - [x] fix multiple edge outputs engine bug
   - [ ] fix add node
   - [ ] fix rename id bug
 

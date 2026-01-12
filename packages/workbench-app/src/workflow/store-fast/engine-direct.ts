@@ -305,6 +305,7 @@ export const createWorkflowEngine = (
     },
   };
   const stats = engineState.stats;
+  const changeCountersToUpdate = new Set<WorkflowRuntimeValue>();
 
   const propagationKind = `polling` as `polling` | `subscription`;
   const propagateValues = () => {
@@ -318,6 +319,8 @@ export const createWorkflowEngine = (
 
     beginBatch();
 
+    changeCountersToUpdate.clear();
+
     // process output values
     for (const ov of engineState.outputValues) {
       const currentCounter = engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? -1;
@@ -330,7 +333,6 @@ export const createWorkflowEngine = (
       stats.propagationCount++;
 
       // source output value has changed
-      engineState.dataChangeCounters.set(ov.sourceOutputRuntimeValue, newCounter);
       const newValue = ov.sourceOutputRuntimeValue.getValue();
 
       // update target values
@@ -339,6 +341,8 @@ export const createWorkflowEngine = (
 
       // queue target node for execution
       engineState.nodeIdsToExecute.add(ov.targetNodeId);
+
+      changeCountersToUpdate.add(ov.sourceOutputRuntimeValue);
     }
 
     // process node data values
@@ -351,10 +355,14 @@ export const createWorkflowEngine = (
 
       stats.propagationCount++;
 
-      // node data value has changed
-      engineState.dataChangeCounters.set(nv.dataRuntimeValue, newCounter);
       // queue node for execution
       engineState.nodeIdsToExecute.add(nv.nodeId);
+
+      changeCountersToUpdate.add(nv.dataRuntimeValue);
+    }
+
+    for (const dc of changeCountersToUpdate) {
+      engineState.dataChangeCounters.set(dc, dc.changeCounter);
     }
 
     endBatch();
@@ -658,6 +666,10 @@ export const createWorkflowEngine = (
             );
           });
         }
+
+        console.log(`[createWorkflowEngine:mainSubscription] Subscribed to workflow changes`, {
+          engineState,
+        });
 
         return () => {
           unsubs.forEach((u) => u());
