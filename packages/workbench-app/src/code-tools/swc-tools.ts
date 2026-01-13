@@ -27,14 +27,26 @@ async function ensureSwcIsLoaded() {
   isLoaded = true;
 }
 
-export const compileTypescript = async (tsCode: string) => {
+export const transformTypescript = async (tsCode: string) => {
   await ensureSwcIsLoaded();
 
   // // 1. Get AST (for types)
   // const ast = parseSync(myCode, { syntax: "typescript", tsx: true });
 
   // 2. Run Code
-  const { code } = transformSync(tsCode, { jsc: { parser: { syntax: 'typescript', tsx: true } } });
+  const { code } = transformSync(tsCode, {
+    jsc: {
+      parser: {
+        syntax: 'typescript',
+        tsx: true,
+      },
+      externalHelpers: true,
+      target: 'es2016',
+    },
+    // env: {
+    //   targets: 'Chrome >= 48',
+    // },
+  });
 
   return code;
 };

@@ -189,13 +189,13 @@ const executeNode = async ({
       executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
       executionState.runState.errorMessage = (err as Error)?.message ?? `Unknown error`;
 
-      logger.error(
+      console.error(
         `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
-        //     , {
-        //     nodeId,
-        //     err,
-        //     args,
-        //   }
+        {
+          nodeId,
+          err,
+          args,
+        },
       );
     }
   }
