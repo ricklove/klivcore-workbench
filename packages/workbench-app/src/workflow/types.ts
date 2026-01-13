@@ -306,6 +306,9 @@ export interface WorkflowRuntimeStoreActions {
 export interface WorkflowExecutionController {
   abortSignal: AbortSignal;
   setProgress: (value: { progressRatio: number; message?: string }) => void;
+  registerEvent: <TOutput extends Record<string, unknown>>(
+    event: (emit: (data: TOutput) => void) => { unsubscribe: () => void },
+  ) => void;
 }
 
 export interface WorkflowRuntimeNodeTypeDefinition {

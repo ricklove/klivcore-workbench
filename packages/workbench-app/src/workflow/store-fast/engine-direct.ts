@@ -109,11 +109,14 @@ const executeNode = async ({
     return undefined;
   }
 
+  node.executionState = node.executionState ?? createEmptyExecutionState();
+  // prevent running twice
+  node.executionState.status = `running`;
+
   const executionState: WorkflowRuntimeExecutionState = {
-    ...(node.executionState ?? createEmptyExecutionState()),
+    ...node.executionState,
   };
 
-  executionState.status = `running`;
   executionState.runState = {
     startTimestamp: WorkflowBrandedTypes.now(),
   };
@@ -260,6 +263,8 @@ export const createWorkflowEngine = (
     nodeIdsToExecute: new Set<WorkflowNodeId>(),
     nodeIdsExecuting: new Set<WorkflowNodeId>(),
 
+    executionEmitters: new Map<WorkflowNodeId, { unsubscribe: () => void }>(),
+
     dataChangeCounters: new Map<WorkflowRuntimeValue, number>(),
     abortController: new AbortController(),
     triggerKind: 1000 as BatchedTriggerKind,
@@ -403,21 +408,24 @@ export const createWorkflowEngine = (
     beginBatch();
     let rafId = 0;
 
-    const purgeBatch = () => {
+    const flushBatch = () => {
       if (!isInBatch) {
         return;
       }
       if (rafId) {
         return;
       }
-
       endBatch();
       beginBatch();
 
       rafId = requestAnimationFrame(() => {
         rafId = 0;
+        endBatch();
+        isInBatch = false;
       });
     };
+
+    flushBatch();
 
     const store = store$.peek();
     const promises = [] as Promise<{
@@ -436,6 +444,10 @@ export const createWorkflowEngine = (
       }
 
       const promise = (async () => {
+        if (node.executionState?.status !== `running`) {
+          engineState.executionEmitters.get(nodeId)?.unsubscribe();
+        }
+
         const executionState = await executeNode({
           node,
           store,
@@ -464,14 +476,32 @@ export const createWorkflowEngine = (
                 executionState$.status.set(`success`);
               }
 
-              purgeBatch();
+              // purgeBatch();
+            },
+            registerEvent: (event) => {
+              engineState.executionEmitters.get(nodeId)?.unsubscribe();
+              const unsub = event((result) => {
+                // console.log(
+                //   `[createWorkflowEngine:executeNode:registerEvent] Node event emitted:`,
+                //   {
+                //     nodeId,
+                //     result,
+                //   },
+                // );
+                for (const output of node.outputs) {
+                  if (output === undefined) continue;
+                  output.value.setValue(result[output.name] ?? null);
+                }
+                // purgeBatch();
+              });
+              engineState.executionEmitters.set(nodeId, unsub);
             },
           },
         });
         if (executionState) {
           const node$ = store$.nodes[nodeId]!;
           node$.executionState.assign(executionState);
-          purgeBatch();
+          flushBatch();
         }
 
         engineState.nodeIdsExecuting.delete(nodeId);
@@ -490,11 +520,12 @@ export const createWorkflowEngine = (
     //   // }
     // }
 
-    if (isInBatch) {
-      isInBatch = false;
-      endBatch();
-      cancelAnimationFrame(rafId);
-    }
+    flushBatch();
+    // if (isInBatch) {
+    //   isInBatch = false;
+    //   endBatch();
+    //   cancelAnimationFrame(rafId);
+    // }
 
     if (engineState.nodeIdsExecuting.size > 0) {
       // this should not be possible
