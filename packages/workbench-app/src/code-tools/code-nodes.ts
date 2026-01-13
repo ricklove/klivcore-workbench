@@ -6,6 +6,14 @@ import {
 import { StringNodeComponent } from '../workflow/nodes';
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../workflow/types';
 import { useValue } from '@legendapp/state/react';
+import { ComponentSwapper } from './component-swapper.tsx';
+import { observable, type Observable } from '@legendapp/state';
+// import { observable } from '@legendapp/state';
+
+const dynamicComponents = {} as Record<
+  string,
+  Observable<{ Component: React.ComponentType; instanceId: string }>
+>;
 
 export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   toFunction: {
@@ -71,37 +79,49 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
       controller.setProgress({ progressRatio: 0.5, message: 'Function creation complete' });
       console.log('[toFunction] Created function:', fun);
 
-      const Component = await fun(React, useValue);
+      const Component = (await fun(React, useValue)) as React.ComponentType;
       console.log('[toFunction] Created Component:', Component);
 
       const typeName = WorkflowBrandedTypes.typeName(`d-:${node.id}`);
-      store.actions.deleteNodeType(typeName);
-      store.actions.createNodeType({
-        type: typeName,
-        getComponent: () => ({ Component: NodeTypeWrapComponentWithNodeWrapper(Component) }),
-        inputs: [
-          {
-            name: WorkflowBrandedTypes.inputName(`value`),
-            type: WorkflowBrandedTypes.valueType(`string`),
-          },
-        ],
-        outputs: [
-          {
-            name: WorkflowBrandedTypes.outputName(`value`),
-            type: WorkflowBrandedTypes.valueType(`string`),
-          },
-        ],
-        execute: async ({ inputs, data }) => {
-          const inputsTyped = inputs as {
-            value: undefined | string;
-          };
-          const dataTyped = data as undefined | { value: undefined | string };
+      const holder$ = (dynamicComponents[typeName] ??= observable({
+        Component,
+        instanceId: `${Date.now()}-${Math.random()}`,
+      }));
+      holder$.Component.set(Component);
+      holder$.instanceId.set(`${Date.now()}-${Math.random()}`);
 
-          return {
-            outputs: { value: inputsTyped.value ?? dataTyped?.value ?? null },
-          };
-        },
-      });
+      if (!store.nodeTypes[typeName]) {
+        store.actions.deleteNodeType(typeName);
+        store.actions.createNodeType({
+          type: typeName,
+          getComponent: () => ({
+            Component: NodeTypeWrapComponentWithNodeWrapper(ComponentSwapper(holder$)),
+          }),
+          inputs: [
+            {
+              name: WorkflowBrandedTypes.inputName(`value`),
+              type: WorkflowBrandedTypes.valueType(`string`),
+            },
+          ],
+
+          outputs: [
+            {
+              name: WorkflowBrandedTypes.outputName(`value`),
+              type: WorkflowBrandedTypes.valueType(`string`),
+            },
+          ],
+          execute: async ({ inputs, data }) => {
+            const inputsTyped = inputs as {
+              value: undefined | string;
+            };
+            const dataTyped = data as undefined | { value: undefined | string };
+
+            return {
+              outputs: { value: inputsTyped.value ?? dataTyped?.value ?? null },
+            };
+          },
+        });
+      }
 
       controller.setProgress({ progressRatio: 1, message: 'Component creation complete' });
 
