@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import { type WorkflowComponentProps_Obs } from './types';
 import { useValue } from '@legendapp/state/react';
@@ -15,6 +15,22 @@ export const StringNodeComponent = (props: WorkflowComponentProps_Obs<{ value: s
   const text = textInput ?? textData ?? '';
   const isReadonly = textInputSlot.isConnected;
 
+  const [textValue, setTextValue] = useState(text);
+  const changeTextValue = (newValue: string) => {
+    setTextValue(newValue);
+    node$.data.get().setValue({
+      value: newValue,
+    });
+  };
+
+  const initialTextValueRef = useRef(text);
+  // eslint-disable-next-line react-hooks/refs
+  if (initialTextValueRef.current !== text) {
+    // eslint-disable-next-line react-hooks/refs
+    initialTextValueRef.current = text;
+    setTextValue(text);
+  }
+
   // console.log(`[StringNodeComponent]`, { textInput, textData, text, isReadonly });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -30,14 +46,12 @@ export const StringNodeComponent = (props: WorkflowComponentProps_Obs<{ value: s
         <textarea
           ref={textareaRef}
           className={`w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan ${isReadonly ? 'bg-gray-800/25' : 'bg-black/25'}`}
-          value={text}
+          value={textValue}
           readOnly={!props.selected || isReadonly}
           onChange={(e) => {
-            node$.data.get().setValue({
-              value: e.target.value,
-            });
+            changeTextValue(e.target.value);
           }}
-          autoFocus={props.selected}
+          // autoFocus={props.selected}
         />
       </WorkflowNodeWrapperSimple>
     </>
