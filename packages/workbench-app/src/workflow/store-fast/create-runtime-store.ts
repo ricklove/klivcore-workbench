@@ -15,6 +15,7 @@ import {
 import { builtinNodeTypes } from '../node-types';
 import { observable, ObservableHint, type Observable } from '@legendapp/state';
 import { createRuntimeValue } from './runtime-value';
+import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
 
 const getters = {
   node: {
@@ -604,6 +605,7 @@ export const createWorkflowStoreFromDocument = (
   const store$ = loadWorkflowStoreFromDocument(document);
   const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
     ...builtinNodeTypes,
+    ...codeBuiltinNodeTypes,
   };
 
   // populate node types

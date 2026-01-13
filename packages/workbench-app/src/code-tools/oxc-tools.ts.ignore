@@ -1,0 +1,22 @@
+// import init, { transform } from 'oxc-transform';
+import init, { transform } from 'https://esm.sh/oxc-transform-wasm';
+
+await init();
+
+export const compileTypescript = async (tsCode: string) => {
+  const result = await transform('file.tsx', tsCode, {
+    typescript: {
+      // Clean up .ts imports if needed
+      rewriteImportExtensions: true,
+    },
+    jsx: {
+      // equivalent to React 17+ new JSX transform
+      runtime: 'automatic',
+      // set to true for _jsxDEV (better debugging)
+      development: false,
+    },
+    // sourceMap: true, // optional
+  });
+
+  return result;
+};
