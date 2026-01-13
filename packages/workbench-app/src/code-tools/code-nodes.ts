@@ -80,7 +80,7 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
       const Component = (await fun(React, useValue)) as React.ComponentType;
       console.log('[toFunction] Created Component:', Component);
 
-      const typeName = WorkflowBrandedTypes.typeName(`d-:${node.id}`);
+      const typeName = WorkflowBrandedTypes.typeName(`d:${node.id}`);
       const holder$ = (runtimeStateTyped.holder$ ??= observable({
         Component,
         instanceId: `${Date.now()}-${Math.random()}`,
@@ -125,6 +125,41 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
 
       return {
         outputs: { value: Component ?? null },
+      };
+    },
+  },
+  detectMissingClasses: {
+    type: WorkflowBrandedTypes.typeName(`detectMissingClasses`),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(StringNodeComponent) }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+
+    execute: async ({ inputs, data, controller }) => {
+      const inputsTyped = inputs as {
+        value: undefined | string;
+      };
+      const dataTyped = data as undefined | { value: undefined | string };
+      const tsCode = inputsTyped.value ?? dataTyped?.value ?? ``;
+
+      controller.setProgress({ progressRatio: 0.5, message: 'Detecting missing classes...' });
+
+      const { detectMissingClassesInCode } = await import('./detect-missing-classes.ts');
+      const result = detectMissingClassesInCode(tsCode);
+
+      controller.setProgress({ progressRatio: 1, message: 'Detecting missing classes complete' });
+
+      return {
+        outputs: { value: result ?? null },
       };
     },
   },
