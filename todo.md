@@ -25,9 +25,9 @@
   - [x] fix multiple edge outputs engine bug
   - [x] fix rename id bug
   - [x] fix add node
-- [ ] execution emitters
-  - [ ] this allows a node to emit outputs without additional executions, i.e. act like an event, subscribable, etc.
-  - [ ] registerEmitter(emit: ((value:TReturn)=>void) => {unsubscribe: ()=>void})
+- [x] execution emitters
+  - [x] this allows a node to emit outputs without additional executions, i.e. act like an event, subscribable, etc.
+  - [x] registerEmitter(emit: ((value:TReturn)=>void) => {unsubscribe: ()=>void})
 - [ ] sub workflows running in background
   - [ ] compiled workflow execution
     - [ ] as parallel (normal workflow execution model, each node runs on new input)
