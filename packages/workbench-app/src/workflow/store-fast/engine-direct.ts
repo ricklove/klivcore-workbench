@@ -124,6 +124,7 @@ const executeNode = async ({
   const args: WorkflowExecutionArgs = {
     inputs: Object.fromEntries(node.inputs.map((input) => [input.name, input.value.getValue()])),
     data: node.data.getValue<WorkflowJsonObject>() ?? undefined,
+    runtimeState: node.runtimeState.getValue<Record<string, unknown>>()!,
     node,
     store,
     controller,

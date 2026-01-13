@@ -209,6 +209,7 @@ export interface WorkflowRuntimeNode {
   };
 
   data: WorkflowRuntimeValue<undefined | WorkflowJsonObject>;
+  runtimeState: WorkflowRuntimeValue<Record<string, unknown>>;
   getData: <T extends WorkflowJsonObject>(
     _fake: undefined,
   ) => {
@@ -337,6 +338,7 @@ export interface WorkflowRuntimeNodeTypeDefinition {
 export interface WorkflowExecutionArgs {
   inputs: Record<string, unknown>;
   data: undefined | WorkflowJsonObject;
+  runtimeState: Record<string, unknown>;
   controller: WorkflowExecutionController;
   node: WorkflowRuntimeNode;
   store: WorkflowRuntimeStore;

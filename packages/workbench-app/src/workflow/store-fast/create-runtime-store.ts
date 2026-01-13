@@ -224,6 +224,7 @@ const loadWorkflowStoreFromDocument = (
         return getters.node.getData<T>(storeObj, runtimeNode);
       },
       data: createRuntimeValue({ data: n.data }),
+      runtimeState: createRuntimeValue({ data: {} }),
       mode: n.mode,
       getGraphErrors() {
         return getters.node.getGraphErrors(storeObj, this);
@@ -360,6 +361,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           inputs: [],
           outputs: [],
           data: createRuntimeValue({ data: undefined }),
+          runtimeState: createRuntimeValue({ data: {} }),
           getInputInfo: <T>(inputName: string) => {
             return getters.node.getInputData<T>(
               store$.get(),
@@ -408,6 +410,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           },
         })),
         data: createRuntimeValue({ data: undefined }),
+        runtimeState: createRuntimeValue({ data: {} }),
         getInputInfo: <T>(inputName: string) => {
           return getters.node.getInputData<T>(
             store$.get(),

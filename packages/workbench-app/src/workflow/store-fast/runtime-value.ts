@@ -47,6 +47,9 @@ export const createRuntimeValue = <TBase = unknown>({
   };
 
   const obj: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
+    // get _inner() {
+    //   return inner;
+    // },
     getObservableBox: () => uiObservableBox$.content.inner,
     box: linked({
       get: () => obj.getValue<TBase>(),

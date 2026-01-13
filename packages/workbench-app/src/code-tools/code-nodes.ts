@@ -10,11 +10,6 @@ import { ComponentSwapper } from './component-swapper.tsx';
 import { observable, type Observable } from '@legendapp/state';
 // import { observable } from '@legendapp/state';
 
-const dynamicComponents = {} as Record<
-  string,
-  Observable<{ Component: React.ComponentType; instanceId: string }>
->;
-
 export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   toFunction: {
     type: WorkflowBrandedTypes.typeName(`toFunction`),
@@ -66,11 +61,14 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
         type: WorkflowBrandedTypes.valueType(`ReactComponentType`),
       },
     ],
-    execute: async ({ inputs, data, controller, store, node }) => {
+    execute: async ({ inputs, data, controller, store, node, runtimeState }) => {
       const inputsTyped = inputs as {
         value: undefined | string;
       };
       const dataTyped = data as undefined | { value: undefined | string };
+      const runtimeStateTyped = runtimeState as {
+        holder$: undefined | Observable<{ Component: React.ComponentType; instanceId: string }>;
+      };
 
       const code = inputsTyped.value ?? dataTyped?.value ?? ``;
 
@@ -83,7 +81,7 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
       console.log('[toFunction] Created Component:', Component);
 
       const typeName = WorkflowBrandedTypes.typeName(`d-:${node.id}`);
-      const holder$ = (dynamicComponents[typeName] ??= observable({
+      const holder$ = (runtimeStateTyped.holder$ ??= observable({
         Component,
         instanceId: `${Date.now()}-${Math.random()}`,
       }));
