@@ -35,7 +35,7 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
       const code = inputsTyped.value ?? dataTyped?.value ?? ``;
 
       controller.setProgress({ progressRatio: 0.1, message: 'Creating function...' });
-      const fun = new Function(`${code} return main();`);
+      const fun = new Function(`${code}; return main();`);
       controller.setProgress({ progressRatio: 0.5, message: 'Function creation complete' });
       console.log('[toFunction] Created function:', fun);
       const funResult = await fun();

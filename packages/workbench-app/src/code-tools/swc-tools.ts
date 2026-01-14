@@ -1,4 +1,4 @@
-import initSwc, { transformSync } from '@swc/wasm-web';
+import initSwc, { transformSync, parseSync } from '@swc/wasm-web';
 
 async function setupSwc() {
   const wasmUrl = '/wasm/wasm_bg.wasm';
@@ -30,8 +30,9 @@ async function ensureSwcIsLoaded() {
 export const transformTypescript = async (tsCode: string) => {
   await ensureSwcIsLoaded();
 
-  // // 1. Get AST (for types)
-  // const ast = parseSync(myCode, { syntax: "typescript", tsx: true });
+  // 1. Get AST (for types)
+  const ast = parseSync(tsCode, { syntax: 'typescript', tsx: true });
+  console.log('[transformTypescript] parsed', ast);
 
   // 2. Run Code
   const { code } = transformSync(tsCode, {

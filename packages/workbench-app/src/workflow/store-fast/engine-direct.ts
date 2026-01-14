@@ -148,6 +148,7 @@ const executeNode = async ({
     controller.abortSignal.throwIfAborted();
 
     executionState.status = `success`;
+    executionState.runState.errorMessage = undefined;
     executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
     executionState.runState.asyncExecutionTime = asyncExecutionTime;
     executionState.runState.asyncMicrotaskLagTime = asyncMicrotaskLagTime;

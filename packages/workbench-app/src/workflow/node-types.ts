@@ -1,6 +1,6 @@
 import { WorkflowNodeDefault } from './node-wrapper';
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from './types';
-import { StringNodeComponent } from './nodes';
+import { JsonNodeComponent, StringNodeComponent } from './nodes';
 import { TempWrapper } from './node-temp-wrapper';
 import { NodeTypeWrapComponent } from './node-types-wrapper';
 
@@ -66,6 +66,41 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
 
       return {
         outputs: { value: inputsTyped.value ?? dataTyped?.value ?? null },
+      };
+    },
+  },
+  json: {
+    type: WorkflowBrandedTypes.typeName(`json`),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(JsonNodeComponent) }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`T extends Record<string, unknown>`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`T`),
+      },
+    ],
+    execute: async ({ inputs, data, controller }) => {
+      const inputsTyped = inputs as {
+        value: undefined | unknown;
+      };
+      const dataTyped = data as undefined | { value: undefined | string };
+      const dataFromJs = new Function(`return ${dataTyped?.value ?? 'undefined'}`)();
+      // const dataFromJson = JSON.parse(dataTyped?.value ?? ``);
+
+      const obj = inputsTyped.value ?? dataFromJs ?? undefined;
+
+      controller.setProgress({ progressRatio: 0.1, message: 'Creating object...' });
+      // const obj = JSON.parse(JSON.stringify(code));
+      // const obj = JSON.parse(JSON.stringify(code));
+      controller.setProgress({ progressRatio: 1, message: 'Object creation complete' });
+
+      return {
+        outputs: { value: obj },
       };
     },
   },

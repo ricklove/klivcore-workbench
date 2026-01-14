@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import { type WorkflowComponentProps_Obs } from './types';
-import { useValue } from '@legendapp/state/react';
+import { useObservable, useValue } from '@legendapp/state/react';
+import { linked } from '@legendapp/state';
 
 export const StringNodeComponent = (props: WorkflowComponentProps_Obs<{ value: string }>) => {
   const { node$, inputs$, data$ } = props.data;
@@ -56,4 +57,34 @@ export const StringNodeComponent = (props: WorkflowComponentProps_Obs<{ value: s
       </WorkflowNodeWrapperSimple>
     </>
   );
+};
+
+export const JsonNodeComponent = (
+  props: WorkflowComponentProps_Obs<{ value: string }, { value: Record<string, unknown> }>,
+) => {
+  const inputs$ = useObservable(() =>
+    linked({
+      get: () => ({ value: JSON.stringify(props.data.inputs$.value.get(), null, 2) }),
+      set: (v) => {
+        console.log(`Cannot set input`, v.value as unknown as string);
+      },
+    }),
+  );
+  const data$ = useObservable<{ value: string }>(() =>
+    linked({
+      get: () => ({ value: props.data.data$.value.get() }),
+      set: (v) => {
+        props.data.data$.value.set(v.value as unknown as string);
+      },
+    }),
+  );
+  const outputs$ = useObservable(() =>
+    linked({
+      get: () => ({ value: JSON.stringify(props.data.outputs$.value.get(), null, 2) }),
+      set: (v) => {
+        props.data.outputs$.value.set(JSON.parse(v.value as unknown as string));
+      },
+    }),
+  );
+  return <StringNodeComponent {...props} data={{ ...props.data, inputs$, data$, outputs$ }} />;
 };
