@@ -19,6 +19,10 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
         name: WorkflowBrandedTypes.inputName(`value`),
         type: WorkflowBrandedTypes.valueType(`string`),
       },
+      {
+        name: WorkflowBrandedTypes.inputName(`x`),
+        type: WorkflowBrandedTypes.valueType(`unknown`),
+      },
     ],
     outputs: [
       {
@@ -29,16 +33,29 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
     execute: async ({ inputs, data, controller }) => {
       const inputsTyped = inputs as {
         value: undefined | string;
+        x: unknown;
       };
-      const dataTyped = data as undefined | { value: undefined | string };
+      const dataTyped = data as undefined | { value: undefined };
 
       const code = inputsTyped.value ?? dataTyped?.value ?? ``;
 
       controller.setProgress({ progressRatio: 0.1, message: 'Creating function...' });
-      const fun = new Function(`${code}; return main();`);
+
+      const codeLines = code
+        .split(`\n`)
+        .map((line) => line.trim())
+        .filter((line) => !!line);
+      const formattedCode = code.startsWith(`return`)
+        ? code
+        : code.startsWith(`const `)
+          ? `${code}; return main(x);`
+          : codeLines[0]?.includes(`=>`)
+            ? `const main = ${code}; return main(x);`
+            : `return (${code});`;
+      const fun = new Function(`x`, formattedCode);
       controller.setProgress({ progressRatio: 0.5, message: 'Function creation complete' });
       console.log('[toFunction] Created function:', fun);
-      const funResult = await fun();
+      const funResult = await fun(inputsTyped?.x);
       controller.setProgress({ progressRatio: 1, message: 'Function execution complete' });
 
       return {
