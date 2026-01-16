@@ -882,7 +882,7 @@
                 }
             ],
             "data": {
-                "value": "save? (component interaction only)\n\nthe code span object has a callback that allows sending a signal to save the code back to the original document"
+                "value": "save?\n\nthe code span object has a callback that allows sending a signal to save the code back to the original document (unless it is marked readonly)"
             }
         },
         {
@@ -1060,6 +1060,157 @@
             ],
             "data": {
                 "value": "data-array\n\nit would be possible to output the serialized contents of the whole data-grid.\n\nThis might be useful to send to a call-tree visualizer node for example"
+            }
+        },
+        {
+            "id": "n-string-1768454162985",
+            "type": "string",
+            "position": {
+                "x": 2208,
+                "y": -72,
+                "width": 352,
+                "height": 480
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "code-node (constructed)"
+            }
+        },
+        {
+            "id": "n-string-1768454174835",
+            "type": "string",
+            "position": {
+                "x": 2144,
+                "y": 24,
+                "width": 376,
+                "height": 304
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "placed inputs:\n\nyou can construct code also, by dragging code output into a code-node to copy it into that document as a section\n\nthis is probably more useful when rewriting code as a new implementation instead of editing it in place (i.e. the source code is readonly, but you can edit and experiment with the code and then save it into a new document"
+            }
+        },
+        {
+            "id": "n-string-1768454469214",
+            "type": "string",
+            "position": {
+                "x": 2088,
+                "y": 48,
+                "width": 32,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768452708514",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768454524688",
+            "type": "string",
+            "position": {
+                "x": 2408,
+                "y": -200,
+                "width": 264,
+                "height": 176
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "save\n\nsaving here would send signals back to the placed inputs so they can apply changes back into their context, and rerun executions, etc."
+            }
+        },
+        {
+            "id": "n-string-1768454646152",
+            "type": "string",
+            "position": {
+                "x": 2176,
+                "y": -408,
+                "width": 480,
+                "height": 128
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "filepath\n\nit seems good to allow the code-node to set a file name and use the workflow-server in context to load/save documents (unless they are a code span)"
+            }
+        },
+        {
+            "id": "n-string-1768454892113",
+            "type": "string",
+            "position": {
+                "x": -1680,
+                "y": 1136,
+                "width": 456,
+                "height": 352
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "types\n\n- runtime values can help infer types (especially the data-grid)\n- type information can also be obtained from the original document context (by chasing down all the dependencies and searching for any type information, etc.)\n- or from the new context of course\n- but when everything is constantly running, type information is less important\n\n- once type is established, it is also possible to generate runtime type checking early returns or asserts"
             }
         }
     ]
