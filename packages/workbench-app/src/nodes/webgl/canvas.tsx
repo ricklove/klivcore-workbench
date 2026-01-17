@@ -56,14 +56,27 @@ export const CanvasThreeRendererNodeComponent = (
   props: WorkflowComponentProps_Obs<
     Record<string, never>,
     Record<string, never>,
-    { canvas: { canvas: HTMLCanvasElement }; renderer: { renderer: THREE.WebGLRenderer } }
+    {
+      canvas: { canvas: HTMLCanvasElement };
+      renderer: { renderer: THREE.WebGLRenderer };
+      camera: { camera: THREE.Camera };
+    }
   >,
 ) => {
-  const { canvas: canvasObj, renderer: rendererObj } = useValue(() => ({
+  const {
+    canvas: canvasObj,
+    renderer: rendererObj,
+    camera: cameraObj,
+  } = useValue(() => ({
     canvas: props.data.outputs$.canvas.get() as undefined | { canvas: HTMLCanvasElement },
     renderer: props.data.outputs$.renderer.get() as undefined | { renderer: THREE.WebGLRenderer },
+    camera: props.data.outputs$.camera.get() as undefined | { camera: THREE.PerspectiveCamera },
   }));
-  console.log('[CanvasThreeRendererNodeComponent] render', { canvasObj, renderer: rendererObj });
+  console.log('[CanvasThreeRendererNodeComponent] render', {
+    canvasObj,
+    renderer: rendererObj,
+    camera: cameraObj,
+  });
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) {
@@ -72,8 +85,11 @@ export const CanvasThreeRendererNodeComponent = (
 
     const canvas = canvasObj?.canvas;
     const renderer = rendererObj?.renderer;
-    if (!canvas || !renderer) {
-      console.log('[CanvasThreeRendererNodeComponent] handleResize missing canvas or renderer');
+    const camera = cameraObj?.camera;
+    if (!canvas || !renderer || !camera) {
+      console.log(
+        '[CanvasThreeRendererNodeComponent] handleResize missing canvas, renderer, or camera',
+      );
       return;
     }
 
@@ -97,6 +113,9 @@ export const CanvasThreeRendererNodeComponent = (
       canvas.setAttribute('width', `${container.clientWidth}`);
       canvas.setAttribute('height', `${container.clientHeight}`);
       renderer.setSize(canvas.width, canvas.height);
+      const c = { camera }.camera as THREE.PerspectiveCamera;
+      c.aspect = canvas.width / canvas.height;
+      c.updateProjectionMatrix();
     };
     handleResize();
     const resizeObserver = new ResizeObserver(() => handleResize());

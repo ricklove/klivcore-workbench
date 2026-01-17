@@ -109,6 +109,10 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         name: WorkflowBrandedTypes.outputName(`canvas`),
         type: WorkflowBrandedTypes.valueType(`{ canvas: HTMLCanvasElement }`),
       },
+      {
+        name: WorkflowBrandedTypes.outputName(`camera`),
+        type: WorkflowBrandedTypes.valueType(`{ camera: THREE.Camera }`),
+      },
     ],
     execute: async ({ inputs, runtimeState }) => {
       const camera = (inputs.camera as { camera: THREE.Camera })?.camera;
@@ -155,6 +159,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         outputs: {
           renderer: { renderer },
           canvas: { canvas },
+          camera: { camera },
         },
       };
     },
