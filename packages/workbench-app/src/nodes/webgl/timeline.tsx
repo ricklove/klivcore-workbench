@@ -6,7 +6,7 @@ import {
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
+import { useObservable, useValue } from '@legendapp/state/react';
 
 // --- UTILS ---
 
@@ -30,7 +30,7 @@ function clsx(...args: ClassValue[]) {
 // --- TYPES ---
 
 type TimelineData = {
-  value: number;
+  initialValue: number;
   playing: boolean;
 
   // Local Config
@@ -121,7 +121,7 @@ export const timelineControlNodeType: WorkflowRuntimeNodeTypeDefinition = {
       type: WorkflowBrandedTypes.valueType('number'),
     },
   ],
-  execute: async ({ inputs, data }) => {
+  execute: async ({ inputs, data, controller }) => {
     // 1. Initialize State
     const safeData = (data as unknown as TimelineData) || {};
 
@@ -138,38 +138,54 @@ export const timelineControlNodeType: WorkflowRuntimeNodeTypeDefinition = {
     const inc = resolveParam(iInc, safeData.localInc ?? 1, safeData.overrideInc);
     const loop = resolveParam(iLoop, safeData.localLoop ?? true, safeData.overrideLoop);
     // tick is unused in math logic but resolved for consistency
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const tick = resolveParam(iTick, safeData.localTick ?? 1000, safeData.overrideTick);
 
     // 4. Handle Playback Logic
-    let currentValue = safeData.value ?? min;
+    const initialValue = safeData.initialValue ?? min;
     const isPlaying = safeData.playing ?? false;
 
-    if (isPlaying) {
-      currentValue += inc;
-      if (currentValue > max) {
-        if (loop) {
-          currentValue = min;
-        } else {
-          currentValue = max;
-        }
-      }
-    }
+    controller.registerEvent((emit) => {
+      let currentValue = initialValue;
 
-    // Safety clamp (unless purely wrapping)
-    if (currentValue < min) currentValue = min;
+      const update = () => {
+        if (!isPlaying) return;
+
+        currentValue += inc;
+        if (currentValue > max) {
+          if (loop) {
+            currentValue = min;
+          } else {
+            currentValue = max;
+          }
+        }
+
+        // Safety clamp (unless purely wrapping)
+        if (currentValue < min) currentValue = min;
+
+        emit({
+          value: currentValue,
+        });
+
+        id = setTimeout(update, tick);
+      };
+
+      let id = setTimeout(update, tick);
+
+      return { unsubscribe: () => clearTimeout(id) };
+    });
 
     // 5. Return (No box needed)
     return {
       outputs: {
-        value: currentValue,
+        value: initialValue,
         min: min,
         max: max,
       },
-      data: {
-        ...safeData,
-        value: currentValue,
-      },
+      //   data: {
+      //     ...safeData,
+      //     value: initialValue,
+      //   },
     };
   },
 };
@@ -368,11 +384,16 @@ const ParamRow = ({
 export const TimelineControlComponent = (
   props: WorkflowComponentProps_Obs<TimelineData, TimelineInputs, TimelineOutputs>,
 ) => {
-  const { data$, inputs$ } = props.data;
+  const { data$, inputs$, outputs$ } = props.data;
 
   // Data State
   const playing = useValue(data$.playing);
-  const value = useValue(data$.value) ?? 0;
+  const initialValueFromData = useValue(data$.initialValue) ?? 0;
+  const valueFromOutput = useValue(outputs$.value) ?? 0;
+
+  const ignoreOutputValue$ = useObservable(initialValueFromData);
+  const shouldUseOutputValue = useValue(() => ignoreOutputValue$.get() !== valueFromOutput);
+  const value = shouldUseOutputValue ? valueFromOutput : initialValueFromData;
 
   // Local Config State
   const localMin = useValue(data$.localMin);
@@ -418,17 +439,25 @@ export const TimelineControlComponent = (
 
   const effMin = getEff(hasMin, !!overrideMin, localMin ?? 0, inpMin) as number;
   const effMax = getEff(hasMax, !!overrideMax, localMax ?? 100, inpMax) as number;
+  const effInc = getEff(hasInc, !!overrideInc, localInc ?? 1, inpInc) as number;
 
   const range = effMax - effMin;
   const progress = range === 0 ? 0 : Math.min(Math.max((value - effMin) / range, 0), 1);
 
   const togglePlay = () => {
+    const currentOutput = outputs$.value.peek() ?? value;
+    ignoreOutputValue$.set(currentOutput);
+    data$.initialValue.set(currentOutput);
     data$.playing.set(!playing);
   };
 
   const handleMainScrub = (newVal: number) => {
-    const clamped = Math.max(effMin, Math.min(newVal, effMax));
-    data$.value.set(clamped);
+    const roundedToStep =
+      Math.round((newVal - effMin) / Math.abs(effInc)) * Math.abs(effInc) + effMin;
+    const clamped = Math.max(effMin, Math.min(roundedToStep, effMax));
+
+    ignoreOutputValue$.set(outputs$.value.peek() ?? value);
+    data$.initialValue.set(clamped);
   };
 
   return (
