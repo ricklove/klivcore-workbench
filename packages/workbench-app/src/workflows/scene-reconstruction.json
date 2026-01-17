@@ -815,8 +815,8 @@
             "id": "n-threeScene-1768621394274",
             "type": "threeScene",
             "position": {
-                "x": 560,
-                "y": -72,
+                "x": 1424,
+                "y": 64,
                 "width": 128,
                 "height": 24
             },
@@ -824,23 +824,40 @@
             "outputs": [
                 {
                     "name": "scene",
-                    "type": "{ scene: THREE.Scene }"
+                    "type": "Box<THREE.Scene>"
                 }
             ]
         },
         {
-            "id": "n-threeSceneView-1768621396728",
+            "id": "n-threeCamera-1768621399596",
+            "type": "threeCamera",
+            "position": {
+                "x": 1688,
+                "y": 40,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeSceneView-1768624168778",
             "type": "threeSceneView",
             "position": {
-                "x": 872,
-                "y": -80,
-                "width": 328,
-                "height": 328
+                "x": 1688,
+                "y": 96,
+                "width": 448,
+                "height": 232
             },
             "inputs": [
                 {
                     "name": "scene",
-                    "type": "{ scene: THREE.Scene }",
+                    "type": "Box<THREE.Scene>",
                     "source": {
                         "nodeId": "n-threeScene-1768621394274",
                         "name": "scene"
@@ -848,7 +865,7 @@
                 },
                 {
                     "name": "camera",
-                    "type": "{ camera: THREE.Camera }",
+                    "type": "Box<THREE.Camera>",
                     "source": {
                         "nodeId": "n-threeCamera-1768621399596",
                         "name": "camera"
@@ -858,20 +875,58 @@
             "outputs": [
                 {
                     "name": "renderer",
-                    "type": "{ render: THREE.WebGLRenderer }"
+                    "type": "Box<THREE.WebGLRenderer>"
                 },
                 {
                     "name": "canvas",
-                    "type": "{ canvas: HTMLCanvasElement }"
+                    "type": "Box<HTMLCanvasElement>"
+                },
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>"
                 }
             ]
         },
         {
-            "id": "n-threeCamera-1768621399596",
+            "id": "n-threeOrbitControls-1768624172510",
+            "type": "threeOrbitControls",
+            "position": {
+                "x": 1936,
+                "y": 48,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>",
+                    "source": {
+                        "nodeId": "n-threeCamera-1768621399596",
+                        "name": "camera"
+                    }
+                },
+                {
+                    "name": "renderer",
+                    "type": "Box<THREE.WebGLRenderer>",
+                    "source": {
+                        "nodeId": "n-threeSceneView-1768624168778",
+                        "name": "renderer"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "controls",
+                    "type": "Box<OrbitControls>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeCamera-1768624343344",
             "type": "threeCamera",
             "position": {
-                "x": 640,
-                "y": -288,
+                "x": 1696,
+                "y": 352,
                 "width": 128,
                 "height": 24
             },
@@ -879,7 +934,271 @@
             "outputs": [
                 {
                     "name": "camera",
-                    "type": "{ camera: THREE.Camera }"
+                    "type": "Box<THREE.Camera>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeSceneView-1768624347434",
+            "type": "threeSceneView",
+            "position": {
+                "x": 1688,
+                "y": 400,
+                "width": 224,
+                "height": 376
+            },
+            "inputs": [
+                {
+                    "name": "scene",
+                    "type": "Box<THREE.Scene>",
+                    "source": {
+                        "nodeId": "n-threeScene-1768621394274",
+                        "name": "scene"
+                    }
+                },
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>",
+                    "source": {
+                        "nodeId": "n-threeCamera-1768624343344",
+                        "name": "camera"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "renderer",
+                    "type": "Box<THREE.WebGLRenderer>"
+                },
+                {
+                    "name": "canvas",
+                    "type": "Box<HTMLCanvasElement>"
+                },
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeOrbitControls-1768624351226",
+            "type": "threeOrbitControls",
+            "position": {
+                "x": 1920,
+                "y": 352,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>",
+                    "source": {
+                        "nodeId": "n-threeCamera-1768624343344",
+                        "name": "camera"
+                    }
+                },
+                {
+                    "name": "renderer",
+                    "type": "Box<THREE.WebGLRenderer>",
+                    "source": {
+                        "nodeId": "n-threeSceneView-1768624347434",
+                        "name": "renderer"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "controls",
+                    "type": "Box<OrbitControls>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeLoadImageTexture-1768632920093",
+            "type": "threeLoadImageTexture",
+            "position": {
+                "x": 912,
+                "y": 336,
+                "width": 224,
+                "height": 272
+            },
+            "inputs": [
+                {
+                    "name": "url",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768632929324",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768632929324",
+            "type": "string",
+            "position": {
+                "x": 912,
+                "y": 248,
+                "width": 224,
+                "height": 64
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "/temp/example.webp"
+            }
+        },
+        {
+            "id": "n-string-1768633445130",
+            "type": "string",
+            "position": {
+                "x": 1168,
+                "y": 248,
+                "width": 232,
+                "height": 64
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "/temp/example.depth.webp"
+            }
+        },
+        {
+            "id": "n-threeLoadImageTexture-1768633455880",
+            "type": "threeLoadImageTexture",
+            "position": {
+                "x": 1168,
+                "y": 336,
+                "width": 232,
+                "height": 280
+            },
+            "inputs": [
+                {
+                    "name": "url",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768633445130",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768634263566",
+            "type": "string",
+            "position": {
+                "x": 1472,
+                "y": 552,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-threeAddToScene-1768657521192",
+                        "name": "success"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-threeMeshPlane-1768657217997",
+            "type": "threeMeshPlane",
+            "position": {
+                "x": 1472,
+                "y": 264,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768632920093",
+                        "name": "texture"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "mesh",
+                    "type": "Box<THREE.Mesh>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeAddToScene-1768657521192",
+            "type": "threeAddToScene",
+            "position": {
+                "x": 1480,
+                "y": 392,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "scene",
+                    "type": "Box<THREE.Scene>",
+                    "source": {
+                        "nodeId": "n-threeScene-1768621394274",
+                        "name": "scene"
+                    }
+                },
+                {
+                    "name": "object",
+                    "type": "Box<THREE.Object3D>",
+                    "source": {
+                        "nodeId": "n-threeMeshPlane-1768657217997",
+                        "name": "mesh"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "string"
                 }
             ]
         }

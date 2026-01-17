@@ -7,7 +7,8 @@ import * as THREE from 'three';
 import { ObservableHint } from '@legendapp/state';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import { CanvasThreeRendererNodeComponent } from './canvas.tsx';
-// import { observable } from '@legendapp/state';
+import { ImageUrlPreviewComponent } from './image.tsx';
+import { unbox, box, type Box } from './types';
 
 export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   // canvas: {
@@ -71,7 +72,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     outputs: [
       {
         name: WorkflowBrandedTypes.outputName(`scene`),
-        type: WorkflowBrandedTypes.valueType(`{ scene: THREE.Scene }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Scene>`),
       },
     ],
     execute: async () => {
@@ -82,7 +83,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       const cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
 
-      return { outputs: { scene: ObservableHint.opaque({ scene }) } };
+      return { outputs: { scene: ObservableHint.opaque(box(scene)) } };
     },
   },
   threeSceneView: {
@@ -93,30 +94,30 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`scene`),
-        type: WorkflowBrandedTypes.valueType(`{ scene: THREE.Scene }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Scene>`),
       },
       {
         name: WorkflowBrandedTypes.inputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`{ camera: THREE.Camera }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
       },
     ],
     outputs: [
       {
         name: WorkflowBrandedTypes.outputName(`renderer`),
-        type: WorkflowBrandedTypes.valueType(`{ renderer: THREE.WebGLRenderer }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.WebGLRenderer>`),
       },
       {
         name: WorkflowBrandedTypes.outputName(`canvas`),
-        type: WorkflowBrandedTypes.valueType(`{ canvas: HTMLCanvasElement }`),
+        type: WorkflowBrandedTypes.valueType(`Box<HTMLCanvasElement>`),
       },
       {
         name: WorkflowBrandedTypes.outputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`{ camera: THREE.Camera }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
       },
     ],
     execute: async ({ inputs, runtimeState }) => {
-      const camera = (inputs.camera as { camera: THREE.Camera })?.camera;
-      const scene = (inputs.scene as { scene: THREE.Scene })?.scene;
+      const camera = unbox(inputs.camera as Box<THREE.Camera>);
+      const scene = unbox(inputs.scene as Box<THREE.Scene>);
       if (!scene || !camera) {
         console.log('[threeSceneView] execute missing scene or camera', {
           scene,
@@ -146,7 +147,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       });
 
       function animate() {
-        renderer.render(scene, camera);
+        renderer.render(scene!, camera!);
       }
       renderer.setAnimationLoop(animate);
 
@@ -157,9 +158,9 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
 
       return {
         outputs: {
-          renderer: { renderer },
-          canvas: { canvas },
-          camera: { camera },
+          renderer: box(renderer),
+          canvas: box(canvas),
+          camera: box(camera),
         },
       };
     },
@@ -173,7 +174,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     outputs: [
       {
         name: WorkflowBrandedTypes.outputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`{ camera: THREE.Camera }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
       },
     ],
     execute: async () => {
@@ -184,7 +185,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         1000,
       );
       camera.position.z = 5;
-      return { outputs: { camera: ObservableHint.opaque({ camera }) } };
+      return { outputs: { camera: ObservableHint.opaque(box(camera)) } };
     },
   },
   threeOrbitControls: {
@@ -195,22 +196,22 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`{ camera: THREE.Camera }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
       },
       {
         name: WorkflowBrandedTypes.inputName(`renderer`),
-        type: WorkflowBrandedTypes.valueType(`{ renderer: THREE.WebGLRenderer }`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.WebGLRenderer>`),
       },
     ],
     outputs: [
       {
         name: WorkflowBrandedTypes.outputName(`controls`),
-        type: WorkflowBrandedTypes.valueType(`{ controls: OrbitControls }`),
+        type: WorkflowBrandedTypes.valueType(`Box<OrbitControls>`),
       },
     ],
     execute: async ({ inputs, runtimeState }) => {
-      const camera = (inputs.camera as { camera: THREE.Camera })?.camera;
-      const renderer = (inputs.renderer as { renderer: THREE.WebGLRenderer })?.renderer;
+      const camera = unbox(inputs.camera as Box<THREE.Camera>);
+      const renderer = unbox(inputs.renderer as Box<THREE.WebGLRenderer>);
       if (!renderer || !camera) {
         console.log('[threeOrbitControls] handleResize missing camera or renderer', {
           camera,
@@ -247,7 +248,183 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         cancelAnimationFrame(id);
       };
 
-      return { outputs: { controls: ObservableHint.opaque({ controls }) } };
+      return { outputs: { controls: ObservableHint.opaque(box(controls)) } };
+    },
+  },
+  threeLoadImageTexture: {
+    type: WorkflowBrandedTypes.typeName(`threeLoadImageTexture`),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponentWithNodeWrapper(ImageUrlPreviewComponent),
+    }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`url`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`texture`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      },
+    ],
+    execute: async ({ inputs, runtimeState }) => {
+      const url = inputs.url as string;
+      if (!url) {
+        console.log('[threeImage] handleResize missing url', {
+          url,
+        });
+        return;
+      }
+
+      const rs = runtimeState as {
+        url?: string;
+        dispose?: () => void;
+      };
+
+      if (url === rs.url) {
+        return;
+      }
+      rs.dispose?.();
+      rs.url = url;
+
+      const loader = new THREE.TextureLoader();
+      const texture = await new Promise<THREE.Texture<HTMLImageElement>>((resolve, reject) => {
+        loader.load(
+          url,
+          (texture) => {
+            rs.dispose = () => {
+              texture.dispose();
+            };
+
+            texture.colorSpace = THREE.SRGBColorSpace;
+            resolve(texture);
+          },
+          undefined,
+          (err) => {
+            console.error('[threeImage] Error loading texture', { url, err });
+            reject(err);
+          },
+        );
+      });
+
+      return { outputs: { texture: ObservableHint.opaque(box(texture)) } };
+    },
+  },
+  threeMeshPlane: {
+    type: WorkflowBrandedTypes.typeName(`threeMeshPlane`),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent),
+    }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`texture`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`mesh`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Mesh>`),
+      },
+    ],
+    execute: async ({ inputs, runtimeState }) => {
+      const texture = unbox(inputs.texture as Box<THREE.Texture<HTMLImageElement>>);
+      if (!texture) {
+        console.log('[threeImage] handleResize missing texture', {
+          texture,
+        });
+        return;
+      }
+
+      const rs = runtimeState as {
+        texture?: THREE.Texture<HTMLImageElement>;
+        dispose?: () => void;
+      };
+
+      if (texture === rs.texture) {
+        return;
+      }
+      rs.dispose?.();
+      rs.texture = texture;
+
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+      });
+
+      const width = 5;
+      const height = 5;
+      const geometry = new THREE.PlaneGeometry(width, height);
+      const mesh = new THREE.Mesh(geometry, material);
+
+      rs.dispose = () => {
+        geometry.dispose();
+        material.dispose();
+      };
+
+      return { outputs: { mesh: ObservableHint.opaque(box(mesh)) } };
+    },
+  },
+  threeAddToScene: {
+    type: WorkflowBrandedTypes.typeName(`threeAddToScene`),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent),
+    }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`scene`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Scene>`),
+      },
+      {
+        name: WorkflowBrandedTypes.inputName(`object`),
+        type: WorkflowBrandedTypes.valueType(`Box<THREE.Object3D>`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`success`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+    execute: async ({ inputs, runtimeState }) => {
+      const scene = unbox(inputs.scene as Box<THREE.Scene>);
+      const obj = unbox(inputs.object as Box<THREE.Object3D>);
+      if (!scene || !obj) {
+        console.log('[threeAddToScene] handleResize missing scene or object', {
+          scene,
+          obj,
+        });
+        return;
+      }
+
+      const rs = runtimeState as {
+        scene?: THREE.Scene;
+        object?: THREE.Object3D;
+        dispose?: () => void;
+      };
+
+      if (obj === rs.object && scene === rs.scene) {
+        console.log('[threeAddToScene] already added', {
+          scene,
+          obj,
+        });
+        return;
+      }
+      rs.dispose?.();
+      rs.object = obj;
+      rs.scene = scene;
+
+      scene.add(obj);
+      console.log('[threeAddToScene] added', {
+        scene,
+        obj,
+      });
+
+      rs.dispose = () => {
+        scene.remove(obj);
+      };
+
+      return { outputs: { success: `added ${obj.uuid} at ${Date.now()}` } };
     },
   },
 };

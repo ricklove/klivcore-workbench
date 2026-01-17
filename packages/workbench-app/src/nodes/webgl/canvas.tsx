@@ -3,6 +3,7 @@ import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import { type WorkflowComponentProps_Obs } from '../../workflow/types';
 import * as THREE from 'three';
 import { useValue } from '@legendapp/state/react';
+import { unbox, type Box } from './types';
 
 // export const CanvasNodeComponent = (
 //   props: WorkflowComponentProps_Obs<
@@ -57,9 +58,9 @@ export const CanvasThreeRendererNodeComponent = (
     Record<string, never>,
     Record<string, never>,
     {
-      canvas: { canvas: HTMLCanvasElement };
-      renderer: { renderer: THREE.WebGLRenderer };
-      camera: { camera: THREE.Camera };
+      canvas: Box<HTMLCanvasElement>;
+      renderer: Box<THREE.WebGLRenderer>;
+      camera: Box<THREE.Camera>;
     }
   >,
 ) => {
@@ -68,9 +69,9 @@ export const CanvasThreeRendererNodeComponent = (
     renderer: rendererObj,
     camera: cameraObj,
   } = useValue(() => ({
-    canvas: props.data.outputs$.canvas.get() as undefined | { canvas: HTMLCanvasElement },
-    renderer: props.data.outputs$.renderer.get() as undefined | { renderer: THREE.WebGLRenderer },
-    camera: props.data.outputs$.camera.get() as undefined | { camera: THREE.PerspectiveCamera },
+    canvas: props.data.outputs$.canvas.get() as undefined | Box<HTMLCanvasElement>,
+    renderer: props.data.outputs$.renderer.get() as undefined | Box<THREE.WebGLRenderer>,
+    camera: props.data.outputs$.camera.get() as undefined | Box<THREE.PerspectiveCamera>,
   }));
   console.log('[CanvasThreeRendererNodeComponent] render', {
     canvasObj,
@@ -83,9 +84,9 @@ export const CanvasThreeRendererNodeComponent = (
       return;
     }
 
-    const canvas = canvasObj?.canvas;
-    const renderer = rendererObj?.renderer;
-    const camera = cameraObj?.camera;
+    const canvas = unbox(canvasObj);
+    const renderer = unbox(rendererObj);
+    const camera = unbox(cameraObj);
     if (!canvas || !renderer || !camera) {
       console.log(
         '[CanvasThreeRendererNodeComponent] handleResize missing canvas, renderer, or camera',
@@ -125,7 +126,7 @@ export const CanvasThreeRendererNodeComponent = (
       container?.removeChild(canvas);
       resizeObserver.disconnect();
     };
-  }, [canvasObj?.canvas, rendererObj?.renderer]);
+  }, [unbox(canvasObj), unbox(rendererObj)]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   return (
