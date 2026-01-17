@@ -259,7 +259,9 @@ export type ReadonlyObservable<T> = Omit<Observable<T>, 'set' | 'assign' | 'dele
 export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
   getObservableBox: () => unknown;
   // box: undefined | null | TBase;
-  getValue: <T = TBase>() => undefined | null | T;
+  // readonly uiValue$: ReadonlyObservable<undefined | null | TBase>;
+  getUiValue: <T = TBase>() => undefined | null | T;
+  getDirectValue: <T = TBase>() => undefined | null | T;
   setValue: <T = TBase>(v: null | T) => void;
   clearValue: (v?: undefined) => void;
   subscribeDirect: (callback: (v: null | TBase | undefined) => void) => () => void;

@@ -49,7 +49,7 @@ const getters = {
     ): { data: T | undefined | null; isConnected: boolean } => {
       const input = node.inputs.find((i) => i.name === inputName);
       const isConnected = !!input?.edgeId;
-      const data = input ? input.value.getValue<T>() : undefined;
+      const data = input ? input.value.getUiValue<T>() : undefined;
       return { data, isConnected };
     },
     getOutputData: <T>(
@@ -59,14 +59,14 @@ const getters = {
     ): { data: T | undefined | null; isConnected: boolean } => {
       const output = node.outputs.find((o) => o.name === outputName);
       const isConnected = !!output?.edgeIds && output.edgeIds.length > 0;
-      const data = output ? output.value.getValue<T>() : undefined;
+      const data = output ? output.value.getUiValue<T>() : undefined;
       return { data, isConnected };
     },
     getData: <T>(
       storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
     ): { data: T | undefined | null } => {
-      const data = node.data.getValue<T>();
+      const data = node.data.getUiValue<T>();
       return { data };
     },
     getGraphErrors(

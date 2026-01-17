@@ -57,12 +57,14 @@ export const createRuntimeValue = <TBase = unknown>({
     //     obj.setValue<TBase>(v as TBase);
     //   },
     // }),
-    getValue: <T>() => {
+    getUiValue: <T>() => {
       // console.log(`[createRuntimeValue.getValue]`, { obj, inner$ });
 
       // subscribe to slowChangeCount to trigger reactivity
       slowChangeCount.get();
-
+      return inner as T | undefined;
+    },
+    getDirectValue: <T>() => {
       return inner as T | undefined;
     },
     setValue: <T>(value: T | null) => {

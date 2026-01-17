@@ -9,7 +9,7 @@ export const TempWrapper = (props: WorkflowComponentProps_Obs) => {
     props.data.node$.inputs
       .find((x) => x.name.get() === 'importPath')
       ?.value?.get()
-      .getValue<string>(),
+      .getUiValue<string>(),
   );
 
   const [ComponentObj, setComponentObj] = useState(

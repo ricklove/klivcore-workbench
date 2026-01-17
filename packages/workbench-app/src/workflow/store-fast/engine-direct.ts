@@ -122,9 +122,11 @@ const executeNode = async ({
   };
 
   const args: WorkflowExecutionArgs = {
-    inputs: Object.fromEntries(node.inputs.map((input) => [input.name, input.value.getValue()])),
-    data: node.data.getValue<WorkflowJsonObject>() ?? undefined,
-    runtimeState: node.runtimeState.getValue<Record<string, unknown>>()!,
+    inputs: Object.fromEntries(
+      node.inputs.map((input) => [input.name, input.value.getDirectValue()]),
+    ),
+    data: node.data.getDirectValue<WorkflowJsonObject>() ?? undefined,
+    runtimeState: node.runtimeState.getDirectValue<Record<string, unknown>>()!,
     node,
     store,
     controller,
@@ -356,7 +358,7 @@ export const createWorkflowEngine = (
       stats.propagationCount++;
 
       // source output value has changed
-      const newValue = ov.sourceOutputRuntimeValue.getValue();
+      const newValue = ov.sourceOutputRuntimeValue.getDirectValue();
 
       // update target values
       ov.targetEdgeRuntimeValue.setValue(newValue);
@@ -737,7 +739,7 @@ export const createWorkflowEngine = (
 
         engineState.nodeDataValues = nodes.map((node) => {
           return {
-            dataRuntimeValue: node.data,
+            dataRuntimeValue: node.data as WorkflowRuntimeValue,
             nodeId: node.id,
           };
         });
