@@ -1212,6 +1212,31 @@
             "data": {
                 "value": "types\n\n- runtime values can help infer types (especially the data-grid)\n- type information can also be obtained from the original document context (by chasing down all the dependencies and searching for any type information, etc.)\n- or from the new context of course\n- but when everything is constantly running, type information is less important\n\n- once type is established, it is also possible to generate runtime type checking early returns or asserts"
             }
+        },
+        {
+            "id": "n-string-1768536412486",
+            "type": "string",
+            "position": {
+                "x": 688,
+                "y": -176,
+                "width": 384,
+                "height": 200
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "substitution:\n\nit is possible to substitute (or override) a code-span.\n\nThis is important for debugging the top of a heavy process, or mocking a resource call, etc."
+            }
         }
     ]
 }

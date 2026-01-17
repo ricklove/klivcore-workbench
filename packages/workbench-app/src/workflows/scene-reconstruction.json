@@ -1,0 +1,815 @@
+{
+    "nodes": [
+        {
+            "id": "n-string-1768577969598",
+            "type": "string",
+            "position": {
+                "x": -248,
+                "y": -40,
+                "width": 200,
+                "height": 248
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "canvas"
+            }
+        },
+        {
+            "id": "n-string-1768577982950",
+            "type": "string",
+            "position": {
+                "x": 64,
+                "y": 208,
+                "width": 136,
+                "height": 112
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "three js scene"
+            }
+        },
+        {
+            "id": "n-string-1768578006262",
+            "type": "string",
+            "position": {
+                "x": -232,
+                "y": 248,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "image or video"
+            }
+        },
+        {
+            "id": "n-string-1768578016294",
+            "type": "string",
+            "position": {
+                "x": -232,
+                "y": 296,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "depth"
+            }
+        },
+        {
+            "id": "n-string-1768578027635",
+            "type": "string",
+            "position": {
+                "x": -232,
+                "y": 344,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "segmentation"
+            }
+        },
+        {
+            "id": "n-string-1768578037754",
+            "type": "string",
+            "position": {
+                "x": -416,
+                "y": 272,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "comfy depth gen"
+            }
+        },
+        {
+            "id": "n-string-1768578073293",
+            "type": "string",
+            "position": {
+                "x": -464,
+                "y": 288,
+                "width": 16,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578006262",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578109455",
+            "type": "string",
+            "position": {
+                "x": -544,
+                "y": 512,
+                "width": 160,
+                "height": 32
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "timeline controller"
+            }
+        },
+        {
+            "id": "n-string-1768578127469",
+            "type": "string",
+            "position": {
+                "x": -232,
+                "y": 528,
+                "width": 208,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "video-keyframes"
+            }
+        },
+        {
+            "id": "n-string-1768578150663",
+            "type": "string",
+            "position": {
+                "x": -288,
+                "y": 544,
+                "width": 24,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578109455",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578166607",
+            "type": "string",
+            "position": {
+                "x": -288,
+                "y": 392,
+                "width": 24,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578006262",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578178894",
+            "type": "string",
+            "position": {
+                "x": 8,
+                "y": 232,
+                "width": 24,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578127469",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578190421",
+            "type": "string",
+            "position": {
+                "x": 8,
+                "y": 192,
+                "width": 24,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768577969598",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578222012",
+            "type": "string",
+            "position": {
+                "x": -296,
+                "y": 304,
+                "width": 32,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578037754",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578301184",
+            "type": "string",
+            "position": {
+                "x": -240,
+                "y": 416,
+                "width": 168,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "three image or video"
+            }
+        },
+        {
+            "id": "n-string-1768578315996",
+            "type": "string",
+            "position": {
+                "x": -296,
+                "y": 512,
+                "width": 40,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578301184",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578792248",
+            "type": "string",
+            "position": {
+                "x": 336,
+                "y": 296,
+                "width": 216,
+                "height": 224
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "scene view"
+            }
+        },
+        {
+            "id": "n-string-1768578805678",
+            "type": "string",
+            "position": {
+                "x": 280,
+                "y": 280,
+                "width": 32,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768577982950",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578813394",
+            "type": "string",
+            "position": {
+                "x": 80,
+                "y": 424,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "camera"
+            }
+        },
+        {
+            "id": "n-string-1768578824228",
+            "type": "string",
+            "position": {
+                "x": 112,
+                "y": 464,
+                "width": 136,
+                "height": 32
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "camera-keyframes"
+            }
+        },
+        {
+            "id": "n-string-1768578852152",
+            "type": "string",
+            "position": {
+                "x": 280,
+                "y": 328,
+                "width": 32,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578824228",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578866198",
+            "type": "string",
+            "position": {
+                "x": 56,
+                "y": 488,
+                "width": 32,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768578109455",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768578901760",
+            "type": "string",
+            "position": {
+                "x": 336,
+                "y": 552,
+                "width": 232,
+                "height": 232
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "2nd scene view with different camera"
+            }
+        },
+        {
+            "id": "n-string-1768578990396",
+            "type": "string",
+            "position": {
+                "x": 48,
+                "y": 800,
+                "width": 328,
+                "height": 288
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "for iteratively solving camera position for a moving camera in a video:\n\nposition a fixed camera on frame 0\n\nthen change timeline to frame n \n\nmove video position keyframe until background objects line up\n\nlock video keyframe"
+            }
+        },
+        {
+            "id": "n-string-1768579294163",
+            "type": "string",
+            "position": {
+                "x": 48,
+                "y": 1120,
+                "width": 328,
+                "height": 232
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "depth correction can be done in a similar manner\n\nmatching pixels => strong alignment + strong depth confidence\n\n=> move non matching pixels towards the depth of their confident neighbors"
+            }
+        },
+        {
+            "id": "n-string-1768579515036",
+            "type": "string",
+            "position": {
+                "x": -360,
+                "y": 912,
+                "width": 328,
+                "height": 184
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "image flow ai could be used to seed this\n\nalso camera physics can be used for smoothing (though rotation has near 0 friction there is still momentum for the holder of the camera, aside from instability)"
+            }
+        },
+        {
+            "id": "n-string-1768579935448",
+            "type": "string",
+            "position": {
+                "x": 56,
+                "y": 1400,
+                "width": 320,
+                "height": 320
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "3d image flow => high quality patch\n\nonce depth is more precise, 3d image flow can be calculated.\n\nthis gives a basic for patch motion (a patch would be a gradient of 3d image flow vectors)\n\nthis would allow projecting patches across time and filling in obfuscated areas (or enhancing patch pixel resolution)"
+            }
+        },
+        {
+            "id": "n-string-1768580400342",
+            "type": "string",
+            "position": {
+                "x": 472,
+                "y": 1400,
+                "width": 328,
+                "height": 320
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "scene view with camera locked to a patch\n\ndisplay patch from all frames at once\n\nmatching pixels indicate good alignment, anchor points\n\n=> adjust depth and 3d flow vectors towards anchor point values"
+            }
+        },
+        {
+            "id": "n-string-1768580422984",
+            "type": "string",
+            "position": {
+                "x": 480,
+                "y": 808,
+                "width": 312,
+                "height": 280
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "scene view with a camera locked to a projection camera position at a specific frame\n\n=> adjust the current frame camera position to align the most pixels"
+            }
+        },
+        {
+            "id": "n-string-1768580510888",
+            "type": "string",
+            "position": {
+                "x": 480,
+                "y": 1120,
+                "width": 312,
+                "height": 232
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "scene view with a camera locked to a project camera position at a specific frame,\n\n=> adjust the current frame depth based on matching pixels => pull neighbors"
+            }
+        },
+        {
+            "id": "n-string-1768581736414",
+            "type": "string",
+            "position": {
+                "x": 832,
+                "y": 840,
+                "width": 32,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768580400342",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768581756648",
+            "type": "string",
+            "position": {
+                "x": 888,
+                "y": 808,
+                "width": 352,
+                "height": 280
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "align projection camera keyframe and 3d flow vectors\n\nidentify patches that are stationary\n\ntake the quad average of all 3d flow vectors from the stationary patches => adjust camera position vector towards this inverted quad transform"
+            }
+        }
+    ]
+}

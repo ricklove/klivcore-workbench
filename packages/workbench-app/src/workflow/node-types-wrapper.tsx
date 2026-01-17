@@ -4,6 +4,8 @@ import { ErrorBoundary } from './error-boundary';
 import { useValue } from '@legendapp/state/react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 
+export const EmptyNodeComponent = () => <></>;
+
 export const NodeTypeWrapComponent = (
   InnerComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
 ): React.ComponentType<WorkflowComponentProps> => {
