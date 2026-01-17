@@ -10,9 +10,11 @@ import { ImageUrlPreviewComponent } from './image.tsx';
 import { unbox, box, type Box } from './types';
 import { threePositionControllerNodeType } from './three-position.tsx';
 import { orbitControlsNodeTypes } from './orbit-controls.tsx';
+import { timelineControlNodeType } from './timeline.tsx';
 
 const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
   threePositionControllerNodeType,
+  timelineControlNodeType,
   ...orbitControlsNodeTypes,
 ];
 
