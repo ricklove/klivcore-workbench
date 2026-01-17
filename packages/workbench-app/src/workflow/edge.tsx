@@ -194,7 +194,7 @@ const CustomEdgeInner = memo(
                           value={JSON.stringify(
                             {
                               value: props.data.edge$.value.get().getValue(),
-                              changeCounter: props.data.edge$.value.get().changeCounter$,
+                              changeCounter: props.data.edge$.value.get().uiChangeCounter$,
                             },
                             null,
                             2,

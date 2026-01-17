@@ -23,6 +23,10 @@ import { demo_observeBatched } from './store-fast/observe-batched';
 import { observe } from '@legendapp/state';
 import { optimizationStore } from './optimization-store';
 import { NodeSelectionMenu } from './node-selection-menu';
+import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
+enableReactTracking({
+  warnMissingUse: true,
+});
 
 const edgeTypes = {
   custom: CustomEdge,

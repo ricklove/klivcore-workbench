@@ -1,5 +1,5 @@
 import { type WorkflowRuntimeValue } from '../types';
-import { linked, observable, ObservableHint, observe } from '@legendapp/state';
+import { observable, ObservableHint, observe } from '@legendapp/state';
 
 export const createRuntimeValue = <TBase = unknown>({
   data,
@@ -51,12 +51,12 @@ export const createRuntimeValue = <TBase = unknown>({
     //   return inner;
     // },
     getObservableBox: () => uiObservableBox$.content.inner,
-    box: linked({
-      get: () => obj.getValue<TBase>(),
-      set: (v) => {
-        obj.setValue<TBase>(v as TBase);
-      },
-    }),
+    // box: linked({
+    //   get: () => obj.getValue<TBase>(),
+    //   set: (v) => {
+    //     obj.setValue<TBase>(v as TBase);
+    //   },
+    // }),
     getValue: <T>() => {
       // console.log(`[createRuntimeValue.getValue]`, { obj, inner$ });
 
@@ -91,7 +91,7 @@ export const createRuntimeValue = <TBase = unknown>({
         subscribers.delete(callback);
       };
     },
-    get changeCounter$() {
+    get uiChangeCounter$() {
       return slowChangeCount;
     },
     getImmediateChangeCounter: () => {

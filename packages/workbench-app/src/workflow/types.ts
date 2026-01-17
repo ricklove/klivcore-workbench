@@ -258,12 +258,12 @@ export type ReadonlyObservable<T> = Omit<Observable<T>, 'set' | 'assign' | 'dele
 /** null indicates the value was set to undefined or null, undefined means it is unset */
 export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
   getObservableBox: () => unknown;
-  box: undefined | null | TBase;
+  // box: undefined | null | TBase;
   getValue: <T = TBase>() => undefined | null | T;
   setValue: <T = TBase>(v: null | T) => void;
   clearValue: (v?: undefined) => void;
   subscribeDirect: (callback: (v: null | TBase | undefined) => void) => () => void;
-  readonly changeCounter$: ReadonlyObservable<number>;
+  readonly uiChangeCounter$: ReadonlyObservable<number>;
   getImmediateChangeCounter: () => number;
 }>;
 export interface WorkflowRuntimeStore {
