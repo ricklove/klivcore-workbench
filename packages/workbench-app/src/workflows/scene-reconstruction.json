@@ -1044,15 +1044,19 @@
             "id": "n-string-1768632929324",
             "type": "string",
             "position": {
-                "x": 1792,
-                "y": 40,
-                "width": 224,
-                "height": 64
+                "x": 1520,
+                "y": -56,
+                "width": 328,
+                "height": 136
             },
             "inputs": [
                 {
                     "name": "value",
-                    "type": "string"
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768684571214",
+                        "name": "value"
+                    }
                 }
             ],
             "outputs": [
@@ -1062,22 +1066,26 @@
                 }
             ],
             "data": {
-                "value": "/temp/example.webp"
+                "value": "http://127.0.0.1:8188/api/view?type=input&filename=00000.png&subfolder=kdlov/0500/image-full"
             }
         },
         {
             "id": "n-string-1768633445130",
             "type": "string",
             "position": {
-                "x": 2048,
-                "y": 40,
-                "width": 232,
-                "height": 64
+                "x": 1880,
+                "y": -56,
+                "width": 328,
+                "height": 136
             },
             "inputs": [
                 {
                     "name": "value",
-                    "type": "string"
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768684498643",
+                        "name": "value"
+                    }
                 }
             ],
             "outputs": [
@@ -1087,7 +1095,7 @@
                 }
             ],
             "data": {
-                "value": "/temp/example.depth.webp"
+                "value": "http://127.0.0.1:8188/api/view?type=input&filename=00000.png&subfolder=kdlov/0500/depth-full"
             }
         },
         {
@@ -1332,6 +1340,97 @@
                     "type": "string"
                 }
             ]
+        },
+        {
+            "id": "n-toFunction-1768684498643",
+            "type": "toFunction",
+            "position": {
+                "x": 1880,
+                "y": -216,
+                "width": 328,
+                "height": 120
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768632929324",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x.replace(`image`, `depth`)"
+            }
+        },
+        {
+            "id": "n-string-1768684550968",
+            "type": "string",
+            "position": {
+                "x": 1168,
+                "y": -64,
+                "width": 320,
+                "height": 144
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "http://127.0.0.1:8188/api/view?type=input&filename=00000.png&subfolder=kdlov/0500/image-full"
+            }
+        },
+        {
+            "id": "n-toFunction-1768684571214",
+            "type": "toFunction",
+            "position": {
+                "x": 1520,
+                "y": -240,
+                "width": 328,
+                "height": 144
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768684550968",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>{\nconst num = 42;\nreturn x.replace(`00000`, \n  num.toString().padStart(5,`0`));\n}"
+            }
         }
     ]
 }
