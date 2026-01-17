@@ -810,6 +810,78 @@
             "data": {
                 "value": "align projection camera keyframe and 3d flow vectors\n\nidentify patches that are stationary\n\ntake the quad average of all 3d flow vectors from the stationary patches => adjust camera position vector towards this inverted quad transform"
             }
+        },
+        {
+            "id": "n-threeScene-1768621394274",
+            "type": "threeScene",
+            "position": {
+                "x": 560,
+                "y": -72,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "scene",
+                    "type": "{ scene: THREE.Scene }"
+                }
+            ]
+        },
+        {
+            "id": "n-threeSceneView-1768621396728",
+            "type": "threeSceneView",
+            "position": {
+                "x": 872,
+                "y": -80,
+                "width": 328,
+                "height": 328
+            },
+            "inputs": [
+                {
+                    "name": "scene",
+                    "type": "{ scene: THREE.Scene }",
+                    "source": {
+                        "nodeId": "n-threeScene-1768621394274",
+                        "name": "scene"
+                    }
+                },
+                {
+                    "name": "camera",
+                    "type": "{ camera: THREE.Camera }",
+                    "source": {
+                        "nodeId": "n-threeCamera-1768621399596",
+                        "name": "camera"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "renderer",
+                    "type": "{ render: THREE.WebGLRenderer }"
+                },
+                {
+                    "name": "canvas",
+                    "type": "{ canvas: HTMLCanvasElement }"
+                }
+            ]
+        },
+        {
+            "id": "n-threeCamera-1768621399596",
+            "type": "threeCamera",
+            "position": {
+                "x": 640,
+                "y": -288,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "camera",
+                    "type": "{ camera: THREE.Camera }"
+                }
+            ]
         }
     ]
 }
