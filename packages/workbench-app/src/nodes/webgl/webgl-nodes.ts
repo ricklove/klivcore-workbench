@@ -5,13 +5,16 @@ import {
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
 import * as THREE from 'three';
 import { ObservableHint } from '@legendapp/state';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import { CanvasThreeRendererNodeComponent } from './canvas.tsx';
 import { ImageUrlPreviewComponent } from './image.tsx';
 import { unbox, box, type Box } from './types';
 import { threePositionControllerNodeType } from './three-position.tsx';
+import { orbitControlsNodeTypes } from './orbit-controls.tsx';
 
-const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [threePositionControllerNodeType];
+const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
+  threePositionControllerNodeType,
+  ...orbitControlsNodeTypes,
+];
 
 export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   // canvas: {
@@ -191,69 +194,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       return { outputs: { camera: ObservableHint.opaque(box(camera)) } };
     },
   },
-  threeOrbitControls: {
-    type: WorkflowBrandedTypes.typeName(`threeOrbitControls`),
-    getComponent: () => ({
-      Component: NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent),
-    }),
-    inputs: [
-      {
-        name: WorkflowBrandedTypes.inputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
-      },
-      {
-        name: WorkflowBrandedTypes.inputName(`renderer`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.WebGLRenderer>`),
-      },
-    ],
-    outputs: [
-      {
-        name: WorkflowBrandedTypes.outputName(`controls`),
-        type: WorkflowBrandedTypes.valueType(`Box<OrbitControls>`),
-      },
-    ],
-    execute: async ({ inputs, runtimeState }) => {
-      const camera = unbox(inputs.camera as Box<THREE.Camera>);
-      const renderer = unbox(inputs.renderer as Box<THREE.WebGLRenderer>);
-      if (!renderer || !camera) {
-        console.log('[threeOrbitControls] handleResize missing camera or renderer', {
-          camera,
-          renderer,
-        });
-        return;
-      }
 
-      const rs = runtimeState as {
-        camera?: THREE.Camera;
-        renderer?: THREE.WebGLRenderer;
-        dispose?: () => void;
-      };
-
-      if (camera === rs.camera && renderer === rs.renderer) {
-        return;
-      }
-      rs.dispose?.();
-      rs.camera = camera;
-      rs.renderer = renderer;
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-
-      const update = () => {
-        controls.update();
-        id = requestAnimationFrame(update);
-      };
-      let id = requestAnimationFrame(update);
-
-      rs.dispose = () => {
-        controls.dispose();
-        cancelAnimationFrame(id);
-      };
-
-      return { outputs: { controls: ObservableHint.opaque(box(controls)) } };
-    },
-  },
   threeLoadImageTexture: {
     type: WorkflowBrandedTypes.typeName(`threeLoadImageTexture`),
     getComponent: () => ({
