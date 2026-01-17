@@ -4,8 +4,9 @@ import {
 } from '../../workflow/node-types-wrapper';
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
 import * as THREE from 'three';
-import { CanvasThreeRendererNodeComponent } from './canvas';
 import { ObservableHint } from '@legendapp/state';
+import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { CanvasThreeRendererNodeComponent } from './canvas.tsx';
 // import { observable } from '@legendapp/state';
 
 export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
@@ -34,10 +35,10 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
   //     return undefined;
   //   },
   // },
-  // canvasThreeRenderer: {
-  //   type: WorkflowBrandedTypes.typeName(`canvasThreeRenderer`),
+  // canvasThreerenderer: {
+  //   type: WorkflowBrandedTypes.typeName(`canvasThreerenderer`),
   //   getComponent: () => ({
-  //     Component: NodeTypeWrapComponentWithNodeWrapper(CanvasThreeRendereNodeComponent),
+  //     Component: NodeTypeWrapComponentWithNodeWrapper(CanvasThreerenderereNodeComponent),
   //   }),
   //   inputs: [
   //     //   {
@@ -56,7 +57,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
   //     },
   //     {
   //       name: WorkflowBrandedTypes.outputName(`webgl`),
-  //       type: WorkflowBrandedTypes.valueType(`WebGL2RenderingContext`),
+  //       type: WorkflowBrandedTypes.valueType(`WebGL2rendereringContext`),
   //     },
   //   ],
   //   execute: async () => {
@@ -102,7 +103,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     outputs: [
       {
         name: WorkflowBrandedTypes.outputName(`renderer`),
-        type: WorkflowBrandedTypes.valueType(`{ render: THREE.WebGLRenderer }`),
+        type: WorkflowBrandedTypes.valueType(`{ renderer: THREE.WebGLRenderer }`),
       },
       {
         name: WorkflowBrandedTypes.outputName(`canvas`),
@@ -113,6 +114,10 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       const camera = (inputs.camera as { camera: THREE.Camera })?.camera;
       const scene = (inputs.scene as { scene: THREE.Scene })?.scene;
       if (!scene || !camera) {
+        console.log('[threeSceneView] execute missing scene or camera', {
+          scene,
+          camera,
+        });
         return;
       }
 
@@ -122,7 +127,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         dispose?: () => void;
       };
 
-      if (camera === rs.camera) {
+      if (camera === rs.camera && scene === rs.scene) {
         return;
       }
       rs.dispose?.();
@@ -175,6 +180,69 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       );
       camera.position.z = 5;
       return { outputs: { camera: ObservableHint.opaque({ camera }) } };
+    },
+  },
+  threeOrbitControls: {
+    type: WorkflowBrandedTypes.typeName(`threeOrbitControls`),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent),
+    }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`camera`),
+        type: WorkflowBrandedTypes.valueType(`{ camera: THREE.Camera }`),
+      },
+      {
+        name: WorkflowBrandedTypes.inputName(`renderer`),
+        type: WorkflowBrandedTypes.valueType(`{ renderer: THREE.WebGLRenderer }`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`controls`),
+        type: WorkflowBrandedTypes.valueType(`{ controls: OrbitControls }`),
+      },
+    ],
+    execute: async ({ inputs, runtimeState }) => {
+      const camera = (inputs.camera as { camera: THREE.Camera })?.camera;
+      const renderer = (inputs.renderer as { renderer: THREE.WebGLRenderer })?.renderer;
+      if (!renderer || !camera) {
+        console.log('[threeOrbitControls] handleResize missing camera or renderer', {
+          camera,
+          renderer,
+        });
+        return;
+      }
+
+      const rs = runtimeState as {
+        camera?: THREE.Camera;
+        renderer?: THREE.WebGLRenderer;
+        dispose?: () => void;
+      };
+
+      if (camera === rs.camera && renderer === rs.renderer) {
+        return;
+      }
+      rs.dispose?.();
+      rs.camera = camera;
+      rs.renderer = renderer;
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      const update = () => {
+        controls.update();
+        id = requestAnimationFrame(update);
+      };
+      let id = requestAnimationFrame(update);
+
+      rs.dispose = () => {
+        controls.dispose();
+        cancelAnimationFrame(id);
+      };
+
+      return { outputs: { controls: ObservableHint.opaque({ controls }) } };
     },
   },
 };

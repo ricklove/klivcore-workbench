@@ -73,6 +73,7 @@ export const CanvasThreeRendererNodeComponent = (
     const canvas = canvasObj?.canvas;
     const renderer = rendererObj?.renderer;
     if (!canvas || !renderer) {
+      console.log('[CanvasThreeRendererNodeComponent] handleResize missing canvas or renderer');
       return;
     }
 
@@ -85,6 +86,7 @@ export const CanvasThreeRendererNodeComponent = (
 
     const handleResize = () => {
       if (!canvas || !renderer) {
+        console.log('[CanvasThreeRendererNodeComponent] handleResize missing canvas or renderer');
         return;
       }
       console.log('[CanvasThreeRendererNodeComponent] handleResize', {
