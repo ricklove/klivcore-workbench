@@ -764,8 +764,8 @@
             "id": "n-string-1768581736414",
             "type": "string",
             "position": {
-                "x": 832,
-                "y": 840,
+                "x": 896,
+                "y": 752,
                 "width": 32,
                 "height": 24
             },
@@ -815,8 +815,8 @@
             "id": "n-threeScene-1768621394274",
             "type": "threeScene",
             "position": {
-                "x": 1424,
-                "y": 64,
+                "x": 2304,
+                "y": -144,
                 "width": 128,
                 "height": 24
             },
@@ -832,8 +832,8 @@
             "id": "n-threeCamera-1768621399596",
             "type": "threeCamera",
             "position": {
-                "x": 1688,
-                "y": 40,
+                "x": 2568,
+                "y": -168,
                 "width": 128,
                 "height": 24
             },
@@ -849,8 +849,8 @@
             "id": "n-threeSceneView-1768624168778",
             "type": "threeSceneView",
             "position": {
-                "x": 1688,
-                "y": 96,
+                "x": 2568,
+                "y": -112,
                 "width": 448,
                 "height": 232
             },
@@ -891,8 +891,8 @@
             "id": "n-threeOrbitControls-1768624172510",
             "type": "threeOrbitControls",
             "position": {
-                "x": 1936,
-                "y": 48,
+                "x": 2816,
+                "y": -160,
                 "width": 128,
                 "height": 24
             },
@@ -925,8 +925,8 @@
             "id": "n-threeCamera-1768624343344",
             "type": "threeCamera",
             "position": {
-                "x": 1696,
-                "y": 352,
+                "x": 2576,
+                "y": 144,
                 "width": 128,
                 "height": 24
             },
@@ -942,8 +942,8 @@
             "id": "n-threeSceneView-1768624347434",
             "type": "threeSceneView",
             "position": {
-                "x": 1688,
-                "y": 400,
+                "x": 2568,
+                "y": 192,
                 "width": 224,
                 "height": 376
             },
@@ -984,8 +984,8 @@
             "id": "n-threeOrbitControls-1768624351226",
             "type": "threeOrbitControls",
             "position": {
-                "x": 1920,
-                "y": 352,
+                "x": 2800,
+                "y": 144,
                 "width": 128,
                 "height": 24
             },
@@ -1018,8 +1018,8 @@
             "id": "n-threeLoadImageTexture-1768632920093",
             "type": "threeLoadImageTexture",
             "position": {
-                "x": 912,
-                "y": 336,
+                "x": 1792,
+                "y": 128,
                 "width": 224,
                 "height": 272
             },
@@ -1044,8 +1044,8 @@
             "id": "n-string-1768632929324",
             "type": "string",
             "position": {
-                "x": 912,
-                "y": 248,
+                "x": 1792,
+                "y": 40,
                 "width": 224,
                 "height": 64
             },
@@ -1069,8 +1069,8 @@
             "id": "n-string-1768633445130",
             "type": "string",
             "position": {
-                "x": 1168,
-                "y": 248,
+                "x": 2048,
+                "y": 40,
                 "width": 232,
                 "height": 64
             },
@@ -1094,8 +1094,8 @@
             "id": "n-threeLoadImageTexture-1768633455880",
             "type": "threeLoadImageTexture",
             "position": {
-                "x": 1168,
-                "y": 336,
+                "x": 2048,
+                "y": 128,
                 "width": 232,
                 "height": 280
             },
@@ -1120,8 +1120,8 @@
             "id": "n-string-1768634263566",
             "type": "string",
             "position": {
-                "x": 1472,
-                "y": 552,
+                "x": 2352,
+                "y": 344,
                 "width": 128,
                 "height": 24
             },
@@ -1146,8 +1146,8 @@
             "id": "n-threeMeshPlane-1768657217997",
             "type": "threeMeshPlane",
             "position": {
-                "x": 1472,
-                "y": 264,
+                "x": 2352,
+                "y": 56,
                 "width": 128,
                 "height": 24
             },
@@ -1172,8 +1172,8 @@
             "id": "n-threeAddToScene-1768657521192",
             "type": "threeAddToScene",
             "position": {
-                "x": 1480,
-                "y": 392,
+                "x": 2360,
+                "y": 184,
                 "width": 128,
                 "height": 24
             },
@@ -1200,19 +1200,14 @@
                     "name": "success",
                     "type": "string"
                 }
-            ],
-            "data": {
-                "inner": {
-                    "inner": null
-                }
-            }
+            ]
         },
         {
             "id": "n-json-1768661271623",
             "type": "json",
             "position": {
-                "x": 1760,
-                "y": 792,
+                "x": 1816,
+                "y": 568,
                 "width": 176,
                 "height": 176
             },
@@ -1231,19 +1226,14 @@
                     "name": "value",
                     "type": "T"
                 }
-            ],
-            "data": {
-                "inner": {
-                    "inner": null
-                }
-            }
+            ]
         },
         {
             "id": "n-threePositionController-1768661334494",
             "type": "threePositionController",
             "position": {
-                "x": 1744,
-                "y": 584,
+                "x": 1808,
+                "y": 464,
                 "width": 208,
                 "height": 96
             },
@@ -1268,15 +1258,11 @@
                 }
             ],
             "data": {
-                "inner": {
-                    "inner": {
-                        "position": [
-                            10,
-                            1,
-                            -4.2
-                        ]
-                    }
-                }
+                "position": [
+                    0.6480328260288596,
+                    0.15682747772576788,
+                    0.3381743260296417
+                ]
             }
         },
         {
@@ -1311,12 +1297,7 @@
                     "name": "gizmo",
                     "type": "Box<THREE.Group>"
                 }
-            ],
-            "data": {
-                "inner": {
-                    "inner": null
-                }
-            }
+            ]
         },
         {
             "id": "n-threeAddToScene-1768666301358",
@@ -1350,12 +1331,7 @@
                     "name": "success",
                     "type": "string"
                 }
-            ],
-            "data": {
-                "inner": {
-                    "inner": null
-                }
-            }
+            ]
         }
     ]
 }

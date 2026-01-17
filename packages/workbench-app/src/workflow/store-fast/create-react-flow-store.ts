@@ -206,29 +206,34 @@ export const useReactFlowStore = (
             data: {
               node$,
               store$,
-              getValues: () => ({
-                inputs$: observable(
-                  ObservableHint.plain(
-                    Object.fromEntries(
-                      node$.inputs.map((input$) => [
-                        input$.name.get(),
-                        input$.value.getObservableBox(),
-                      ]),
+              getValues: () => {
+                const result = {
+                  inputs$: observable(
+                    ObservableHint.plain(
+                      Object.fromEntries(
+                        node$.inputs.map((input$) => [
+                          input$.name.get(),
+                          input$.value.get().getObservableBox(),
+                        ]),
+                      ),
                     ),
                   ),
-                ),
-                outputs$: observable(
-                  ObservableHint.plain(
-                    Object.fromEntries(
-                      node$.outputs.map((output$) => [
-                        output$.name.get(),
-                        output$.value.getObservableBox(),
-                      ]),
+                  outputs$: observable(
+                    ObservableHint.plain(
+                      Object.fromEntries(
+                        node$.outputs.map((output$) => [
+                          output$.name.get(),
+                          output$.value.get().getObservableBox(),
+                        ]),
+                      ),
                     ),
                   ),
-                ),
-                data$: node$.data.getObservableBox() as Observable<WorkflowJsonObject>,
-              }),
+                  data$: node$.data.get().getObservableBox() as Observable<WorkflowJsonObject>,
+                };
+
+                console.log(`[useReactFlowStore:getValues] node '${nodeId}' values`, { result });
+                return result;
+              },
             },
           };
 

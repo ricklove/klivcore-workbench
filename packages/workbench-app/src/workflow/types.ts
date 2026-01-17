@@ -1,4 +1,4 @@
-import { type Observable, type PlainObject } from '@legendapp/state';
+import { type Observable, type OpaqueObject, type PlainObject } from '@legendapp/state';
 
 // type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 // type JsonArray = JsonValue[];
@@ -190,7 +190,7 @@ export interface WorkflowRuntimeNode {
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;
-    value: WorkflowRuntimeValue;
+    value: OpaqueObject<WorkflowRuntimeValue>;
     edgeId?: WorkflowEdgeId;
     getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
@@ -199,7 +199,7 @@ export interface WorkflowRuntimeNode {
   outputs: {
     name: WorkflowOutputName;
     type: WorkflowValueType;
-    value: WorkflowRuntimeValue;
+    value: OpaqueObject<WorkflowRuntimeValue>;
     edgeIds?: WorkflowEdgeId[];
     getEdges: () => WorkflowRuntimeEdge[];
   }[];
@@ -208,8 +208,8 @@ export interface WorkflowRuntimeNode {
     isConnected: boolean;
   };
 
-  data: WorkflowRuntimeValue<undefined | WorkflowJsonObject>;
-  runtimeState: WorkflowRuntimeValue<Record<string, unknown>>;
+  data: OpaqueObject<WorkflowRuntimeValue<undefined | WorkflowJsonObject>>;
+  runtimeState: OpaqueObject<WorkflowRuntimeValue<Record<string, unknown>>>;
   getData: <T extends WorkflowJsonObject>(
     _fake: undefined,
   ) => {
@@ -242,7 +242,7 @@ export interface WorkflowRuntimeEdge {
     getNode: () => undefined | WorkflowRuntimeNode;
     inputName: WorkflowInputName;
   };
-  value: WorkflowRuntimeValue;
+  value: OpaqueObject<WorkflowRuntimeValue>;
   getGraphErrors():
     | undefined
     | {
@@ -254,15 +254,16 @@ export interface WorkflowRuntimeEdge {
       }[];
 }
 
+export type ReadonlyObservable<T> = Omit<Observable<T>, 'set' | 'assign' | 'delete'>;
 /** null indicates the value was set to undefined or null, undefined means it is unset */
-export type WorkflowRuntimeValue<TBase = unknown> = PlainObject<{
+export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
   getObservableBox: () => unknown;
   box: undefined | null | TBase;
   getValue: <T = TBase>() => undefined | null | T;
   setValue: <T = TBase>(v: null | T) => void;
   clearValue: (v?: undefined) => void;
   subscribeDirect: (callback: (v: null | TBase | undefined) => void) => () => void;
-  readonly changeCounter: number;
+  readonly changeCounter$: ReadonlyObservable<number>;
   getImmediateChangeCounter: () => number;
 }>;
 export interface WorkflowRuntimeStore {

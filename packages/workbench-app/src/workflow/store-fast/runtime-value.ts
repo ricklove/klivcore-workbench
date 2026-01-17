@@ -46,7 +46,7 @@ export const createRuntimeValue = <TBase = unknown>({
     });
   };
 
-  const obj: WorkflowRuntimeValue<TBase> = ObservableHint.plain({
+  const obj: WorkflowRuntimeValue<TBase> = ObservableHint.opaque({
     // get _inner() {
     //   return inner;
     // },
@@ -91,8 +91,8 @@ export const createRuntimeValue = <TBase = unknown>({
         subscribers.delete(callback);
       };
     },
-    get changeCounter() {
-      return slowChangeCount.get();
+    get changeCounter$() {
+      return slowChangeCount;
     },
     getImmediateChangeCounter: () => {
       return changeCount;

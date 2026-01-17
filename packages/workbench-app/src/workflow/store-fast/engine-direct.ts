@@ -385,7 +385,7 @@ export const createWorkflowEngine = (
     }
 
     for (const dc of changeCountersToUpdate) {
-      engineState.dataChangeCounters.set(dc, dc.changeCounter);
+      engineState.dataChangeCounters.set(dc, dc.getImmediateChangeCounter());
     }
 
     endBatch();
