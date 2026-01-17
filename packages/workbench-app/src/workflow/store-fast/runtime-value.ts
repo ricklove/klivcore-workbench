@@ -51,6 +51,17 @@ export const createRuntimeValue = <TBase = unknown>({
     //   return inner;
     // },
     getObservableBox: () => uiObservableBox$.content.inner,
+    // getObservableBox: () =>
+    //   observable(
+    //     linked({
+    //       get: () => {
+    //         return obj.getUiValue();
+    //       },
+    //       set: (v) => {
+    //         obj.setValue(v);
+    //       },
+    //     }),
+    //   ),
     // box: linked({
     //   get: () => obj.getValue<TBase>(),
     //   set: (v) => {
