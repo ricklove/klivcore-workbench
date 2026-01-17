@@ -9,6 +9,9 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import { CanvasThreeRendererNodeComponent } from './canvas.tsx';
 import { ImageUrlPreviewComponent } from './image.tsx';
 import { unbox, box, type Box } from './types';
+import { threePositionControllerNodeType } from './three-position.tsx';
+
+const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [threePositionControllerNodeType];
 
 export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   // canvas: {
@@ -356,6 +359,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       const height = 5;
       const geometry = new THREE.PlaneGeometry(width, height);
       const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(Math.random(), Math.random(), Math.random());
 
       rs.dispose = () => {
         geometry.dispose();
@@ -427,4 +431,5 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       return { outputs: { success: `added ${obj.uuid} at ${Date.now()}` } };
     },
   },
+  ...Object.fromEntries(otherWebglNodeTypes.map((nt) => [nt.type, nt])),
 };
