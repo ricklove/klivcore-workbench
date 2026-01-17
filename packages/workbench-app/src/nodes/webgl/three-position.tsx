@@ -54,13 +54,10 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       return;
     }
 
-    const pos = position ?? [0, 0, 0];
+    const pos = position ?? [obj.position.x, obj.position.y, obj.position.z];
     console.log('[threePositionController] execute', { obj, pos, runtimeState });
 
     if (rs.obj !== obj) {
-      pos[0] = obj.position.x;
-      pos[1] = obj.position.y;
-      pos[2] = obj.position.z;
       rs.obj = obj;
     }
 
@@ -69,7 +66,11 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
 
     return {
       outputs: { vector: box(obj.position), position: [...pos] },
-      data: { position: [...pos] },
+      ...(!position
+        ? {
+            data: { position: [...pos] },
+          }
+        : {}),
     };
   },
 };
