@@ -462,7 +462,7 @@ export const TimelineControlComponent = (
 
   return (
     <WorkflowNodeWrapperSimple {...props}>
-      <div className="w-64 bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
+      <div className="w-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
         {/* --- Header: Playback & Scrubber --- */}
         <div className="flex items-center gap-2">
           <button

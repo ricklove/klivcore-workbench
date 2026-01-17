@@ -23,6 +23,14 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
         name: WorkflowBrandedTypes.inputName(`x`),
         type: WorkflowBrandedTypes.valueType(`unknown`),
       },
+      {
+        name: WorkflowBrandedTypes.inputName(`y`),
+        type: WorkflowBrandedTypes.valueType(`unknown`),
+      },
+      {
+        name: WorkflowBrandedTypes.inputName(`z`),
+        type: WorkflowBrandedTypes.valueType(`unknown`),
+      },
     ],
     outputs: [
       {
@@ -30,16 +38,26 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
         type: WorkflowBrandedTypes.valueType(`string`),
       },
     ],
-    execute: async ({ inputs, data, controller }) => {
+    execute: async ({ inputs, data, runtimeState, controller }) => {
       const inputsTyped = inputs as {
         value: undefined | string;
         x: unknown;
+        y: unknown;
+        z: unknown;
       };
       const dataTyped = data as undefined | { value: undefined };
+
+      const rs = runtimeState as {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+        fun?: Function; //& ((x: unknown, y: unknown, z: unknown) => Promise<unknown>);
+        formattedCode?: string;
+      };
 
       const code = inputsTyped.value ?? dataTyped?.value ?? ``;
 
       controller.setProgress({ progressRatio: 0.1, message: 'Creating function...' });
+
+      const argNames = [`x`, `y`, `z`];
 
       const codeLines = code
         .split(`\n`)
@@ -48,14 +66,19 @@ export const codeBuiltinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinit
       const formattedCode = code.startsWith(`return`)
         ? code
         : code.startsWith(`const `)
-          ? `${code}; return main(x);`
+          ? `${code}; return main(${argNames.join(',')});`
           : codeLines[0]?.includes(`=>`)
-            ? `const main = ${code}; return main(x);`
+            ? `const main = ${code}; return main(${argNames.join(',')});`
             : `return (${code});`;
-      const fun = new Function(`x`, formattedCode);
+      if (rs.formattedCode !== formattedCode) {
+        rs.formattedCode = formattedCode;
+        rs.fun = undefined;
+      }
+
+      const fun = rs.fun ?? (rs.fun = new Function(...argNames, formattedCode));
       controller.setProgress({ progressRatio: 0.5, message: 'Function creation complete' });
       console.log('[toFunction] Created function:', fun);
-      const funResult = await fun(inputsTyped?.x);
+      const funResult = await fun(inputsTyped?.x, inputsTyped?.y, inputsTyped?.z);
       controller.setProgress({ progressRatio: 1, message: 'Function execution complete' });
 
       return {
