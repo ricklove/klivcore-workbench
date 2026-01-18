@@ -12,12 +12,14 @@ import { orbitControlsNodeTypes } from './orbit-controls.tsx';
 import { timelineControlNodeType } from './timeline.tsx';
 import { threeMeshDepthPlane } from './mesh-depth-plane.tsx';
 import { imageNodeTypes } from './image.tsx';
+import { keyframeControllerNodeType } from './keyframe-controller.tsx';
 
 const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
   threeSceneView,
   ...imageNodeTypes,
   threePositionControllerNodeType,
   timelineControlNodeType,
+  keyframeControllerNodeType,
   ...orbitControlsNodeTypes,
   threeMeshDepthPlane,
 ];

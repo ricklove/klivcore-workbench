@@ -51,14 +51,15 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       ),
     },
   ],
-  execute: async ({ inputs, data, runtimeState }) => {
+  execute: async ({ inputs, data, runtimeState, node }) => {
     const obj = unbox(inputs.object as Box<THREE.Object3D>);
     const { position: positionRaw } = (data as undefined | { position?: Vector3Array }) ?? {};
     const { rotation: rotationRaw } = (data as undefined | { rotation?: Vector3Array }) ?? {};
     const { dataset } =
-      (data as
-        | undefined
-        | { dataset?: { id: string; position: Vector3Array; rotation: Vector3Array } }) ?? {};
+      (data as undefined | { dataset?: { position: Vector3Array; rotation: Vector3Array } }) ?? {};
+    const datasetInputId = node.inputs
+      .find((i) => i.name === 'dataset')
+      ?.value.getImmediateChangeCounter();
 
     if (!obj) return;
 
@@ -67,12 +68,12 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       position?: Vector3Array;
       rotation?: Vector3Array;
       rotationVec?: THREE.Vector3;
-      lastDatasetId?: string;
+      lastDatasetId?: number;
     };
 
-    const shouldUseDataset = dataset?.id && dataset.id !== rs.lastDatasetId;
+    const shouldUseDataset = dataset && datasetInputId !== rs.lastDatasetId;
     if (shouldUseDataset) {
-      rs.lastDatasetId = dataset?.id;
+      rs.lastDatasetId = datasetInputId;
     }
 
     const position = shouldUseDataset ? dataset.position : positionRaw;
