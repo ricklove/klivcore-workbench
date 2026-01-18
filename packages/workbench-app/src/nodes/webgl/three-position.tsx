@@ -26,7 +26,9 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
     },
     {
       name: WorkflowBrandedTypes.inputName(`dataset`),
-      type: WorkflowBrandedTypes.valueType(`{position: Vector3Array; rotation: Vector3Array}`),
+      type: WorkflowBrandedTypes.valueType(
+        `{id: string; position: Vector3Array; rotation: Vector3Array}`,
+      ),
     },
   ],
   outputs: [
@@ -44,7 +46,9 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
     },
     {
       name: WorkflowBrandedTypes.outputName(`dataset`),
-      type: WorkflowBrandedTypes.valueType(`{position: Vector3Array; rotation: Vector3Array}`),
+      type: WorkflowBrandedTypes.valueType(
+        `{id: string; position: Vector3Array; rotation: Vector3Array}`,
+      ),
     },
   ],
   execute: async ({ inputs, data, runtimeState }) => {
@@ -52,10 +56,9 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
     const { position: positionRaw } = (data as undefined | { position?: Vector3Array }) ?? {};
     const { rotation: rotationRaw } = (data as undefined | { rotation?: Vector3Array }) ?? {};
     const { dataset } =
-      (data as undefined | { dataset?: { position: Vector3Array; rotation: Vector3Array } }) ?? {};
-
-    const position = dataset?.position ?? positionRaw;
-    const rotation = dataset?.rotation ?? rotationRaw;
+      (data as
+        | undefined
+        | { dataset?: { id: string; position: Vector3Array; rotation: Vector3Array } }) ?? {};
 
     if (!obj) return;
 
@@ -64,7 +67,16 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       position?: Vector3Array;
       rotation?: Vector3Array;
       rotationVec?: THREE.Vector3;
+      lastDatasetId?: string;
     };
+
+    const shouldUseDataset = dataset?.id && dataset.id !== rs.lastDatasetId;
+    if (shouldUseDataset) {
+      rs.lastDatasetId = dataset?.id;
+    }
+
+    const position = shouldUseDataset ? dataset.position : positionRaw;
+    const rotation = shouldUseDataset ? dataset.rotation : rotationRaw;
 
     if (
       rs.obj === obj &&
