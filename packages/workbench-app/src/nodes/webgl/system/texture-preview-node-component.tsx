@@ -2,7 +2,7 @@ import { WorkflowNodeWrapperSimple } from '../../../workflow/node-wrapper';
 import { type WorkflowComponentProps_Obs } from '../../../workflow/types';
 import { useValue } from '@legendapp/state/react';
 import { unbox, type Box } from '../types';
-import { useTexturePreview } from './use-texture-preview';
+import { useWebGLPreview } from './use-webgl-preview';
 import * as THREE from 'three';
 
 export const TexturePreviewNodeComponent = (
@@ -16,8 +16,9 @@ export const TexturePreviewNodeComponent = (
   const textureBox = useValue(props.data.outputs$.texture);
   const texture = textureBox ? unbox(textureBox) : undefined;
 
-  // 2. Use the hook (Pass layer index 0 for now, or make it an input)
-  const containerRef = useTexturePreview(texture, 0);
+  const containerRef = useWebGLPreview(
+    !texture ? undefined : { type: 'texture', texture, layerIndex: 0 },
+  );
 
   return (
     <WorkflowNodeWrapperSimple {...props}>
