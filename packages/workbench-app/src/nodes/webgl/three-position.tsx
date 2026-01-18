@@ -158,11 +158,11 @@ const NumberScrubber = ({ label, value, onChange, colorClass }: ScrubberProps) =
       // UX: Shift for speed (1.0), Alt for precision (0.01), default (0.1)
       let multiplier = 0.1;
       if (moveEvent.shiftKey) multiplier = 1.0;
-      if (moveEvent.altKey) multiplier = 0.01;
+      if (moveEvent.altKey) multiplier = 0.001;
 
       const newValue = startValue + deltaX * multiplier;
       // Round to 3 decimals to avoid floating point artifacts
-      onChange(Math.round(newValue * 1000) / 1000);
+      onChange(Math.round(newValue * 1000000) / 1000000);
     };
 
     const handlePointerUp = (upEvent: PointerEvent) => {
