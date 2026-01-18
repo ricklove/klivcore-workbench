@@ -11,10 +11,6 @@ import { unbox, box, type Box } from './types';
 // Shaders (THREE.ShaderMaterial / GLSL 3.0)
 // ---------------------------------------------------------------------------
 
-// Note: In ShaderMaterial with GLSL3, standard attributes (position, uv)
-// and uniforms (projectionMatrix, modelViewMatrix) are auto-prepended.
-// We only declare what we need to pass out or custom uniforms.
-
 const VERTEX_SHADER = `
 precision highp float;
 
@@ -31,7 +27,7 @@ out vec2 vUv;
 out float vDepthMeters;
 
 void main() {
-  vUv = uv; // 'uv' is a standard attribute provided by Three.js
+  vUv = uv; 
 
   // 1. Sample Depth
   float dRaw = texture(tDepth, uv).r;
@@ -50,23 +46,23 @@ void main() {
 
   vDepthMeters = zMeters;
 
-  // 3. Reprojection Logic
-  // We calculate the View Space coordinates directly based on the ray math.
-  // This essentially "pins" the geometry to the camera origin (0,0,0) in View Space.
+  // 3. Geometric Reconstruction (Local Space)
+  // We reconstruct the 3D shape relative to the "Original Camera" (the mesh object's origin).
   
   float viewHeight = 2.0 * zMeters * tan(uFovRadians * 0.5);
   float viewWidth = viewHeight * uAspect;
 
-  // 'position.x' is standard PlaneGeometry attribute (-0.5 to 0.5)
-  float xMeters = position.x * viewWidth;
-  float yMeters = position.y * viewHeight;
+  // position.x is -0.5 to 0.5. Scale to full frustum width.
+  float xLocal = position.x * viewWidth;
+  float yLocal = position.y * viewHeight;
 
-  // Construct View Position (Camera looks down -Z)
-  vec4 viewPos = vec4(xMeters, yMeters, -zMeters, 1.0);
+  // The vertex position in LOCAL space (relative to the mesh origin)
+  vec4 localPos = vec4(xLocal, yLocal, -zMeters, 1.0);
 
-  // 4. Project using the rendering camera's projection matrix
-  // 'projectionMatrix' is auto-provided by ShaderMaterial
-  gl_Position = projectionMatrix * viewPos;
+  // 4. Standard Transform
+  // modelViewMatrix: Transforms Local -> World -> Camera View
+  // projectionMatrix: Transforms Camera View -> Clip Space
+  gl_Position = projectionMatrix * modelViewMatrix * localPos;
 }`;
 
 const FRAGMENT_SHADER = `
@@ -80,6 +76,10 @@ out vec4 fragColor;
 
 void main() {
   vec4 color = texture(tColor, vUv);
+  
+  // Optional: Debug depth if needed
+  // fragColor = vec4(vec3(vDepthMeters / 10.0), 1.0);
+  
   fragColor = color;
 }`;
 
@@ -103,19 +103,19 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
     },
     {
       name: WorkflowBrandedTypes.inputName(`fov`),
-      type: WorkflowBrandedTypes.valueType(`number`), // Vertical Field of View (Degrees)
+      type: WorkflowBrandedTypes.valueType(`number`),
     },
     {
       name: WorkflowBrandedTypes.inputName(`near`),
-      type: WorkflowBrandedTypes.valueType(`number`), // Near plane in meters
+      type: WorkflowBrandedTypes.valueType(`number`),
     },
     {
       name: WorkflowBrandedTypes.inputName(`far`),
-      type: WorkflowBrandedTypes.valueType(`number`), // Far plane in meters
+      type: WorkflowBrandedTypes.valueType(`number`),
     },
     {
       name: WorkflowBrandedTypes.inputName(`depthPower`),
-      type: WorkflowBrandedTypes.valueType(`number`), // Curve adjustment (e.g. 1.0 linear)
+      type: WorkflowBrandedTypes.valueType(`number`),
     },
   ],
   outputs: [
@@ -136,7 +136,6 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
     console.log('[threeMeshDepthProjectionPlane] START', { texture, depthTexture });
 
     if (!texture || !depthTexture) {
-      console.log('[threeMeshDepthProjectionPlane] missing texture or depthTexture');
       return;
     }
 
@@ -144,7 +143,7 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
       texture?: THREE.Texture<HTMLImageElement>;
       depthTexture?: THREE.Texture<HTMLImageElement>;
       mesh?: THREE.Mesh;
-      material?: THREE.ShaderMaterial; // Changed to ShaderMaterial
+      material?: THREE.ShaderMaterial;
       dispose?: () => void;
       cachedParams?: { fov: number; near: number; far: number; depthPower: number };
     };
@@ -157,10 +156,8 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
       rs.cachedParams.far !== far ||
       rs.cachedParams.depthPower !== depthPower;
 
-    // 1. Update Existing Material (Fast Path)
     if (rs.mesh && rs.material && !hasTextureChanged) {
       if (hasParamsChanged) {
-        console.log('[threeMeshDepthProjectionPlane] Updating uniforms');
         const uniforms = rs.material.uniforms as unknown as {
           uFovRadians: { value: number };
           uNearMeters: { value: number };
@@ -183,20 +180,17 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
       return { outputs: { mesh: ObservableHint.opaque(box(rs.mesh)) } };
     }
 
-    // 2. Full Rebuild
     rs.dispose?.();
     rs.texture = texture;
     rs.depthTexture = depthTexture;
     rs.cachedParams = { fov, near, far, depthPower };
 
-    function getTextureDimensions(
-      tex: THREE.Texture,
-    ): undefined | { width: number; height: number } {
+    function getTextureDimensions(tex: THREE.Texture) {
       const img = tex.image as undefined | HTMLImageElement;
       if (img && 'width' in img && 'height' in img) {
         return { width: img.width, height: img.height };
       }
-      return;
+      return undefined;
     }
 
     const dims = getTextureDimensions(depthTexture) ??
@@ -204,7 +198,6 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
 
     const aspect = dims.width / dims.height;
 
-    // Material Setup: Using ShaderMaterial + GLSL3 for stability
     const material = new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3,
       vertexShader: VERTEX_SHADER,
@@ -225,15 +218,12 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
     const segsX = Math.min(dims.width, 512);
     const segsY = Math.min(dims.height, 512);
 
-    // 1x1 Plane. The shader reshapes it.
     const geometry = new THREE.PlaneGeometry(1, 1, segsX, segsY);
 
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false; // Essential
+    mesh.frustumCulled = false;
     mesh.position.set(0, 0, 0);
     mesh.rotation.set(0, 0, 0);
-
-    console.log('[threeMeshDepthProjectionPlane] DONE', { dims, aspect, segsX });
 
     rs.mesh = mesh;
     rs.material = material;
