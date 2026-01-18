@@ -31,6 +31,10 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       type: WorkflowBrandedTypes.valueType(`Vector3Array`),
     },
     {
+      name: WorkflowBrandedTypes.outputName(`rotation`),
+      type: WorkflowBrandedTypes.valueType(`Vector3Array`),
+    },
+    {
       name: WorkflowBrandedTypes.outputName(`vector`),
       type: WorkflowBrandedTypes.valueType(`Box<THREE.Vector3>`),
     },
@@ -38,89 +42,122 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
   execute: async ({ inputs, data, runtimeState }) => {
     const obj = unbox(inputs.object as Box<THREE.Object3D>);
     const { position } = (data as undefined | { position?: Vector3Array }) ?? {};
+    const { rotation } = (data as undefined | { rotation?: Vector3Array }) ?? {};
 
     if (!obj) return;
 
     const rs = runtimeState as {
       obj?: THREE.Object3D;
       position?: Vector3Array;
+      rotation?: Vector3Array;
+      rotationVec?: THREE.Vector3;
     };
 
     if (
       rs.obj === obj &&
       rs.position?.[0] === position?.[0] &&
       rs.position?.[1] === position?.[1] &&
-      rs.position?.[2] === position?.[2]
+      rs.position?.[2] === position?.[2] &&
+      rs.rotation?.[0] === rotation?.[0] &&
+      rs.rotation?.[1] === rotation?.[1] &&
+      rs.rotation?.[2] === rotation?.[2]
     ) {
       return;
     }
 
     const pos = position ?? [obj.position.x, obj.position.y, obj.position.z];
+    const rot = rotation ?? [obj.rotation.x, obj.rotation.y, obj.rotation.z];
 
     if (rs.obj !== obj) rs.obj = obj;
     rs.position = [...pos];
+    rs.rotation = [...rot];
+    rs.rotationVec = rs.rotationVec || new THREE.Vector3();
+    rs.rotationVec.set(rot[0], rot[1], rot[2]);
 
     obj.position.set(pos[0], pos[1], pos[2]);
+    obj.rotation.setFromVector3(rs.rotationVec);
 
     return {
-      outputs: { vector: box(obj.position), position: [...pos] },
-      ...(!position ? { data: { position: [...pos] } } : {}),
+      outputs: { vector: box(obj.position), position: [...pos], rotation: [...rot] },
+      ...(!position ? { data: { position: [...pos], rotation: [...rot] } } : {}),
     };
   },
 };
 
 export const ThreePositionControllerComponent = (
-  props: WorkflowComponentProps_Obs<{ position: Vector3Array }>,
+  props: WorkflowComponentProps_Obs<{ position: Vector3Array; rotation: Vector3Array }>,
 ) => {
   const { data$ } = props.data;
 
   // Legend State: 'position' is observed. Default to [0,0,0] if undefined.
   const position = useValue(() => data$.position.get() ?? [0, 0, 0]);
+  const rotation = useValue(() => data$.rotation.get() ?? [0, 0, 0]);
 
   // Helper to update specific index safely without type assertions on every call
-  const updateIndex = useCallback(
+  const updatePositionIndex = useCallback(
     (index: 0 | 1 | 2, val: number) => {
-      // 1. Get current value or default
       const current = data$.position.peek() ?? [0, 0, 0];
-
-      // 2. Spread into a mutable array
       const newPos = [...current];
-
-      // 3. Update index (safe in JS/TS for number[])
       newPos[index] = val;
-
-      // 4. Set back as the specific tuple type
       data$.position.set(newPos as Vector3Array);
+    },
+    [data$],
+  );
+
+  const updateRotationIndex = useCallback(
+    (index: 0 | 1 | 2, val: number) => {
+      const current = data$.rotation.peek() ?? [0, 0, 0];
+      const newRot = [...current];
+      newRot[index] = val;
+      data$.rotation.set(newRot as Vector3Array);
     },
     [data$],
   );
 
   return (
     <WorkflowNodeWrapperSimple {...props}>
-      {/* 
-         nowheel/nodrag/nopan classes prevent node editor canvas from 
-         moving while interacting with these inputs 
-      */}
-      <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
-        <NumberScrubber
-          label="X"
-          colorClass="text-red-500"
-          value={position[0] || 0}
-          onChange={(v) => updateIndex(0, v)}
-        />
-        <NumberScrubber
-          label="Y"
-          colorClass="text-green-500"
-          value={position[1] || 0}
-          onChange={(v) => updateIndex(1, v)}
-        />
-        <NumberScrubber
-          label="Z"
-          colorClass="text-blue-500"
-          value={position[2] || 0}
-          onChange={(v) => updateIndex(2, v)}
-        />
-      </div>
+      <>
+        <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
+          <NumberScrubber
+            label="X"
+            colorClass="text-red-500"
+            value={position[0] || 0}
+            onChange={(v) => updatePositionIndex(0, v)}
+          />
+          <NumberScrubber
+            label="Y"
+            colorClass="text-green-500"
+            value={position[1] || 0}
+            onChange={(v) => updatePositionIndex(1, v)}
+          />
+          <NumberScrubber
+            label="Z"
+            colorClass="text-blue-500"
+            value={position[2] || 0}
+            onChange={(v) => updatePositionIndex(2, v)}
+          />
+        </div>
+        <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
+          <NumberScrubber
+            label="X"
+            colorClass="text-red-500"
+            value={rotation[0] || 0}
+            onChange={(v) => updateRotationIndex(0, v)}
+          />
+          <NumberScrubber
+            label="Y"
+            colorClass="text-green-500"
+            value={rotation[1] || 0}
+            onChange={(v) => updateRotationIndex(1, v)}
+          />
+          <NumberScrubber
+            label="Z"
+            colorClass="text-blue-500"
+            value={rotation[2] || 0}
+            onChange={(v) => updateRotationIndex(2, v)}
+          />
+        </div>
+      </>
     </WorkflowNodeWrapperSimple>
   );
 };
