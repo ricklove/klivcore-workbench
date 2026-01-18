@@ -6,7 +6,7 @@ import {
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
+import { useObservable, useValue } from '@legendapp/state/react';
 import { box, unbox, type Box } from './types';
 import * as THREE from 'three';
 
@@ -128,13 +128,48 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
 };
 
 export const ThreePositionControllerComponent = (
-  props: WorkflowComponentProps_Obs<{ position: Vector3Array; rotation: Vector3Array }>,
+  props: WorkflowComponentProps_Obs<
+    { position: Vector3Array; rotation: Vector3Array },
+    { dataset: { id: string; position: Vector3Array; rotation: Vector3Array } }
+  >,
 ) => {
-  const { data$ } = props.data;
+  const { data$, inputs$, node$ } = props.data;
 
-  // Legend State: 'position' is observed. Default to [0,0,0] if undefined.
-  const position = useValue(() => data$.position.get() ?? [0, 0, 0]);
-  const rotation = useValue(() => data$.rotation.get() ?? [0, 0, 0]);
+  const overridingMode$ = useObservable({ mode: `data` as `data` | `dataset`, lastDatasetId: -1 });
+  const datasetInputId = node$
+    .get()
+    .inputs.find((i) => i.name === 'dataset')
+    ?.value.getImmediateChangeCounter();
+
+  if (
+    overridingMode$.mode.peek() === `data` &&
+    datasetInputId !== overridingMode$.lastDatasetId.peek()
+  ) {
+    overridingMode$.set({ mode: `dataset`, lastDatasetId: datasetInputId || -1 });
+  }
+
+  const position = useValue(() => {
+    const datasetPos = inputs$.dataset.get()?.position;
+    const dataPos = [
+      data$.position.get()?.[0] || 0,
+      data$.position.get()?.[1] || 0,
+      data$.position.get()?.[2] || 0,
+    ];
+    return (
+      (overridingMode$.mode.get() === `dataset` ? datasetPos : dataPos) ?? dataPos ?? [0, 0, 0]
+    );
+  });
+  const rotation = useValue(() => {
+    const datasetRot = inputs$.dataset.get()?.rotation;
+    const dataRot = [
+      data$.rotation.get()?.[0] || 0,
+      data$.rotation.get()?.[1] || 0,
+      data$.rotation.get()?.[2] || 0,
+    ];
+    return (
+      (overridingMode$.mode.get() === `dataset` ? datasetRot : dataRot) ?? dataRot ?? [0, 0, 0]
+    );
+  });
 
   // Helper to update specific index safely without type assertions on every call
   const updatePositionIndex = useCallback(
@@ -143,8 +178,9 @@ export const ThreePositionControllerComponent = (
       const newPos = [...current];
       newPos[index] = val;
       data$.position.set(newPos as Vector3Array);
+      overridingMode$.set({ mode: `data`, lastDatasetId: overridingMode$.lastDatasetId.peek() });
     },
-    [data$],
+    [data$, overridingMode$],
   );
 
   const updateRotationIndex = useCallback(
@@ -153,8 +189,9 @@ export const ThreePositionControllerComponent = (
       const newRot = [...current];
       newRot[index] = val;
       data$.rotation.set(newRot as Vector3Array);
+      overridingMode$.set({ mode: `data`, lastDatasetId: overridingMode$.lastDatasetId.peek() });
     },
-    [data$],
+    [data$, overridingMode$],
   );
 
   return (

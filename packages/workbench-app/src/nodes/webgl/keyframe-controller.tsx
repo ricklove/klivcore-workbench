@@ -153,17 +153,22 @@ export const keyframeControllerNodeType: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   execute: async ({ inputs, data, runtimeState }) => {
+    console.log('[keyframeController:execute] START', { inputs, data, runtimeState });
+
     const safeData = (data as unknown as KeyframeData) || {
       keyframes: {},
       currentFrame: 0,
       isPlaying: false,
       interpolationEnabled: true,
     };
+
+    if (!safeData.isPlaying) {
+      return;
+    }
+
     const keyframes = safeData.keyframes || {};
     const currentFrame =
       typeof inputs.frameIndex === 'number' ? inputs.frameIndex : safeData.currentFrame || 0;
-    const isPlaying = safeData.isPlaying || false;
-    const inputDataset = inputs.dataset as WorkflowJsonObject;
 
     const rs = runtimeState as {
       lastFrame?: number;
@@ -171,57 +176,30 @@ export const keyframeControllerNodeType: WorkflowRuntimeNodeTypeDefinition = {
       isInterpolating?: boolean;
     };
 
-    // Check if we should ignore input (during playback)
-    const shouldIgnoreInput =
-      isPlaying && rs.lastFrame !== undefined && rs.lastFrame === currentFrame;
-
-    // Frame change detection for interpolation
     const frameChanged = rs.lastFrame !== currentFrame;
-
-    if (frameChanged) {
-      rs.lastFrame = currentFrame;
-
-      // During playback, output interpolated data
-      if (isPlaying) {
-        const interpolatedData = interpolateKeyframes(keyframes, currentFrame);
-        if (
-          interpolatedData &&
-          (!rs.lastOutput || JSON.stringify(rs.lastOutput) !== JSON.stringify(interpolatedData))
-        ) {
-          rs.lastOutput = interpolatedData;
-          rs.isInterpolating = true;
-
-          return {
-            outputs: {
-              dataset: interpolatedData,
-            },
-          };
-        }
-      }
+    if (!frameChanged && rs.lastOutput) {
+      return;
     }
 
-    // If not ignoring input and we have new data, check if we should auto-save
-    if (
-      !shouldIgnoreInput &&
-      inputDataset &&
-      (!rs.lastOutput || JSON.stringify(rs.lastOutput) !== JSON.stringify(inputDataset))
-    ) {
-      rs.lastOutput = inputDataset;
-      rs.isInterpolating = false;
+    rs.lastFrame = currentFrame;
+
+    const targetData = !safeData.interpolationEnabled
+      ? keyframes[currentFrame]
+      : interpolateKeyframes(keyframes, currentFrame);
+
+    if (!targetData) {
+      return;
     }
 
-    // Default output - either last known data or input
-    const outputData = rs.lastOutput || inputDataset || {};
+    if (rs.lastOutput && JSON.stringify(rs.lastOutput) === JSON.stringify(targetData)) {
+      return;
+    }
+
+    rs.lastOutput = targetData;
 
     return {
       outputs: {
-        dataset: outputData,
-      },
-      data: {
-        ...safeData,
-        currentFrame,
-        keyframes,
-        isPlaying,
+        dataset: targetData,
       },
     };
   },
