@@ -815,8 +815,8 @@
             "id": "n-threeScene-1768621394274",
             "type": "threeScene",
             "position": {
-                "x": 2304,
-                "y": -144,
+                "x": 2872,
+                "y": -328,
                 "width": 128,
                 "height": 24
             },
@@ -832,8 +832,8 @@
             "id": "n-threeCamera-1768621399596",
             "type": "threeCamera",
             "position": {
-                "x": 2568,
-                "y": -168,
+                "x": 3848,
+                "y": 112,
                 "width": 128,
                 "height": 24
             },
@@ -849,10 +849,10 @@
             "id": "n-threeSceneView-1768624168778",
             "type": "threeSceneView",
             "position": {
-                "x": 2568,
-                "y": -112,
-                "width": 448,
-                "height": 232
+                "x": 3848,
+                "y": 192,
+                "width": 712,
+                "height": 680
             },
             "inputs": [
                 {
@@ -891,8 +891,8 @@
             "id": "n-threeOrbitControls-1768624172510",
             "type": "threeOrbitControls",
             "position": {
-                "x": 2816,
-                "y": -160,
+                "x": 4160,
+                "y": -32,
                 "width": 128,
                 "height": 24
             },
@@ -925,8 +925,8 @@
             "id": "n-threeCamera-1768624343344",
             "type": "threeCamera",
             "position": {
-                "x": 2576,
-                "y": 144,
+                "x": 3040,
+                "y": 128,
                 "width": 128,
                 "height": 24
             },
@@ -942,10 +942,10 @@
             "id": "n-threeSceneView-1768624347434",
             "type": "threeSceneView",
             "position": {
-                "x": 2568,
-                "y": 192,
-                "width": 224,
-                "height": 376
+                "x": 3040,
+                "y": 200,
+                "width": 640,
+                "height": 672
             },
             "inputs": [
                 {
@@ -984,8 +984,8 @@
             "id": "n-threeOrbitControls-1768624351226",
             "type": "threeOrbitControls",
             "position": {
-                "x": 2800,
-                "y": 144,
+                "x": 3360,
+                "y": -40,
                 "width": 128,
                 "height": 24
             },
@@ -1028,7 +1028,7 @@
                     "name": "url",
                     "type": "string",
                     "source": {
-                        "nodeId": "n-string-1768632929324",
+                        "nodeId": "n-toFunction-1768684571214",
                         "name": "value"
                     }
                 }
@@ -1039,64 +1039,6 @@
                     "type": "Box<THREE.Texture<HTMLImageElement>>"
                 }
             ]
-        },
-        {
-            "id": "n-string-1768632929324",
-            "type": "string",
-            "position": {
-                "x": 1520,
-                "y": -56,
-                "width": 328,
-                "height": 136
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-toFunction-1768684571214",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "http://127.0.0.1:8188/api/view?type=input&filename=00000.png&subfolder=kdlov/0500/image-full"
-            }
-        },
-        {
-            "id": "n-string-1768633445130",
-            "type": "string",
-            "position": {
-                "x": 1880,
-                "y": -56,
-                "width": 328,
-                "height": 136
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-toFunction-1768684498643",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "http://127.0.0.1:8188/api/view?type=input&filename=00000.png&subfolder=kdlov/0500/depth-full"
-            }
         },
         {
             "id": "n-threeLoadImageTexture-1768633455880",
@@ -1112,7 +1054,7 @@
                     "name": "url",
                     "type": "string",
                     "source": {
-                        "nodeId": "n-string-1768633445130",
+                        "nodeId": "n-toFunction-1768684498643",
                         "name": "value"
                     }
                 }
@@ -1125,63 +1067,11 @@
             ]
         },
         {
-            "id": "n-string-1768634263566",
-            "type": "string",
-            "position": {
-                "x": 2352,
-                "y": 344,
-                "width": 128,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-threeAddToScene-1768657521192",
-                        "name": "success"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-threeMeshPlane-1768657217997",
-            "type": "threeMeshPlane",
-            "position": {
-                "x": 2352,
-                "y": 56,
-                "width": 128,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "texture",
-                    "type": "Box<THREE.Texture<HTMLImageElement>>",
-                    "source": {
-                        "nodeId": "n-threeLoadImageTexture-1768632920093",
-                        "name": "texture"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "mesh",
-                    "type": "Box<THREE.Mesh>"
-                }
-            ]
-        },
-        {
             "id": "n-threeAddToScene-1768657521192",
             "type": "threeAddToScene",
             "position": {
-                "x": 2360,
-                "y": 184,
+                "x": 1792,
+                "y": 504,
                 "width": 128,
                 "height": 24
             },
@@ -1198,7 +1088,7 @@
                     "name": "object",
                     "type": "Box<THREE.Object3D>",
                     "source": {
-                        "nodeId": "n-threeMeshPlane-1768657217997",
+                        "nodeId": "n-threeMeshDepthPlane-1768693377330",
                         "name": "mesh"
                     }
                 }
@@ -1211,46 +1101,20 @@
             ]
         },
         {
-            "id": "n-json-1768661271623",
-            "type": "json",
-            "position": {
-                "x": 1816,
-                "y": 568,
-                "width": 176,
-                "height": 176
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "T extends Record<string, unknown>",
-                    "source": {
-                        "nodeId": "n-threePositionController-1768661334494",
-                        "name": "position"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "T"
-                }
-            ]
-        },
-        {
             "id": "n-threePositionController-1768661334494",
             "type": "threePositionController",
             "position": {
-                "x": 1808,
-                "y": 464,
-                "width": 208,
-                "height": 96
+                "x": 1792,
+                "y": 568,
+                "width": 280,
+                "height": 40
             },
             "inputs": [
                 {
                     "name": "object",
                     "type": "Box<THREE.Object3D>",
                     "source": {
-                        "nodeId": "n-threeMeshPlane-1768657217997",
+                        "nodeId": "n-threeMeshDepthPlane-1768693377330",
                         "name": "mesh"
                     }
                 }
@@ -1267,9 +1131,9 @@
             ],
             "data": {
                 "position": [
-                    0.6480328260288596,
-                    0.15682747772576788,
-                    0.3381743260296417
+                    0,
+                    0,
+                    0
                 ]
             }
         },
@@ -1277,8 +1141,8 @@
             "id": "n-threeOrbitControlsOriginGizmo-1768666291615",
             "type": "threeOrbitControlsOriginGizmo",
             "position": {
-                "x": 2872,
-                "y": 232,
+                "x": 3360,
+                "y": 40,
                 "width": 128,
                 "height": 24
             },
@@ -1311,8 +1175,8 @@
             "id": "n-threeAddToScene-1768666301358",
             "type": "threeAddToScene",
             "position": {
-                "x": 2872,
-                "y": 312,
+                "x": 3360,
+                "y": 120,
                 "width": 128,
                 "height": 24
             },
@@ -1345,10 +1209,10 @@
             "id": "n-toFunction-1768684498643",
             "type": "toFunction",
             "position": {
-                "x": 1880,
-                "y": -216,
-                "width": 328,
-                "height": 120
+                "x": 2040,
+                "y": -72,
+                "width": 248,
+                "height": 160
             },
             "inputs": [
                 {
@@ -1359,9 +1223,21 @@
                     "name": "x",
                     "type": "unknown",
                     "source": {
-                        "nodeId": "n-string-1768632929324",
+                        "nodeId": "n-string-1768700592907",
                         "name": "value"
                     }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768689631652",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
                 }
             ],
             "outputs": [
@@ -1371,7 +1247,7 @@
                 }
             ],
             "data": {
-                "value": "x=>x.replace(`image`, `depth`)"
+                "value": "(x,y)=> x\n  .replace(`00000`, \n    (y ?? 0).toString().padStart(5,`0`)\n  ).replace(`image`,`depth`)"
             }
         },
         {
@@ -1379,7 +1255,7 @@
             "type": "string",
             "position": {
                 "x": 1168,
-                "y": -64,
+                "y": -288,
                 "width": 320,
                 "height": 144
             },
@@ -1403,10 +1279,10 @@
             "id": "n-toFunction-1768684571214",
             "type": "toFunction",
             "position": {
-                "x": 1520,
-                "y": -240,
-                "width": 328,
-                "height": 144
+                "x": 1760,
+                "y": -72,
+                "width": 248,
+                "height": 160
             },
             "inputs": [
                 {
@@ -1416,6 +1292,163 @@
                 {
                     "name": "x",
                     "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768700592907",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768689631652",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=> x\n  .replace(`00000`, \n    (y ?? 0).toString().padStart(5,`0`)\n  )"
+            }
+        },
+        {
+            "id": "n-timelineControl-1768688905567",
+            "type": "timelineControl",
+            "position": {
+                "x": 1792,
+                "y": 672,
+                "width": 272,
+                "height": 216
+            },
+            "inputs": [
+                {
+                    "name": "min",
+                    "type": "number"
+                },
+                {
+                    "name": "max",
+                    "type": "number"
+                },
+                {
+                    "name": "tickTimeMs",
+                    "type": "number"
+                },
+                {
+                    "name": "incrementValue",
+                    "type": "number"
+                },
+                {
+                    "name": "autoLoop",
+                    "type": "boolean"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "number"
+                },
+                {
+                    "name": "min",
+                    "type": "number"
+                },
+                {
+                    "name": "max",
+                    "type": "number"
+                }
+            ],
+            "data": {
+                "value": 30,
+                "playing": false,
+                "localMin": 0,
+                "localMax": 65,
+                "localInc": 1,
+                "localTick": 356,
+                "localLoop": true,
+                "initialValue": 58
+            }
+        },
+        {
+            "id": "n-json-1768689631652",
+            "type": "json",
+            "position": {
+                "x": 1528,
+                "y": -24,
+                "width": 96,
+                "height": 32
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-timelineControl-1768688905567",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-threeMeshDepthPlane-1768693377330",
+            "type": "threeMeshDepthPlane",
+            "position": {
+                "x": 1792,
+                "y": 432,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768632920093",
+                        "name": "texture"
+                    }
+                },
+                {
+                    "name": "depthTexture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768633455880",
+                        "name": "texture"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "mesh",
+                    "type": "Box<THREE.Mesh>"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768700592907",
+            "type": "string",
+            "position": {
+                "x": 1536,
+                "y": -96,
+                "width": 88,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
                     "source": {
                         "nodeId": "n-string-1768684550968",
                         "name": "value"
@@ -1427,9 +1460,396 @@
                     "name": "value",
                     "type": "string"
                 }
+            ]
+        },
+        {
+            "id": "n-threeOrbitControlsOriginGizmo-1768702540578",
+            "type": "threeOrbitControlsOriginGizmo",
+            "position": {
+                "x": 4160,
+                "y": 40,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "camera",
+                    "type": "Box<THREE.Camera>",
+                    "source": {
+                        "nodeId": "n-threeCamera-1768621399596",
+                        "name": "camera"
+                    }
+                },
+                {
+                    "name": "controls",
+                    "type": "Box<OrbitControls>",
+                    "source": {
+                        "nodeId": "n-threeOrbitControls-1768624172510",
+                        "name": "controls"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "gizmo",
+                    "type": "Box<THREE.Group>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeAddToScene-1768702554884",
+            "type": "threeAddToScene",
+            "position": {
+                "x": 4160,
+                "y": 112,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "scene",
+                    "type": "Box<THREE.Scene>",
+                    "source": {
+                        "nodeId": "n-threeScene-1768621394274",
+                        "name": "scene"
+                    }
+                },
+                {
+                    "name": "object",
+                    "type": "Box<THREE.Object3D>",
+                    "source": {
+                        "nodeId": "n-threeOrbitControlsOriginGizmo-1768702540578",
+                        "name": "gizmo"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768702745622",
+            "type": "toFunction",
+            "position": {
+                "x": 2360,
+                "y": -80,
+                "width": 248,
+                "height": 160
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768700592907",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768702795161",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
             ],
             "data": {
-                "value": "x=>{\nconst num = 42;\nreturn x.replace(`00000`, \n  num.toString().padStart(5,`0`));\n}"
+                "value": "(x,y)=> x\n  .replace(`00000`, \n    (y ?? 0).toString().padStart(5,`0`)\n  )"
+            }
+        },
+        {
+            "id": "n-toFunction-1768702773902",
+            "type": "toFunction",
+            "position": {
+                "x": 2648,
+                "y": -80,
+                "width": 272,
+                "height": 160
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768700592907",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768702795161",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=> x\n  .replace(`00000`, \n    (y ?? 0).toString().padStart(5,`0`)\n  ).replace(`image`,`depth`)"
+            }
+        },
+        {
+            "id": "n-json-1768702795161",
+            "type": "json",
+            "position": {
+                "x": 1528,
+                "y": 40,
+                "width": 96,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-timelineControl-1768702961560",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-threeLoadImageTexture-1768702824588",
+            "type": "threeLoadImageTexture",
+            "position": {
+                "x": 2360,
+                "y": 128,
+                "width": 248,
+                "height": 272
+            },
+            "inputs": [
+                {
+                    "name": "url",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768702745622",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeLoadImageTexture-1768702851998",
+            "type": "threeLoadImageTexture",
+            "position": {
+                "x": 2648,
+                "y": 120,
+                "width": 272,
+                "height": 280
+            },
+            "inputs": [
+                {
+                    "name": "url",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768702773902",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeMeshDepthPlane-1768702873898",
+            "type": "threeMeshDepthPlane",
+            "position": {
+                "x": 2360,
+                "y": 424,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768702824588",
+                        "name": "texture"
+                    }
+                },
+                {
+                    "name": "depthTexture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768702851998",
+                        "name": "texture"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "mesh",
+                    "type": "Box<THREE.Mesh>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeAddToScene-1768702914551",
+            "type": "threeAddToScene",
+            "position": {
+                "x": 2360,
+                "y": 480,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "scene",
+                    "type": "Box<THREE.Scene>",
+                    "source": {
+                        "nodeId": "n-threeScene-1768621394274",
+                        "name": "scene"
+                    }
+                },
+                {
+                    "name": "object",
+                    "type": "Box<THREE.Object3D>",
+                    "source": {
+                        "nodeId": "n-threeMeshDepthPlane-1768702873898",
+                        "name": "mesh"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-threePositionController-1768702933892",
+            "type": "threePositionController",
+            "position": {
+                "x": 2360,
+                "y": 560,
+                "width": 256,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "object",
+                    "type": "Box<THREE.Object3D>",
+                    "source": {
+                        "nodeId": "n-threeMeshDepthPlane-1768702873898",
+                        "name": "mesh"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "position",
+                    "type": "Vector3Array"
+                },
+                {
+                    "name": "vector",
+                    "type": "Box<THREE.Vector3>"
+                }
+            ],
+            "data": {
+                "position": [
+                    0.42317152010174097,
+                    0.0283295068978342,
+                    0.7628680517189754
+                ]
+            }
+        },
+        {
+            "id": "n-timelineControl-1768702961560",
+            "type": "timelineControl",
+            "position": {
+                "x": 2360,
+                "y": 664,
+                "width": 256,
+                "height": 216
+            },
+            "inputs": [
+                {
+                    "name": "min",
+                    "type": "number"
+                },
+                {
+                    "name": "max",
+                    "type": "number"
+                },
+                {
+                    "name": "tickTimeMs",
+                    "type": "number"
+                },
+                {
+                    "name": "incrementValue",
+                    "type": "number"
+                },
+                {
+                    "name": "autoLoop",
+                    "type": "boolean"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "number"
+                },
+                {
+                    "name": "min",
+                    "type": "number"
+                },
+                {
+                    "name": "max",
+                    "type": "number"
+                }
+            ],
+            "data": {
+                "localMax": 65
             }
         }
     ]
