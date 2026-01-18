@@ -24,6 +24,10 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       name: WorkflowBrandedTypes.inputName(`object`),
       type: WorkflowBrandedTypes.valueType(`Box<THREE.Object3D>`),
     },
+    {
+      name: WorkflowBrandedTypes.inputName(`dataset`),
+      type: WorkflowBrandedTypes.valueType(`{position: Vector3Array; rotation: Vector3Array}`),
+    },
   ],
   outputs: [
     {
@@ -38,11 +42,20 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       name: WorkflowBrandedTypes.outputName(`vector`),
       type: WorkflowBrandedTypes.valueType(`Box<THREE.Vector3>`),
     },
+    {
+      name: WorkflowBrandedTypes.outputName(`dataset`),
+      type: WorkflowBrandedTypes.valueType(`{position: Vector3Array; rotation: Vector3Array}`),
+    },
   ],
   execute: async ({ inputs, data, runtimeState }) => {
     const obj = unbox(inputs.object as Box<THREE.Object3D>);
-    const { position } = (data as undefined | { position?: Vector3Array }) ?? {};
-    const { rotation } = (data as undefined | { rotation?: Vector3Array }) ?? {};
+    const { position: positionRaw } = (data as undefined | { position?: Vector3Array }) ?? {};
+    const { rotation: rotationRaw } = (data as undefined | { rotation?: Vector3Array }) ?? {};
+    const { dataset } =
+      (data as undefined | { dataset?: { position: Vector3Array; rotation: Vector3Array } }) ?? {};
+
+    const position = dataset?.position ?? positionRaw;
+    const rotation = dataset?.rotation ?? rotationRaw;
 
     if (!obj) return;
 
@@ -78,7 +91,12 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
     obj.rotation.setFromVector3(rs.rotationVec);
 
     return {
-      outputs: { vector: box(obj.position), position: [...pos], rotation: [...rot] },
+      outputs: {
+        vector: box(obj.position),
+        position: [...pos],
+        rotation: [...rot],
+        dataset: { position: [...pos], rotation: [...rot] },
+      },
       ...(!position ? { data: { position: [...pos], rotation: [...rot] } } : {}),
     };
   },

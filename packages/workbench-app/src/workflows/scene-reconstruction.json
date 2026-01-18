@@ -943,7 +943,7 @@
             "type": "threeSceneView",
             "position": {
                 "x": 3040,
-                "y": 200,
+                "y": 208,
                 "width": 640,
                 "height": 672
             },
@@ -1107,7 +1107,7 @@
                 "x": 1792,
                 "y": 568,
                 "width": 280,
-                "height": 40
+                "height": 72
             },
             "inputs": [
                 {
@@ -1117,6 +1117,10 @@
                         "nodeId": "n-threeMeshDepthPlane-1768693377330",
                         "name": "mesh"
                     }
+                },
+                {
+                    "name": "dataset",
+                    "type": "Record<string, unknown>"
                 }
             ],
             "outputs": [
@@ -1127,12 +1131,25 @@
                 {
                     "name": "vector",
                     "type": "Box<THREE.Vector3>"
+                },
+                {
+                    "name": "rotation",
+                    "type": "Vector3Array"
+                },
+                {
+                    "name": "dataset",
+                    "type": "Record<string, unknown>"
                 }
             ],
             "data": {
                 "position": [
-                    0,
-                    0,
+                    0.209,
+                    -0.017,
+                    0.409
+                ],
+                "rotation": [
+                    0.007,
+                    -0.949,
                     0
                 ]
             }
@@ -1325,7 +1342,7 @@
             "type": "timelineControl",
             "position": {
                 "x": 1792,
-                "y": 672,
+                "y": 712,
                 "width": 272,
                 "height": 216
             },
@@ -1773,7 +1790,7 @@
                 "x": 2360,
                 "y": 560,
                 "width": 256,
-                "height": 40
+                "height": 72
             },
             "inputs": [
                 {
@@ -1783,6 +1800,10 @@
                         "nodeId": "n-threeMeshDepthPlane-1768702873898",
                         "name": "mesh"
                     }
+                },
+                {
+                    "name": "dataset",
+                    "type": "Record<string, unknown>"
                 }
             ],
             "outputs": [
@@ -1793,13 +1814,26 @@
                 {
                     "name": "vector",
                     "type": "Box<THREE.Vector3>"
+                },
+                {
+                    "name": "rotation",
+                    "type": "Vector3Array"
+                },
+                {
+                    "name": "dataset",
+                    "type": "Record<string, unknown>"
                 }
             ],
             "data": {
                 "position": [
-                    0.42317152010174097,
-                    0.0283295068978342,
-                    0.7628680517189754
+                    0,
+                    0,
+                    0
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
                 ]
             }
         },
@@ -1808,7 +1842,7 @@
             "type": "timelineControl",
             "position": {
                 "x": 2360,
-                "y": 664,
+                "y": 704,
                 "width": 256,
                 "height": 216
             },
@@ -1850,6 +1884,31 @@
             ],
             "data": {
                 "localMax": 65
+            }
+        },
+        {
+            "id": "n-string-1768706523033",
+            "type": "string",
+            "position": {
+                "x": 2560,
+                "y": 1064,
+                "width": 456,
+                "height": 632
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "keyframe-node\n\nattach this to a node inverted (so the nodes data ouput goes to this input, and this keyframe output goes to the nodes data inputs), the node should be designed to support full data chunk input and output\n\n- inputs: {dataset:json, frameIndex:number}\n- outputs: {dataset:json}\n- data: {[frameIndex]: json}\n\n- component:\n- saveKeyframe: save the input data for the current frame\n- deleteKeyframe: remove the data for the current frame\n- play: when the frameIndex changes (and immediately), send the data for the current frame (interpolated), also ignore data coming in (as it should be a duplicate of what was sent)\n- pause: stop sending data when frameIndex changes\n\n\ninstructions:\n\nlook at `packages/workbench-app/src/nodes/webgl/three-position.tsx` and create a new `keyframeController` node in a similar file structure, that does the above."
             }
         }
     ]
