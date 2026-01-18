@@ -1120,7 +1120,11 @@
                 },
                 {
                     "name": "dataset",
-                    "type": "Record<string, unknown>"
+                    "type": "Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-keyframeController-1768708403705",
+                        "name": "dataset"
+                    }
                 }
             ],
             "outputs": [
@@ -1143,14 +1147,14 @@
             ],
             "data": {
                 "position": [
-                    0.209,
-                    -0.017,
-                    0.409
+                    0.164,
+                    -0.001,
+                    0.129
                 ],
                 "rotation": [
-                    0.007,
-                    -0.949,
-                    0
+                    0.002,
+                    -0.403,
+                    0.004
                 ]
             }
         },
@@ -1341,8 +1345,8 @@
             "id": "n-timelineControl-1768688905567",
             "type": "timelineControl",
             "position": {
-                "x": 1792,
-                "y": 712,
+                "x": 1800,
+                "y": 960,
                 "width": 272,
                 "height": 216
             },
@@ -1384,13 +1388,13 @@
             ],
             "data": {
                 "value": 30,
-                "playing": false,
+                "playing": true,
                 "localMin": 0,
                 "localMax": 65,
                 "localInc": 1,
-                "localTick": 356,
+                "localTick": 1000,
                 "localLoop": true,
-                "initialValue": 58
+                "initialValue": 0
             }
         },
         {
@@ -1909,6 +1913,249 @@
             ],
             "data": {
                 "value": "keyframe-node\n\nattach this to a node inverted (so the nodes data ouput goes to this input, and this keyframe output goes to the nodes data inputs), the node should be designed to support full data chunk input and output\n\n- inputs: {dataset:json, frameIndex:number}\n- outputs: {dataset:json}\n- data: {[frameIndex]: json}\n\n- component:\n- saveKeyframe: save the input data for the current frame\n- deleteKeyframe: remove the data for the current frame\n- play: when the frameIndex changes (and immediately), send the data for the current frame (interpolated), also ignore data coming in (as it should be a duplicate of what was sent)\n- pause: stop sending data when frameIndex changes\n\n\ninstructions:\n\nlook at `packages/workbench-app/src/nodes/webgl/three-position.tsx` and create a new `keyframeController` node in a similar file structure, that does the above."
+            }
+        },
+        {
+            "id": "n-keyframeController-1768708403705",
+            "type": "keyframeController",
+            "position": {
+                "x": 1792,
+                "y": 696,
+                "width": 280,
+                "height": 192
+            },
+            "inputs": [
+                {
+                    "name": "dataset",
+                    "type": "WorkflowJsonObject",
+                    "source": {
+                        "nodeId": "n-threePositionController-1768661334494",
+                        "name": "dataset"
+                    }
+                },
+                {
+                    "name": "frameIndex",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-timelineControl-1768688905567",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "dataset",
+                    "type": "WorkflowJsonObject"
+                }
+            ],
+            "data": {
+                "isPlaying": true,
+                "currentFrame": 65,
+                "keyframes": {
+                    "0": {
+                        "position": [
+                            0.00001,
+                            0,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ]
+                    },
+                    "15": {
+                        "position": [
+                            0.063059,
+                            0.001317,
+                            0.014776
+                        ],
+                        "rotation": [
+                            0,
+                            -0.128,
+                            0
+                        ]
+                    },
+                    "30": {
+                        "position": [
+                            0.164,
+                            -0.001,
+                            0.129
+                        ],
+                        "rotation": [
+                            0.002,
+                            -0.403,
+                            0.004
+                        ]
+                    },
+                    "65": {
+                        "position": [
+                            0.311059,
+                            -0.002683,
+                            0.371776
+                        ],
+                        "rotation": [
+                            -0.057,
+                            -0.93,
+                            0.014
+                        ]
+                    }
+                },
+                "lastSavedFrame": 30,
+                "interpolationEnabled": true
+            }
+        },
+        {
+            "id": "n-json-1768709495026",
+            "type": "json",
+            "position": {
+                "x": 2112,
+                "y": 696,
+                "width": 160,
+                "height": 288
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-keyframeController-1768708403705",
+                        "name": "dataset"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768709558469",
+            "type": "json",
+            "position": {
+                "x": 2112,
+                "y": 480,
+                "width": 136,
+                "height": 120
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-threePositionController-1768661334494",
+                        "name": "position"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768709563354",
+            "type": "json",
+            "position": {
+                "x": 2184,
+                "y": 472,
+                "width": 128,
+                "height": 128
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-threePositionController-1768661334494",
+                        "name": "rotation"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768716823127",
+            "type": "string",
+            "position": {
+                "x": 3256,
+                "y": 1056,
+                "width": 352,
+                "height": 256
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "line gizmo + ray calculation\n\noutput the endpoints between the camera position and origin\n\nsave into a line segment json\n\ngenerate all line segments objects\nadd all line objects to scene"
+            }
+        },
+        {
+            "id": "n-string-1768717042785",
+            "type": "string",
+            "position": {
+                "x": 3688,
+                "y": 1064,
+                "width": 424,
+                "height": 520
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "loops and node instances\n\na node has one instance, so what if we wanted an array of outputs to be sustained?\n\nit seems like the easiest thing to do would be to create:\n\n- ghost nodes ?\n- node instance stacks ?\n- sub workflows ?\n\n- the problem is graph space cost, execution cost is minimal\n\n- ! sub workflows are the most powerful option, this seems related to call trees"
+            }
+        },
+        {
+            "id": "n-string-1768717624047",
+            "type": "string",
+            "position": {
+                "x": 3256,
+                "y": 1352,
+                "width": 352,
+                "height": 304
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "segment projection\n\nimagine taking a segmentation outline and cutting it out, then projecting that in a beam from the source camera\n\nthis becomes an anchor point along which all other images must align (along the projection axis)\n\nIt would be an intersting tool visually also."
             }
         }
     ]
