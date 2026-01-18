@@ -5,16 +5,17 @@ import {
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
 import * as THREE from 'three';
 import { ObservableHint } from '@legendapp/state';
-import { CanvasThreeRendererNodeComponent } from './canvas.tsx';
-import { threeLoadImageTexture } from './image.tsx';
+import { threeSceneView } from './canvas.tsx';
 import { unbox, box, type Box } from './types';
 import { threePositionControllerNodeType } from './three-position.tsx';
 import { orbitControlsNodeTypes } from './orbit-controls.tsx';
 import { timelineControlNodeType } from './timeline.tsx';
 import { threeMeshDepthPlane } from './mesh-depth-plane.tsx';
+import { imageNodeTypes } from './image.tsx';
 
 const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
-  threeLoadImageTexture,
+  threeSceneView,
+  ...imageNodeTypes,
   threePositionControllerNodeType,
   timelineControlNodeType,
   ...orbitControlsNodeTypes,
@@ -103,85 +104,7 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
       return { outputs: { scene: ObservableHint.opaque(box(scene)) } };
     },
   },
-  threeSceneView: {
-    type: WorkflowBrandedTypes.typeName(`threeSceneView`),
-    getComponent: () => ({
-      Component: NodeTypeWrapComponentWithNodeWrapper(CanvasThreeRendererNodeComponent),
-    }),
-    inputs: [
-      {
-        name: WorkflowBrandedTypes.inputName(`scene`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.Scene>`),
-      },
-      {
-        name: WorkflowBrandedTypes.inputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
-      },
-    ],
-    outputs: [
-      {
-        name: WorkflowBrandedTypes.outputName(`renderer`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.WebGLRenderer>`),
-      },
-      {
-        name: WorkflowBrandedTypes.outputName(`canvas`),
-        type: WorkflowBrandedTypes.valueType(`Box<HTMLCanvasElement>`),
-      },
-      {
-        name: WorkflowBrandedTypes.outputName(`camera`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
-      },
-    ],
-    execute: async ({ inputs, runtimeState }) => {
-      const camera = unbox(inputs.camera as Box<THREE.Camera>);
-      const scene = unbox(inputs.scene as Box<THREE.Scene>);
-      if (!scene || !camera) {
-        console.log('[threeSceneView] execute missing scene or camera', {
-          scene,
-          camera,
-        });
-        return;
-      }
 
-      const rs = runtimeState as {
-        camera?: THREE.Camera;
-        scene?: THREE.Scene;
-        dispose?: () => void;
-      };
-
-      if (camera === rs.camera && scene === rs.scene) {
-        return;
-      }
-      rs.dispose?.();
-      rs.camera = camera;
-      rs.scene = scene;
-      rs.dispose = () => {};
-
-      const canvas = document.createElement('canvas');
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        antialias: true,
-      });
-
-      function animate() {
-        renderer.render(scene!, camera!);
-      }
-      renderer.setAnimationLoop(animate);
-
-      rs.dispose = () => {
-        renderer.setAnimationLoop(null);
-        renderer.dispose();
-      };
-
-      return {
-        outputs: {
-          renderer: box(renderer),
-          canvas: box(canvas),
-          camera: box(camera),
-        },
-      };
-    },
-  },
   threeCamera: {
     type: WorkflowBrandedTypes.typeName(`threeCamera`),
     getComponent: () => ({

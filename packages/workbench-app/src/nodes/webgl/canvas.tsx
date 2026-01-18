@@ -4,54 +4,90 @@ import { type WorkflowComponentProps_Obs } from '../../workflow/types';
 import * as THREE from 'three';
 import { useValue } from '@legendapp/state/react';
 import { unbox, type Box } from './types';
+import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
+import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
+import { box } from './types';
 
-// export const CanvasNodeComponent = (
-//   props: WorkflowComponentProps_Obs<
-//     Record<string, never>,
-//     Record<string, never>,
-//     { canvas: HTMLCanvasElement }
-//   >,
-// ) => {
-//   const { outputs$ } = props.data;
+// eslint-disable-next-line react-refresh/only-export-components
+export const threeSceneView: WorkflowRuntimeNodeTypeDefinition = {
+  type: WorkflowBrandedTypes.typeName(`threeSceneView`),
+  getComponent: () => ({
+    Component: NodeTypeWrapComponentWithNodeWrapper(CanvasThreeRendererNodeComponent),
+  }),
+  inputs: [
+    {
+      name: WorkflowBrandedTypes.inputName(`scene`),
+      type: WorkflowBrandedTypes.valueType(`Box<THREE.Scene>`),
+    },
+    {
+      name: WorkflowBrandedTypes.inputName(`camera`),
+      type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
+    },
+  ],
+  outputs: [
+    {
+      name: WorkflowBrandedTypes.outputName(`renderer`),
+      type: WorkflowBrandedTypes.valueType(`Box<THREE.WebGLRenderer>`),
+    },
+    {
+      name: WorkflowBrandedTypes.outputName(`canvas`),
+      type: WorkflowBrandedTypes.valueType(`Box<HTMLCanvasElement>`),
+    },
+    {
+      name: WorkflowBrandedTypes.outputName(`camera`),
+      type: WorkflowBrandedTypes.valueType(`Box<THREE.Camera>`),
+    },
+  ],
+  execute: async ({ inputs, runtimeState }) => {
+    const camera = unbox(inputs.camera as Box<THREE.Camera>);
+    const scene = unbox(inputs.scene as Box<THREE.Scene>);
+    if (!scene || !camera) {
+      console.log('[threeSceneView] execute missing scene or camera', {
+        scene,
+        camera,
+      });
+      return;
+    }
 
-//   useLayoutEffect(() => {
-//     const container = containerRef.current;
-//     if (!container) {
-//       return;
-//     }
+    const rs = runtimeState as {
+      camera?: THREE.Camera;
+      scene?: THREE.Scene;
+      dispose?: () => void;
+    };
 
-//     const canvas = outputs$.get().canvas;
-//     if (!canvas) {
-//       return;
-//     }
+    if (camera === rs.camera && scene === rs.scene) {
+      return;
+    }
+    rs.dispose?.();
+    rs.camera = camera;
+    rs.scene = scene;
+    rs.dispose = () => {};
 
-//     container.innerHTML = '';
-//     container.appendChild(canvas);
-//     outputs$.canvas?.set(canvas);
+    const canvas = document.createElement('canvas');
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+    });
 
-//     const handleResize = () => {
-//       canvas.width = container.clientWidth;
-//       canvas.height = container.clientHeight;
-//     };
-//     handleResize();
-//     const resizeObserver = new ResizeObserver(() => handleResize());
-//     resizeObserver.observe(container);
+    function animate() {
+      renderer.render(scene!, camera!);
+    }
+    renderer.setAnimationLoop(animate);
 
-//     return () => {
-//       container?.removeChild(canvas);
-//       resizeObserver.disconnect();
-//     };
-//   }, []);
+    rs.dispose = () => {
+      renderer.setAnimationLoop(null);
+      renderer.dispose();
+    };
 
-//   const containerRef = useRef<HTMLDivElement>(null);
-//   return (
-//     <>
-//       <WorkflowNodeWrapperSimple {...props}>
-//         <div className="bg-black w-full h-full nowheel nodrag nopan" ref={containerRef} />
-//       </WorkflowNodeWrapperSimple>
-//     </>
-//   );
-// };
+    return {
+      outputs: {
+        renderer: box(renderer),
+        canvas: box(canvas),
+        camera: box(camera),
+      },
+    };
+  },
+};
 
 export const CanvasThreeRendererNodeComponent = (
   props: WorkflowComponentProps_Obs<
