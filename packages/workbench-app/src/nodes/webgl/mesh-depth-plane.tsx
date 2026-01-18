@@ -32,6 +32,8 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
     const texture = unbox(inputs.texture as Box<THREE.Texture<HTMLImageElement>>);
     const depthTexture = unbox(inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>);
 
+    console.log('[threeMeshDepthPlane] START', { texture, depthTexture });
+
     if (!texture || !depthTexture) {
       console.log('[threeMeshDepthPlane] handleResize missing texture or depthTexture', {
         texture,
@@ -52,7 +54,12 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
     }
 
     if (rs.material) {
-      // switch the textures on the material
+      console.log('[threeMeshDepthPlane] switch the textures on the material', {
+        texture,
+        depthTexture,
+        rs,
+      });
+
       rs.texture = texture;
       rs.depthTexture = depthTexture;
 
@@ -97,9 +104,12 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
     const width = 1;
     const height = width / aspectRatio;
 
+    console.log('[threeMeshDepthPlane] creating plane with size', { width, height, imageSize });
     const geometry = new THREE.PlaneGeometry(width, height, imageSize.width, imageSize.height);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(Math.random(), Math.random(), Math.random());
+
+    console.log('[threeMeshDepthPlane] DONE', { width, height, imageSize });
 
     rs.dispose = () => {
       geometry.dispose();

@@ -71,10 +71,11 @@ const interpolateKeyframes = (
   keyframes: Record<number, WorkflowJsonObject>,
   frame: number,
 ): WorkflowJsonObject | null => {
+  console.log('[keyframeController:interpolateKeyframes] START', { keyframes, frame });
+
   if (Object.keys(keyframes).length === 0) return null;
 
   const frameNum = Math.floor(frame);
-  const fraction = frame - frameNum;
 
   // Exact keyframe match
   if (keyframes[frameNum] !== undefined) {
@@ -112,7 +113,17 @@ const interpolateKeyframes = (
   // Interpolate between surrounding keyframes
   const prevData = keyframes[prevFrame];
   const nextData = keyframes[nextFrame];
-  const t = fraction / (nextFrame - prevFrame);
+  const t = (frameNum - prevFrame) / (nextFrame - prevFrame);
+
+  console.log('[keyframeController:interpolateKeyframes] interpolate frames', {
+    prevFrame,
+    nextFrame,
+    prevData,
+    nextData,
+    t,
+    keyframes,
+    frame,
+  });
 
   return interpolateValue(prevData, nextData, t) as WorkflowJsonObject;
 };

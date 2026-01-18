@@ -53,10 +53,12 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
   ],
   execute: async ({ inputs, data, runtimeState, node }) => {
     const obj = unbox(inputs.object as Box<THREE.Object3D>);
+
     const { position: positionRaw } = (data as undefined | { position?: Vector3Array }) ?? {};
     const { rotation: rotationRaw } = (data as undefined | { rotation?: Vector3Array }) ?? {};
     const { dataset } =
-      (data as undefined | { dataset?: { position: Vector3Array; rotation: Vector3Array } }) ?? {};
+      (inputs as undefined | { dataset?: { position: Vector3Array; rotation: Vector3Array } }) ??
+      {};
     const datasetInputId = node.inputs
       .find((i) => i.name === 'dataset')
       ?.value.getImmediateChangeCounter();
@@ -72,6 +74,16 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
     };
 
     const shouldUseDataset = dataset && datasetInputId !== rs.lastDatasetId;
+    console.log('[threePositionController] execute', {
+      lastDatasetId: rs.lastDatasetId,
+      datasetInputId,
+      positionRaw,
+      rotationRaw,
+      dataset,
+      shouldUseDataset,
+      rs,
+    });
+
     if (shouldUseDataset) {
       rs.lastDatasetId = datasetInputId;
     }
