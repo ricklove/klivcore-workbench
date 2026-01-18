@@ -1,4 +1,3 @@
-// File: packages\workbench-app\src\nodes\webgl\system\use-webgl-preview.tsx
 import { useLayoutEffect, useRef, useId } from 'react';
 import {
   webglPreviewStore$,
@@ -6,10 +5,7 @@ import {
   type ScenePreviewData,
 } from './webgl-preview-store';
 
-export const useWebGLPreview = (
-  // We accept null to gracefully handle "loading" states in nodes
-  data: TexturePreviewData | ScenePreviewData | null | undefined,
-) => {
+export const useWebGLPreview = (data: TexturePreviewData | ScenePreviewData | null | undefined) => {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 

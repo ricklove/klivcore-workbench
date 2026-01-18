@@ -1,4 +1,3 @@
-// File: packages\workbench-app\src\nodes\webgl\system\webgl-preview-store.ts
 import { observable } from '@legendapp/state';
 import * as THREE from 'three';
 
