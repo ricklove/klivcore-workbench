@@ -13,6 +13,7 @@ import { timelineControlNodeType } from './timeline.tsx';
 import { threeMeshDepthPlane } from './mesh-depth-plane.tsx';
 import { imageNodeTypes } from './image.tsx';
 import { keyframeControllerNodeType } from './keyframe-controller.tsx';
+import { threeMeshDepthProjectionPlane } from './mesh-depth-projection-plane.tsx';
 
 const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
   threeSceneView,
@@ -22,6 +23,7 @@ const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
   keyframeControllerNodeType,
   ...orbitControlsNodeTypes,
   threeMeshDepthPlane,
+  threeMeshDepthProjectionPlane,
 ];
 
 export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {

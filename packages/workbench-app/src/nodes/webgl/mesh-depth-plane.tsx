@@ -21,6 +21,10 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
       name: WorkflowBrandedTypes.inputName(`depthTexture`),
       type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
     },
+    {
+      name: WorkflowBrandedTypes.inputName(`displacementScale`),
+      type: WorkflowBrandedTypes.valueType(`number`),
+    },
   ],
   outputs: [
     {
@@ -31,6 +35,7 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
   execute: async ({ inputs, runtimeState }) => {
     const texture = unbox(inputs.texture as Box<THREE.Texture<HTMLImageElement>>);
     const depthTexture = unbox(inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>);
+    const displacementScale = (inputs.displacementScale as number) ?? 1;
 
     console.log('[threeMeshDepthPlane] START', { texture, depthTexture });
 
@@ -76,7 +81,7 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
     const material = new THREE.MeshStandardMaterial({
       map: texture,
       displacementMap: depthTexture,
-      displacementScale: 1.0,
+      displacementScale,
       // Ensures the material is matte and doesn't reflect the light
       //   roughness: 1.0,
       //   metalness: 0.0,

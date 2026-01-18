@@ -815,8 +815,8 @@
             "id": "n-threeScene-1768621394274",
             "type": "threeScene",
             "position": {
-                "x": 2872,
-                "y": -328,
+                "x": 2792,
+                "y": -216,
                 "width": 128,
                 "height": 24
             },
@@ -1147,14 +1147,14 @@
             ],
             "data": {
                 "position": [
-                    0.164,
-                    -0.001,
-                    0.129
+                    1.152235,
+                    2.499,
+                    1.429
                 ],
                 "rotation": [
-                    0.002,
-                    -0.403,
-                    0.004
+                    0.802,
+                    -0.709143,
+                    1.004
                 ]
             }
         },
@@ -1388,13 +1388,13 @@
             ],
             "data": {
                 "value": 30,
-                "playing": true,
+                "playing": false,
                 "localMin": 0,
                 "localMax": 65,
                 "localInc": 1,
                 "localTick": 1000,
                 "localLoop": true,
-                "initialValue": 0
+                "initialValue": 38
             }
         },
         {
@@ -1448,6 +1448,10 @@
                         "nodeId": "n-threeLoadImageTexture-1768633455880",
                         "name": "texture"
                     }
+                },
+                {
+                    "name": "displacementScale",
+                    "type": "number"
                 }
             ],
             "outputs": [
@@ -1744,6 +1748,10 @@
                         "nodeId": "n-threeLoadImageTexture-1768702851998",
                         "name": "texture"
                     }
+                },
+                {
+                    "name": "displacementScale",
+                    "type": "number"
                 }
             ],
             "outputs": [
@@ -1887,7 +1895,9 @@
                 }
             ],
             "data": {
-                "localMax": 65
+                "localMax": 65,
+                "initialValue": 0,
+                "playing": false
             }
         },
         {
@@ -1950,7 +1960,7 @@
             ],
             "data": {
                 "isPlaying": true,
-                "currentFrame": 65,
+                "currentFrame": 38,
                 "keyframes": {
                     "0": {
                         "position": [
@@ -2001,7 +2011,6 @@
                         ]
                     }
                 },
-                "lastSavedFrame": 30,
                 "interpolationEnabled": true
             }
         },
@@ -2036,7 +2045,7 @@
             "type": "json",
             "position": {
                 "x": 2112,
-                "y": 480,
+                "y": 504,
                 "width": 136,
                 "height": 120
             },
@@ -2156,6 +2165,106 @@
             ],
             "data": {
                 "value": "segment projection\n\nimagine taking a segmentation outline and cutting it out, then projecting that in a beam from the source camera\n\nthis becomes an anchor point along which all other images must align (along the projection axis)\n\nIt would be an intersting tool visually also."
+            }
+        },
+        {
+            "id": "n-string-1768769937767",
+            "type": "string",
+            "position": {
+                "x": 3240,
+                "y": 1768,
+                "width": 648,
+                "height": 544
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "prompt:\n\nI have two images (with depth displacement) in a three.js scene from 2 frames of a real video. I am wanting to calculate the relative camera orientation so that all pixels projected from each camera line up.\nThe system is working manually and I can slowly adjust the 6 values (x,y,z pos, x,y,z rotation) to manually line up the image.\nI want to automate this process, i.e. jitter those values while measuring pixel agreement (and move each value towards best agreement).\nAt first I just want to do this wholistically for the whole image, but eventually, I will do it patch wise and even segment the different objects in the scene that are moving independently.\nFor now, I am just trying to solve for the relative camera position and orentiation.\nSo, the only piece I need is to be able to get a score. I can do all the logic to jitter the position and have the 2 meshes in the scene for a candidate. But I need a way tow render and compare the pixel matches. (i.e. render B to A's camera and compare every pixel to the original image A => give me a match score for the overall image. (the score could be 0 is better, so basically, i just need a diff of all the pixels and then I could average their values to get an overall difference score).\nObviously I want to do this all on the gpu, this is easy on the cpu. I want to know how to do this with webgl2 (not webgpu).\nLet's discuss the fastest way to do this at a very high framerate (the more matchScores I can calculate a second, the faster I can converge)\n\n---\n\nok, this requires a gpu-cpu roundtrip to score it once. Is there a way I could send a batch of position, rotation adjustments (or maybe just tell it to randomly modify the 4x4 projection matrix) and it give me like 1000 attempts (the scores and their matrix inputs)\nI mention the matrix, but I prefer the 6 x,y,z,rotX,rotY,rotZ better for human understanding (but if I could reconstruct those form a normalized matrix that would be fine too)\nTo be clear, mesh A is the origin (0 position and 0 rotation), so I only care about the relative position+rotation for mesh B (relative to A). So we could ignore the current mesh B position and rotation that is set by three js for this process.\nAlso if it is easier, we could go with just the raw rgb+depth textures and webgl2 shaders without threejs, I just want whatever is fastest to solve for it.\n\n---\n\nhmm, interesting. So I am interested in large pixel precise comparisons (so up to 4k image size with pixel percision).However, it would be helpful to work at a reduced resolution to get close to an approximate position before refining it futher.\n\nHowever, you made me realize that I can always provide my own patches of large images.\n\nSo in addition to the 3pos3rot vector to try, I would also like to provide the image [x,y,w,h] bounds of the image area to test. This would allow me to easily sample at different scales or try different patch areas or focus on specific overlap areas, etc.\n\nSo a 64x64 comparison area is great as long as I can also specify the image bounds to compare.\n\n---\n\n"
+            }
+        },
+        {
+            "id": "n-string-1768771369987",
+            "type": "string",
+            "position": {
+                "x": 3176,
+                "y": 2384,
+                "width": 776,
+                "height": 336
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "// code:\n\n\nimport * as THREE from 'three';\n\n// ---------------------------------------------------------------------------\n// Configuration & Constants\n// ---------------------------------------------------------------------------\n\nconst TILE_SIZE = 64;           // 64x64 pixels per candidate\nconst GRID_DIM = 32;            // 32x32 grid = 1024 candidates\nconst BATCH_SIZE = GRID_DIM * GRID_DIM; \nconst ATLAS_SIZE = TILE_SIZE * GRID_DIM; // 2048x2048 texture\n\n// ---------------------------------------------------------------------------\n// Shaders\n// ---------------------------------------------------------------------------\n\n// 1. SCENE VERTEX SHADER\n// Handles Instance Transforms + ROI Cropping (Zoom)\nconst PATCH_VERTEX_SHADER = `#version 300 es\nin vec3 position;\nin vec2 uv;\nin vec3 instanceTranslate; // x, y, z\nin vec3 instanceRotate;    // rx, ry, rz\nin vec4 instanceBounds;    // x, y, w, h (normalized 0..1, origin bottom-left)\n\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat4 modelMatrix; // Base model matrix\n\nuniform float uGridDim;\nuniform float uTileSize;\nuniform float uAtlasSize;\n\nout vec2 vUv;       // Texture UV for Mesh B\nout vec2 vScreenUv; // Screen UV (0..1) relative to the full Reference Image\n\n// Euler Rotation Matrix Construction\nmat4 makeRotation(vec3 r) {\n    float cx = cos(r.x), sx = sin(r.x);\n    float cy = cos(r.y), sy = sin(r.y);\n    float cz = cos(r.z), sz = sin(r.z);\n    \n    mat4 rotX = mat4(1.0, 0.0, 0.0, 0.0, 0.0, cx, -sx, 0.0, 0.0, sx, cx, 0.0, 0.0, 0.0, 0.0, 1.0);\n    mat4 rotY = mat4(cy, 0.0, sy, 0.0, 0.0, 1.0, 0.0, 0.0, -sy, 0.0, cy, 0.0, 0.0, 0.0, 0.0, 1.0);\n    mat4 rotZ = mat4(cz, -sz, 0.0, 0.0, sz, cx, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);\n    return rotZ * rotY * rotX; \n}\n\nvoid main() {\n    vUv = uv;\n\n    // 1. Apply Instance Rotation/Translation\n    mat4 rotMat = makeRotation(instanceRotate);\n    mat4 transMat = mat4(\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        instanceTranslate.x, instanceTranslate.y, instanceTranslate.z, 1.0\n    );\n    mat4 instanceMatrix = transMat * rotMat;\n\n    // 2. Project to Clip Space\n    vec4 worldPos = instanceMatrix * vec4(position, 1.0);\n    vec4 viewPos = viewMatrix * worldPos;\n    vec4 clipPos = projectionMatrix * viewPos;\n\n    // 3. ROI / Bounds Logic\n    // We want to map the region defined by instanceBounds to the full [-1, 1] range of the tile.\n    \n    // Convert current Clip (-1..1) to UV (0..1)\n    vec2 fullScreenUv = (clipPos.xy / clipPos.w) * 0.5 + 0.5;\n\n    // Save this for the fragment shader so it knows where to sample in the Reference Image\n    vScreenUv = fullScreenUv;\n\n    // Remap: \"Zoom\" into the bounds\n    // If uv is 0.5 and bounds.x is 0.4, relative is 0.1.\n    // Divide by bounds.w (scale) to normalize back to 0..1.\n    vec2 localTileUv = (fullScreenUv - instanceBounds.xy) / instanceBounds.zw;\n\n    // 4. Atlas Tile Offset\n    float instanceID = float(gl_InstanceID);\n    float col = mod(instanceID, uGridDim);\n    float row = floor(instanceID / uGridDim);\n\n    vec2 tileSizeUV = vec2(uTileSize / uAtlasSize);\n    vec2 tileOffsetUV = vec2(col, row) * tileSizeUV;\n\n    // Map local tile UV (0..1) to Atlas UV\n    vec2 atlasUV = tileOffsetUV + (localTileUv * tileSizeUV);\n\n    // Output final position\n    gl_Position = vec4(atlasUV * 2.0 - 1.0, clipPos.z, clipPos.w);\n}`;\n\n// 2. FRAGMENT SHADER\n// Compares rendered pixel to the Reference pixel at vScreenUv\nconst PATCH_DIFF_FRAGMENT_SHADER = `#version 300 es\nprecision highp float;\n\nuniform sampler2D tReference; // Full Reference Image A\nuniform sampler2D tMap;       // Texture on Mesh B (optional)\nuniform int uHasTexture; \nuniform vec4 uReferenceBounds; // If we only want to compare against a crop of Ref A\n\nin vec2 vUv;       // UV of Mesh B\nin vec2 vScreenUv; // Screen Coord (0..1) of Reference A\n\nout vec4 fragColor;\n\nvoid main() {\n    // 1. Sample Reference\n    // Since we are rendering a patch, vScreenUv corresponds to the actual location \n    // on the original full frame. We sample the reference directly there.\n    \n    // Bounds Check: If the mesh projects outside the requested bounds, \n    // the vertex shader expands it, but we might sample outside the texture?\n    // Clamp to be safe, or allow texture wrapping if that's desired.\n    // For comparison, we usually want to clamp or discard.\n    if (vScreenUv.x < 0.0 || vScreenUv.x > 1.0 || vScreenUv.y < 0.0 || vScreenUv.y > 1.0) {\n        fragColor = vec4(1.0, 0.0, 0.0, 1.0); // Penalty for out of bounds? or 0?\n        return;\n    }\n\n    vec4 colorRef = texture(tReference, vScreenUv);\n\n    // 2. Sample Candidate\n    vec4 colorCand = vec4(1.0);\n    if (uHasTexture == 1) {\n        colorCand = texture(tMap, vUv);\n    }\n    \n    // 3. Diff\n    vec3 diff = abs(colorRef.rgb - colorCand.rgb);\n    fragColor = vec4(diff, 1.0);\n}`;\n\n// (Reuse Reduction Shaders from previous answer)\nconst REDUCTION_FRAGMENT_SHADER = `#version 300 es\nprecision highp float;\nuniform sampler2D tInput;\nuniform vec2 uInputResolution;\nuniform float uStepSize;\nout vec4 fragColor;\nvoid main() {\n    vec2 fragCoord = gl_FragCoord.xy;\n    vec2 baseTexel = floor(fragCoord) * uStepSize;\n    vec3 sum = vec3(0.0);\n    float count = 0.0;\n    for(float y = 0.0; y < 8.0; y++) {\n        if(y >= uStepSize) break;\n        for(float x = 0.0; x < 8.0; x++) {\n            if(x >= uStepSize) break;\n            vec2 offset = vec2(x, y);\n            vec2 samplePos = (baseTexel + offset + 0.5) / uInputResolution;\n            sum += texture(tInput, samplePos).rgb;\n            count += 1.0;\n        }\n    }\n    fragColor = vec4(sum / count, 1.0);\n}`;\n\nconst QUAD_VERTEX_SHADER = `#version 300 es\nin vec3 position;\nvoid main() { gl_Position = vec4(position, 1.0); }`;\n\n// ---------------------------------------------------------------------------\n// Main Class\n// ---------------------------------------------------------------------------\n\nexport class PatchBatchScorer {\n  private renderer: THREE.WebGLRenderer;\n  \n  // Render Targets\n  private rtAtlas: THREE.WebGLRenderTarget;\n  private rtReduction1: THREE.WebGLRenderTarget;\n  private rtReduction2: THREE.WebGLRenderTarget;\n\n  // Scene Components\n  private instancedMesh: THREE.InstancedMesh;\n  private diffMaterial: THREE.RawShaderMaterial;\n  private quadScene: THREE.Scene;\n  private quadCamera: THREE.Camera;\n  private reductionMaterial: THREE.RawShaderMaterial;\n\n  // Attributes\n  private translateAttr: THREE.InstancedBufferAttribute;\n  private rotateAttr: THREE.InstancedBufferAttribute;\n  private boundsAttr: THREE.InstancedBufferAttribute;\n\n  // Buffers\n  private pixelBuffer: Float32Array;\n\n  constructor(\n    renderer: THREE.WebGLRenderer, \n    meshGeometry: THREE.BufferGeometry, \n    meshTexture: THREE.Texture | null,\n    referenceTexture: THREE.Texture\n  ) {\n    this.renderer = renderer;\n\n    // 1. Targets (HalfFloat for precision)\n    const rtOpts = {\n      type: THREE.HalfFloatType,\n      format: THREE.RGBAFormat,\n      minFilter: THREE.NearestFilter,\n      magFilter: THREE.NearestFilter,\n      depthBuffer: true,\n    };\n\n    this.rtAtlas = new THREE.WebGLRenderTarget(ATLAS_SIZE, ATLAS_SIZE, rtOpts);\n    this.rtReduction1 = new THREE.WebGLRenderTarget(ATLAS_SIZE / 8, ATLAS_SIZE / 8, { ...rtOpts, depthBuffer: false });\n    this.rtReduction2 = new THREE.WebGLRenderTarget(GRID_DIM, GRID_DIM, { ...rtOpts, type: THREE.FloatType, depthBuffer: false });\n\n    // 2. Material\n    this.diffMaterial = new THREE.RawShaderMaterial({\n      vertexShader: PATCH_VERTEX_SHADER,\n      fragmentShader: PATCH_DIFF_FRAGMENT_SHADER,\n      uniforms: {\n        tReference: { value: referenceTexture },\n        tMap: { value: meshTexture },\n        uHasTexture: { value: meshTexture ? 1 : 0 },\n        uGridDim: { value: GRID_DIM },\n        uTileSize: { value: TILE_SIZE },\n        uAtlasSize: { value: ATLAS_SIZE },\n        projectionMatrix: { value: new THREE.Matrix4() },\n        viewMatrix: { value: new THREE.Matrix4() },\n        modelMatrix: { value: new THREE.Matrix4() },\n      },\n      side: THREE.DoubleSide\n    });\n\n    // 3. Mesh & Attributes\n    this.instancedMesh = new THREE.InstancedMesh(meshGeometry, this.diffMaterial, BATCH_SIZE);\n    \n    // xyz (pos), xyz (rot), xywh (bounds)\n    this.translateAttr = new THREE.InstancedBufferAttribute(new Float32Array(BATCH_SIZE * 3), 3);\n    this.rotateAttr = new THREE.InstancedBufferAttribute(new Float32Array(BATCH_SIZE * 3), 3);\n    this.boundsAttr = new THREE.InstancedBufferAttribute(new Float32Array(BATCH_SIZE * 4), 4);\n    \n    this.instancedMesh.geometry.setAttribute('instanceTranslate', this.translateAttr);\n    this.instancedMesh.geometry.setAttribute('instanceRotate', this.rotateAttr);\n    this.instancedMesh.geometry.setAttribute('instanceBounds', this.boundsAttr);\n\n    // Initialize bounds to full screen (0,0,1,1) by default\n    for(let i=0; i<BATCH_SIZE; i++) {\n        this.boundsAttr.setXYZW(i, 0, 0, 1, 1);\n    }\n\n    // 4. Reduction Quad\n    this.quadScene = new THREE.Scene();\n    this.quadCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);\n    this.reductionMaterial = new THREE.RawShaderMaterial({\n      vertexShader: QUAD_VERTEX_SHADER,\n      fragmentShader: REDUCTION_FRAGMENT_SHADER,\n      uniforms: {\n        tInput: { value: null },\n        uInputResolution: { value: new THREE.Vector2() },\n        uStepSize: { value: 8.0 }\n      },\n      depthTest: false\n    });\n    this.quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.reductionMaterial));\n\n    this.pixelBuffer = new Float32Array(BATCH_SIZE * 4);\n  }\n\n  /**\n   * Update the batch data.\n   * @param translations [x,y,z, ...]\n   * @param rotations [x,y,z, ...] (Euler)\n   * @param bounds [x,y,w,h, ...] (Normalized 0..1. x,y is Bottom-Left)\n   */\n  public updateBatch(\n    translations: ArrayLike<number>, \n    rotations: ArrayLike<number>,\n    bounds?: ArrayLike<number> \n  ) {\n    this.translateAttr.set(translations);\n    this.translateAttr.needsUpdate = true;\n    \n    this.rotateAttr.set(rotations);\n    this.rotateAttr.needsUpdate = true;\n\n    if (bounds) {\n        this.boundsAttr.set(bounds);\n        this.boundsAttr.needsUpdate = true;\n    }\n  }\n\n  /**\n   * Execute score calculation\n   */\n  public computeScores(camera: THREE.Camera): Float32Array {\n    const currentRt = this.renderer.getRenderTarget();\n    const currentAutoClear = this.renderer.autoClear;\n    this.renderer.autoClear = false;\n\n    // Update Matrices\n    this.diffMaterial.uniforms.projectionMatrix.value.copy(camera.projectionMatrix);\n    this.diffMaterial.uniforms.viewMatrix.value.copy(camera.matrixWorldInverse);\n\n    // 1. Render Patches to Atlas\n    this.renderer.setRenderTarget(this.rtAtlas);\n    this.renderer.clear();\n    \n    // We render the mesh specifically (avoiding scene graph overhead)\n    const tempScene = new THREE.Scene();\n    tempScene.add(this.instancedMesh);\n    this.renderer.render(tempScene, camera);\n\n    // 2. Reduce (2048 -> 256)\n    this.reductionMaterial.uniforms.tInput.value = this.rtAtlas.texture;\n    this.reductionMaterial.uniforms.uInputResolution.value.set(ATLAS_SIZE, ATLAS_SIZE);\n    this.renderer.setRenderTarget(this.rtReduction1);\n    this.renderer.render(this.quadScene, this.quadCamera);\n\n    // 3. Reduce (256 -> 32)\n    this.reductionMaterial.uniforms.tInput.value = this.rtReduction1.texture;\n    this.reductionMaterial.uniforms.uInputResolution.value.set(ATLAS_SIZE/8, ATLAS_SIZE/8);\n    this.renderer.setRenderTarget(this.rtReduction2);\n    this.renderer.render(this.quadScene, this.quadCamera);\n\n    // 4. Read\n    this.renderer.readRenderTargetPixels(this.rtReduction2, 0, 0, GRID_DIM, GRID_DIM, this.pixelBuffer);\n\n    // Reset\n    this.renderer.setRenderTarget(currentRt);\n    this.renderer.autoClear = currentAutoClear;\n\n    // Parse\n    const scores = new Float32Array(BATCH_SIZE);\n    for (let i = 0; i < BATCH_SIZE; i++) {\n        // Simple RGB average\n        scores[i] = (this.pixelBuffer[i*4] + this.pixelBuffer[i*4+1] + this.pixelBuffer[i*4+2]) / 3.0;\n    }\n\n    return scores;\n  }\n}\n"
+            }
+        },
+        {
+            "id": "n-string-1768771385892",
+            "type": "string",
+            "position": {
+                "x": 3128,
+                "y": 2768,
+                "width": 840,
+                "height": 272
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "// usage:\n\nimport * as THREE from 'three';\nimport { PatchBatchScorer } from './PatchBatchScorer'; // The class from the previous answer\n\nasync function main() {\n  // --------------------------------------------------------\n  // 1. Standard Three.js Setup\n  // --------------------------------------------------------\n  const width = 1920;\n  const height = 1080;\n  \n  const renderer = new THREE.WebGLRenderer({ antialias: false });\n  renderer.setSize(width, height);\n  document.body.appendChild(renderer.domElement);\n\n  // The \"Reference\" Camera (Frame A's view)\n  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);\n  camera.position.set(0, 0, 0); // Origin\n  camera.lookAt(0, 0, -1);\n\n  // Load your assets (Simulated here)\n  const loader = new THREE.TextureLoader();\n  const texFrameA = await loader.loadAsync('path/to/frameA.jpg'); // Reference\n  const texFrameB = await loader.loadAsync('path/to/frameB.jpg'); // Candidate Mesh Texture\n\n  // Your Mesh B Geometry (e.g., a plane with depth displacement)\n  const geometryB = new THREE.PlaneGeometry(10, 10, 128, 128); \n  \n  // --------------------------------------------------------\n  // 2. Initialize the Scorer\n  // --------------------------------------------------------\n  const scorer = new PatchBatchScorer(\n    renderer,\n    geometryB,\n    texFrameB,\n    texFrameA\n  );\n\n  // --------------------------------------------------------\n  // 3. Optimization State\n  // --------------------------------------------------------\n  \n  // Current \"Best\" guess for relative position/rotation\n  const currentPose = {\n    x: 0, y: 0, z: -5,\n    rx: 0, ry: 0, rz: 0\n  };\n\n  // Buffer Size (Must match the BATCH_SIZE in the class, 1024)\n  const BATCH_SIZE = 1024;\n  \n  // Reuse these arrays to avoid Garbage Collection\n  const translations = new Float32Array(BATCH_SIZE * 3);\n  const rotations = new Float32Array(BATCH_SIZE * 3);\n  const bounds = new Float32Array(BATCH_SIZE * 4);\n\n  // --------------------------------------------------------\n  // 4. The Optimization Step\n  // --------------------------------------------------------\n  \n  function runOptimizationStep() {\n    const rangePos = 0.1; // Jitter range for position\n    const rangeRot = 0.05; // Jitter range for rotation (radians)\n\n    // A. Generate Candidates\n    for (let i = 0; i < BATCH_SIZE; i++) {\n      const idx = i * 3;\n      \n      // 0 is always the \"Unchanged\" candidate (Control group)\n      if (i === 0) {\n        translations[idx] = currentPose.x;\n        translations[idx+1] = currentPose.y;\n        translations[idx+2] = currentPose.z;\n        rotations[idx] = currentPose.rx;\n        rotations[idx+1] = currentPose.ry;\n        rotations[idx+2] = currentPose.rz;\n      } else {\n        // Random Jitter around current best\n        translations[idx] = currentPose.x + (Math.random() - 0.5) * rangePos;\n        translations[idx+1] = currentPose.y + (Math.random() - 0.5) * rangePos;\n        translations[idx+2] = currentPose.z + (Math.random() - 0.5) * rangePos;\n\n        rotations[idx] = currentPose.rx + (Math.random() - 0.5) * rangeRot;\n        rotations[idx+1] = currentPose.ry + (Math.random() - 0.5) * rangeRot;\n        rotations[idx+2] = currentPose.rz + (Math.random() - 0.5) * rangeRot;\n      }\n\n      // Bounds: Check Full Image (0,0,1,1)\n      // Or set specific patch: bounds[i*4] = 0.25 (x), etc.\n      const bIdx = i * 4;\n      bounds[bIdx] = 0;\n      bounds[bIdx+1] = 0;\n      bounds[bIdx+2] = 1;\n      bounds[bIdx+3] = 1;\n    }\n\n    // B. Upload Data\n    scorer.updateBatch(translations, rotations, bounds);\n\n    // C. Execute on GPU\n    // Note: Pass the camera used for the projection logic\n    const scores = scorer.computeScores(camera);\n\n    // D. Analyze Results\n    let bestScore = Infinity;\n    let bestIndex = -1;\n\n    for (let i = 0; i < BATCH_SIZE; i++) {\n      if (scores[i] < bestScore) {\n        bestScore = scores[i];\n        bestIndex = i;\n      }\n    }\n\n    // E. Apply Winner\n    if (bestIndex !== -1) {\n      const idx = bestIndex * 3;\n      currentPose.x = translations[idx]!;\n      currentPose.y = translations[idx+1]!;\n      currentPose.z = translations[idx+2]!;\n      currentPose.rx = rotations[idx]!;\n      currentPose.ry = rotations[idx+1]!;\n      currentPose.rz = rotations[idx+2]!;\n      \n      console.log(`Step Best Score: ${bestScore.toFixed(4)}`, currentPose);\n    }\n  }\n\n  // Run looping\n  function animate() {\n    requestAnimationFrame(animate);\n    \n    // Run one optimization generation per frame\n    // (Or run multiple times per frame if GPU allows)\n    runOptimizationStep();\n    \n    // Optional: Visually render the \"Best\" result to screen to verify\n    // renderSceneWith(currentPose)...\n  }\n\n  animate();\n}\n\nmain();"
+            }
+        },
+        {
+            "id": "n-string-1768771753205",
+            "type": "string",
+            "position": {
+                "x": 4072,
+                "y": 2720,
+                "width": 496,
+                "height": 344
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "solving for original camera fov and image crop\n\nthe iterative process of solving the relative position and orientation of 2 frames, depends on the camera fov and image crop\n\nif those are changed, this will effect the alignment parameters\n\nso in order to solve for the source camera, it is also needed to compare the flat image to the displaced image\n\n---\n\nok, let's reset and talk about a single image first and figure out how to take the grayscale depth estimate and convert it into an actual how far the source object was from the pixel sensor.\n\nfor example, when I look at a photo, a standard depth estimate will show a gradient where the person projects out from a gradient of the background. But in 3d the person is 1.5m tall but the background is only 3m away from the screen. In reality, the background could be thousands of meters away.\n\nAt best the grayscale depth is only useful as a relative depth of the neighbor pixels and displaying it with a simple displacement map is heavily distorted.\n\nSo let's take what is known for sure. Each pixel in an image is a ray that goes directly from the camera sensor pixel location to the source of light in reality. So each pixel represents a ray projecting out for any distance.\n\nThe depth estimate is useful to give us local comparison, but a dark depth pixel could be anything from 50m to 5000m away (or more).\n\nOf course the father the source of light is, the less the exact position of the camera matters, so we might just max out all background source rays at something like 100m (where the depth perspective is neglible)"
             }
         }
     ]
