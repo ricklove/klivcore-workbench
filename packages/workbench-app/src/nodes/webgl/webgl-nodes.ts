@@ -6,16 +6,19 @@ import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '..
 import * as THREE from 'three';
 import { ObservableHint } from '@legendapp/state';
 import { CanvasThreeRendererNodeComponent } from './canvas.tsx';
-import { ImageUrlPreviewComponent } from './image.tsx';
+import { threeLoadImageTexture } from './image.tsx';
 import { unbox, box, type Box } from './types';
 import { threePositionControllerNodeType } from './three-position.tsx';
 import { orbitControlsNodeTypes } from './orbit-controls.tsx';
 import { timelineControlNodeType } from './timeline.tsx';
+import { threeMeshDepthPlane } from './mesh-depth-plane.tsx';
 
 const otherWebglNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
+  threeLoadImageTexture,
   threePositionControllerNodeType,
   timelineControlNodeType,
   ...orbitControlsNodeTypes,
+  threeMeshDepthPlane,
 ];
 
 export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
@@ -86,9 +89,15 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     execute: async () => {
       const scene = new THREE.Scene();
 
+      // TEMP: ambient light
+      const ambientLight: THREE.AmbientLight = new THREE.AmbientLight(0xffffff, 1.0);
+      scene.add(ambientLight);
+
+      // TEMP: add a cube
       const geometry = new THREE.BoxGeometry(1, 1, 1);
       const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
       const cube = new THREE.Mesh(geometry, material);
+      cube.position.set(0, 0, -10);
       scene.add(cube);
 
       return { outputs: { scene: ObservableHint.opaque(box(scene)) } };
@@ -197,66 +206,6 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
     },
   },
 
-  threeLoadImageTexture: {
-    type: WorkflowBrandedTypes.typeName(`threeLoadImageTexture`),
-    getComponent: () => ({
-      Component: NodeTypeWrapComponentWithNodeWrapper(ImageUrlPreviewComponent),
-    }),
-    inputs: [
-      {
-        name: WorkflowBrandedTypes.inputName(`url`),
-        type: WorkflowBrandedTypes.valueType(`string`),
-      },
-    ],
-    outputs: [
-      {
-        name: WorkflowBrandedTypes.outputName(`texture`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
-      },
-    ],
-    execute: async ({ inputs, runtimeState }) => {
-      const url = inputs.url as string;
-      if (!url) {
-        console.log('[threeImage] handleResize missing url', {
-          url,
-        });
-        return;
-      }
-
-      const rs = runtimeState as {
-        url?: string;
-        dispose?: () => void;
-      };
-
-      if (url === rs.url) {
-        return;
-      }
-      rs.dispose?.();
-      rs.url = url;
-
-      const loader = new THREE.TextureLoader();
-      const texture = await new Promise<THREE.Texture<HTMLImageElement>>((resolve, reject) => {
-        loader.load(
-          url,
-          (texture) => {
-            rs.dispose = () => {
-              texture.dispose();
-            };
-
-            texture.colorSpace = THREE.SRGBColorSpace;
-            resolve(texture);
-          },
-          undefined,
-          (err) => {
-            console.error('[threeImage] Error loading texture', { url, err });
-            reject(err);
-          },
-        );
-      });
-
-      return { outputs: { texture: ObservableHint.opaque(box(texture)) } };
-    },
-  },
   threeMeshPlane: {
     type: WorkflowBrandedTypes.typeName(`threeMeshPlane`),
     getComponent: () => ({
