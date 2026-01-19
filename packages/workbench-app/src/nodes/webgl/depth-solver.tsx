@@ -48,16 +48,20 @@ void main() {
   vec3 cCenter = texture(tColor, uv).rgb;
 
   // 2. Neighbor Sampling
-  vec2 offsets[4];
+  vec2 offsets[8];
   offsets[0] = vec2(-1, 0);
   offsets[1] = vec2(1, 0);
   offsets[2] = vec2(0, -1);
   offsets[3] = vec2(0, 1);
+  offsets[4] = vec2(-2, -2);
+  offsets[5] = vec2(2, -2);
+  offsets[6] = vec2(-2, 2);
+  offsets[7] = vec2(2, 2);
 
   float dSum = 0.0;
   float wSum = 0.0;
 
-  for(int i = 0; i < 4; i++) {
+  for(int i = 0; i < 8; i++) {
       vec2 sampleUV = uv + offsets[i] * onePixel;
       
       // Reconstruct Neighbor Total Depth
