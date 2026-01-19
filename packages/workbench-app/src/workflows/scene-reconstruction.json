@@ -942,8 +942,8 @@
             "id": "n-threeSceneView-1768624347434",
             "type": "threeSceneView",
             "position": {
-                "x": 3040,
-                "y": 208,
+                "x": 360,
+                "y": -552,
                 "width": 640,
                 "height": 672
             },
@@ -1088,7 +1088,7 @@
                     "name": "object",
                     "type": "Box<THREE.Object3D>",
                     "source": {
-                        "nodeId": "n-threeMeshDepthPlane-1768693377330",
+                        "nodeId": "n-threeMeshDepthProjectionPlane-1768774022992",
                         "name": "mesh"
                     }
                 }
@@ -1105,7 +1105,7 @@
             "type": "threePositionController",
             "position": {
                 "x": 1792,
-                "y": 568,
+                "y": 584,
                 "width": 280,
                 "height": 72
             },
@@ -1114,7 +1114,7 @@
                     "name": "object",
                     "type": "Box<THREE.Object3D>",
                     "source": {
-                        "nodeId": "n-threeMeshDepthPlane-1768693377330",
+                        "nodeId": "n-threeMeshDepthProjectionPlane-1768774022992",
                         "name": "mesh"
                     }
                 },
@@ -1147,14 +1147,14 @@
             ],
             "data": {
                 "position": [
-                    1.152235,
-                    2.499,
-                    1.429
+                    0.168,
+                    -0.294,
+                    5.18
                 ],
                 "rotation": [
-                    0.802,
-                    -0.709143,
-                    1.004
+                    0.054,
+                    -0.02,
+                    -0.01
                 ]
             }
         },
@@ -1394,7 +1394,7 @@
                 "localInc": 1,
                 "localTick": 1000,
                 "localLoop": true,
-                "initialValue": 38
+                "initialValue": 48
             }
         },
         {
@@ -1427,8 +1427,8 @@
             "id": "n-threeMeshDepthPlane-1768693377330",
             "type": "threeMeshDepthPlane",
             "position": {
-                "x": 1792,
-                "y": 432,
+                "x": 1280,
+                "y": 312,
                 "width": 128,
                 "height": 24
             },
@@ -1839,7 +1839,7 @@
             "data": {
                 "position": [
                     0,
-                    0,
+                    3.6,
                     0
                 ],
                 "rotation": [
@@ -1959,8 +1959,8 @@
                 }
             ],
             "data": {
-                "isPlaying": true,
-                "currentFrame": 38,
+                "isPlaying": false,
+                "currentFrame": 48,
                 "keyframes": {
                     "0": {
                         "position": [
@@ -2011,7 +2011,7 @@
                         ]
                     }
                 },
-                "interpolationEnabled": true
+                "interpolationEnabled": false
             }
         },
         {
@@ -2264,7 +2264,521 @@
                 }
             ],
             "data": {
-                "value": "solving for original camera fov and image crop\n\nthe iterative process of solving the relative position and orientation of 2 frames, depends on the camera fov and image crop\n\nif those are changed, this will effect the alignment parameters\n\nso in order to solve for the source camera, it is also needed to compare the flat image to the displaced image\n\n---\n\nok, let's reset and talk about a single image first and figure out how to take the grayscale depth estimate and convert it into an actual how far the source object was from the pixel sensor.\n\nfor example, when I look at a photo, a standard depth estimate will show a gradient where the person projects out from a gradient of the background. But in 3d the person is 1.5m tall but the background is only 3m away from the screen. In reality, the background could be thousands of meters away.\n\nAt best the grayscale depth is only useful as a relative depth of the neighbor pixels and displaying it with a simple displacement map is heavily distorted.\n\nSo let's take what is known for sure. Each pixel in an image is a ray that goes directly from the camera sensor pixel location to the source of light in reality. So each pixel represents a ray projecting out for any distance.\n\nThe depth estimate is useful to give us local comparison, but a dark depth pixel could be anything from 50m to 5000m away (or more).\n\nOf course the father the source of light is, the less the exact position of the camera matters, so we might just max out all background source rays at something like 100m (where the depth perspective is neglible)"
+                "value": "solving for original camera fov and image crop\n\nthe iterative process of solving the relative position and orientation of 2 frames, depends on the camera fov and image crop\n\nif those are changed, this will effect the alignment parameters\n\nso in order to solve for the source camera, it is also needed to compare the flat image to the displaced image\n\n---\n\nok, let's reset and talk about a single image first and figure out how to take the grayscale depth estimate and convert it into an actual how far the source object was from the pixel sensor.\n\nfor example, when I look at a photo, a standard depth estimate will show a gradient where the person projects out from a gradient of the background. But in 3d the person is 1.5m tall but the background is only 3m away from the screen. In reality, the background could be thousands of meters away.\n\nAt best the grayscale depth is only useful as a relative depth of the neighbor pixels and displaying it with a simple displacement map is heavily distorted.\n\nSo let's take what is known for sure. Each pixel in an image is a ray that goes directly from the camera sensor pixel location to the source of light in reality. So each pixel represents a ray projecting out for any distance.\n\nThe depth estimate is useful to give us local comparison, but a dark depth pixel could be anything from 50m to 5000m away (or more).\n\nOf course the father the source of light is, the less the exact position of the camera matters, so we might just max out all background source rays at something like 100m (where the depth perspective is neglible)\n\n---\n\nit seems like it should be these steps:\n\n- segment (edge detect) find all pixels where this is a jump in depth\n- close curves (at ground or image border) \n- compress the cutout area scale to a local scale (and maybe linear instead of power)\n\nhmm, but I don't want to do act like I can solve this at once, I want to be able to smooth the depth and correct it iteratively in the gpu.\n\nSo it seems like I want:\n\n- convert the depth to absolute distance to camera sensor units (in float32 meters) (assume single point camera sensor array).\n- use a simpler consistent shader that projects the pixel position based only on this ray distance and the camera info (camera pos origin and orientation, fov of u/v, and uv of camera center)\n\n"
+            }
+        },
+        {
+            "id": "n-threeMeshDepthProjectionPlane-1768774022992",
+            "type": "threeMeshDepthProjectionPlane",
+            "position": {
+                "x": 1496,
+                "y": 400,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "texture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768632920093",
+                        "name": "texture"
+                    }
+                },
+                {
+                    "name": "depthTexture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeDepthRefinement-1768785207519",
+                        "name": "refinedDepthTexture"
+                    }
+                },
+                {
+                    "name": "fov",
+                    "type": "number"
+                },
+                {
+                    "name": "near",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768781965555",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "far",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768781974024",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "depthPower",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768777605129",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "maxSegments",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768777298684",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "perspectiveMix",
+                    "type": "number"
+                },
+                {
+                    "name": "depthMode",
+                    "type": "string"
+                },
+                {
+                    "name": "gapThreshold",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768783400107",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "gapSoftness",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768783384945",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "mesh",
+                    "type": "Box<THREE.Mesh>"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768777298684",
+            "type": "json",
+            "position": {
+                "x": 1224,
+                "y": 632,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "1024"
+            }
+        },
+        {
+            "id": "n-json-1768777605129",
+            "type": "json",
+            "position": {
+                "x": 1224,
+                "y": 576,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "1"
+            }
+        },
+        {
+            "id": "n-json-1768781965555",
+            "type": "json",
+            "position": {
+                "x": 1224,
+                "y": 400,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "1"
+            }
+        },
+        {
+            "id": "n-json-1768781974024",
+            "type": "json",
+            "position": {
+                "x": 1224,
+                "y": 480,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "50"
+            }
+        },
+        {
+            "id": "n-json-1768783384945",
+            "type": "json",
+            "position": {
+                "x": 1224,
+                "y": 776,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "0"
+            }
+        },
+        {
+            "id": "n-json-1768783400107",
+            "type": "json",
+            "position": {
+                "x": 1224,
+                "y": 712,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "1"
+            }
+        },
+        {
+            "id": "n-threeDepthRefinement-1768785207519",
+            "type": "threeDepthRefinement",
+            "position": {
+                "x": 1496,
+                "y": 184,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "colorTexture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768632920093",
+                        "name": "texture"
+                    }
+                },
+                {
+                    "name": "depthTexture",
+                    "type": "Box<THREE.Texture<HTMLImageElement>>",
+                    "source": {
+                        "nodeId": "n-threeLoadImageTexture-1768633455880",
+                        "name": "texture"
+                    }
+                },
+                {
+                    "name": "iterations",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768786966967",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "smoothStrength",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768790136196",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "colorSensitivity",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768790577029",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "anchorStrength",
+                    "type": "number",
+                    "source": {
+                        "nodeId": "n-json-1768790139365",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "reset",
+                    "type": "boolean",
+                    "source": {
+                        "nodeId": "n-json-1768786200890",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "enabled",
+                    "type": "boolean",
+                    "source": {
+                        "nodeId": "n-json-1768786200890",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "refinedDepthTexture",
+                    "type": "Box<THREE.Texture>"
+                },
+                {
+                    "name": "runner",
+                    "type": "Box<THREE.Object3D>"
+                }
+            ]
+        },
+        {
+            "id": "n-threeAddToScene-1768785244217",
+            "type": "threeAddToScene",
+            "position": {
+                "x": 1472,
+                "y": 120,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "scene",
+                    "type": "Box<THREE.Scene>",
+                    "source": {
+                        "nodeId": "n-threeScene-1768621394274",
+                        "name": "scene"
+                    }
+                },
+                {
+                    "name": "object",
+                    "type": "Box<THREE.Object3D>",
+                    "source": {
+                        "nodeId": "n-threeDepthRefinement-1768785207519",
+                        "name": "runner"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "success",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768786200890",
+            "type": "json",
+            "position": {
+                "x": 1112,
+                "y": 176,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "true"
+            }
+        },
+        {
+            "id": "n-json-1768786344849",
+            "type": "json",
+            "position": {
+                "x": 1112,
+                "y": 216,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "false"
+            }
+        },
+        {
+            "id": "n-json-1768786966967",
+            "type": "json",
+            "position": {
+                "x": 1104,
+                "y": 264,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "0.1"
+            }
+        },
+        {
+            "id": "n-json-1768790136196",
+            "type": "json",
+            "position": {
+                "x": 928,
+                "y": 280,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "0.0999"
+            }
+        },
+        {
+            "id": "n-json-1768790139365",
+            "type": "json",
+            "position": {
+                "x": 944,
+                "y": 360,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "0.00999"
+            }
+        },
+        {
+            "id": "n-json-1768790577029",
+            "type": "json",
+            "position": {
+                "x": 856,
+                "y": 184,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "100000"
             }
         }
     ]
