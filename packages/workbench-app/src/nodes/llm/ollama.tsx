@@ -25,10 +25,11 @@ interface OllamaInputs {
 
 interface OllamaOutputs {
   chunk: OllamaStreamChunk;
+  thought: undefined | string;
   response: undefined | string;
   done: boolean;
   error: undefined | string;
-  status: 'idle' | 'connecting' | 'streaming' | 'error' | 'completed';
+  status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';
 }
 
 interface OllamaStreamChunk {
@@ -70,6 +71,10 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
     {
       name: WorkflowBrandedTypes.outputName('chunk'),
       type: WorkflowBrandedTypes.valueType('OllamaStreamChunk'),
+    },
+    {
+      name: WorkflowBrandedTypes.outputName('thought'),
+      type: WorkflowBrandedTypes.valueType('string'),
     },
     {
       name: WorkflowBrandedTypes.outputName('response'),
@@ -114,7 +119,9 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
       };
     }
 
+    let cumulativeThought = '';
     let cumulativeResponse = '';
+    let thoughtClosed = false;
 
     const processStream = async (emit: (output: OllamaOutputs) => void): Promise<void> => {
       let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;
@@ -123,6 +130,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
         controller.setProgress({ progressRatio: 0.1, message: 'Connecting to Ollama...' });
         emit({
           chunk: {},
+          thought: undefined,
           response: undefined,
           done: false,
           error: undefined,
@@ -154,16 +162,19 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
         controller.setProgress({ progressRatio: 0.3, message: 'Starting stream...' });
         emit({
           chunk: {},
+          thought: undefined,
           response: undefined,
           done: false,
           error: undefined,
-          status: 'streaming',
+          status: 'thinking',
         });
 
         reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let chunkCount = 0;
+
+        const THINK_CLOSE_TAGS = ['</thinking>', '</think>', '</thought>'];
 
         while (true) {
           const { done, value } = await reader.read();
@@ -172,10 +183,17 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
           }
 
           if (done) {
+            // If thought was never closed, copy everything to response
+            if (!thoughtClosed) {
+              cumulativeResponse = cumulativeThought;
+              cumulativeThought = '';
+            }
+
             controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
             emit({
               chunk: { done: true },
-              response: cumulativeResponse,
+              thought: cumulativeThought || undefined,
+              response: cumulativeResponse || undefined,
               done: true,
               error: undefined,
               status: 'completed',
@@ -197,29 +215,62 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
               const parsedChunk: OllamaStreamChunk = JSON.parse(trimmedLine);
 
               if (parsedChunk.response) {
-                cumulativeResponse += parsedChunk.response;
+                // Always add to cumulative thought initially
+                cumulativeThought += parsedChunk.response;
+
+                // Check if this is the first time we're finding the closing tag
+                const foundCloseThoughtTag = thoughtClosed
+                  ? undefined
+                  : THINK_CLOSE_TAGS.find((tag) => cumulativeThought.includes(tag))!;
+
+                if (foundCloseThoughtTag) {
+                  // Find the first closing tag that appears
+                  const splitIndex = cumulativeThought.indexOf(foundCloseThoughtTag);
+                  const thoughtContent = cumulativeThought.substring(0, splitIndex);
+                  const responseContent = cumulativeThought.substring(
+                    splitIndex + foundCloseThoughtTag.length,
+                  );
+
+                  // Update cumulative variables
+                  cumulativeThought = thoughtContent;
+                  cumulativeResponse = responseContent;
+                  thoughtClosed = true;
+                }
+                // If thought is already closed, add to response
+                else if (thoughtClosed) {
+                  cumulativeResponse += parsedChunk.response;
+                }
               }
 
               chunkCount++;
               const progressRatio = Math.min(0.3 + chunkCount * 0.05, 0.9);
+              const currentStatus = thoughtClosed ? 'streaming' : 'thinking';
               controller.setProgress({
                 progressRatio,
-                message: `Streaming... (${chunkCount} chunks)`,
+                message: `${currentStatus === 'thinking' ? 'Thinking' : 'Streaming'}... (${chunkCount} chunks)`,
               });
 
               emit({
                 chunk: parsedChunk,
-                response: cumulativeResponse,
+                thought: cumulativeThought || undefined,
+                response: cumulativeResponse || undefined,
                 done: parsedChunk.done ?? false,
                 error: parsedChunk.error,
-                status: 'streaming',
+                status: currentStatus,
               });
 
               if (parsedChunk.done) {
+                // If thought was never closed, copy everything to response
+                if (!thoughtClosed) {
+                  cumulativeResponse = cumulativeThought;
+                  cumulativeThought = '';
+                }
+
                 controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
                 emit({
                   chunk: parsedChunk,
-                  response: cumulativeResponse,
+                  thought: cumulativeThought || undefined,
+                  response: cumulativeResponse || undefined,
                   done: true,
                   error: undefined,
                   status: 'completed',
@@ -232,6 +283,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
                 chunk: {
                   error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
                 },
+                thought: undefined,
                 response: undefined,
                 done: false,
                 error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
@@ -246,6 +298,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
         emit({
           chunk: { error: errorMessage },
+          thought: undefined,
           response: undefined,
           done: false,
           error: errorMessage,
@@ -265,10 +318,17 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
       });
     });
 
+    // Final processing for the return statement
+    if (!thoughtClosed && cumulativeThought) {
+      cumulativeResponse = cumulativeThought;
+      cumulativeThought = '';
+    }
+
     return {
       outputs: {
         chunk: null,
-        response: cumulativeResponse,
+        thought: cumulativeThought || undefined,
+        response: cumulativeResponse || undefined,
         done: true,
         error: null,
         status: 'success',
@@ -332,6 +392,7 @@ export const OllamaStreamingComponent = (
   const isOllamaUrlReadonly = ollamaUrlSlot.isConnected;
 
   const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
+  const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');
   const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');
   const currentError = useValue(() => props.data.outputs$.error.get());
 
@@ -350,6 +411,8 @@ export const OllamaStreamingComponent = (
     switch (status) {
       case 'connecting':
         return 'text-yellow-500';
+      case 'thinking':
+        return 'text-purple-500';
       case 'streaming':
         return 'text-blue-500';
       case 'completed':
@@ -365,6 +428,8 @@ export const OllamaStreamingComponent = (
     switch (status) {
       case 'connecting':
         return 'Connecting...';
+      case 'thinking':
+        return 'Thinking...';
       case 'streaming':
         return 'Streaming';
       case 'completed':
@@ -406,6 +471,20 @@ export const OllamaStreamingComponent = (
             placeholder="llama3.1"
           />
         </div>
+
+        {/* Thought Preview */}
+        {currentThought && (
+          <div className="flex flex-col gap-1 border-t border-neutral-800 pt-2">
+            <div className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+              Thought Process
+            </div>
+            <div className="bg-black/25 border border-purple-800/50 rounded p-2 h-20 overflow-y-auto">
+              <div className="text-purple-400 text-xs font-mono whitespace-pre-wrap">
+                {currentThought}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Response Preview */}
         <div className="flex flex-col gap-1 border-t border-neutral-800 pt-2">
