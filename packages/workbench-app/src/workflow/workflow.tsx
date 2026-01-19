@@ -9,6 +9,7 @@ import {
   type XYPosition,
   Panel,
   type OnConnectStartParams,
+  type OnConnectEnd,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { CustomEdge } from './edge';
@@ -182,7 +183,7 @@ const WorkflowViewInner = () => {
   const addNodeToWorkflow = useCallback(
     async (typeNameRaw: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
       const typeName = WorkflowBrandedTypes.typeName(typeNameRaw);
-      const nodeType = runtimeStore$.nodeTypes[typeName];
+      const nodeType = runtimeStore$.nodeTypes[typeName]?.peek();
       if (!nodeType) {
         throw new Error(`Unknown node type: ${typeName}`);
       }
@@ -194,7 +195,7 @@ const WorkflowViewInner = () => {
 
         const targetInputName =
           Object.entries(nodeType.inputs).find(([k]) => k === connectionParams?.handleId)?.[0] ??
-          Object.keys(nodeType.inputs)[0];
+          Object.values(nodeType.inputs)[0]?.name;
 
         if (!targetInputName) {
           console.warn(`[addNode]  Target input not found: ${handleId} on node type: ${typeName}`);
@@ -208,11 +209,18 @@ const WorkflowViewInner = () => {
         };
       })();
 
-      const s = nodeType.peek().defaultSize ?? { width: 128, height: 24 };
+      const s = nodeType.defaultSize ?? { width: 128, height: 24 };
       runtimeStore$.actions.createNode({
         id: newId,
         type: typeName,
         position: { x: position.x - s.width / 2, y: position.y - s.height, ...s },
+      });
+
+      console.log(`[WorkflowView] Added node to workflow`, {
+        typeName,
+        position,
+        newId,
+        inputEdge,
       });
 
       if (inputEdge) {
@@ -250,6 +258,71 @@ const WorkflowViewInner = () => {
     setAutoSelectNodeId(undefined);
   }, [autoSelectNodeId, nodes]);
 
+  const onConnectEnd: OnConnectEnd = useCallback(
+    (event, connectionState) => {
+      if (connectionState.isValid) {
+        // handled
+        return;
+      }
+      const { clientX, clientY } =
+        ('changedTouches' in event ? event.changedTouches[0] : event) ?? {};
+      if (!clientX || !clientY) {
+        console.warn('[onConnectEnd] No clientX/clientY on event', { event });
+        return;
+      }
+
+      const fromNodeId = connectionState.fromNode?.id;
+      const fromHandleId = connectionState.fromHandle?.id;
+
+      const toNodeId = connectionState.toNode?.id;
+      const toHandleId = connectionState.toHandle?.id;
+      const params =
+        fromNodeId && fromHandleId
+          ? {
+              nodeId: fromNodeId,
+              handleId: fromHandleId,
+              handleType: `source` as const,
+            }
+          : toNodeId && toHandleId
+            ? {
+                nodeId: toNodeId,
+                handleId: toHandleId,
+                handleType: `target` as const,
+              }
+            : undefined;
+
+      if (!params) {
+        console.warn('[onConnectEnd] missing fromNodeId or fromHandleId', {
+          fromNodeId,
+          fromHandleId,
+        });
+        return;
+      }
+
+      setMenu({
+        timestamp: Date.now(),
+        x: clientX,
+        y: clientY,
+        context: {
+          type: `connection`,
+          params,
+        },
+      });
+
+      // const position = screenToFlowPosition({
+      //   x: clientX,
+      //   y: clientY,
+      // });
+
+      // // when a connection is dropped on the pane it's not valid
+      // addNodeToWorkflow(`string`, position, {
+      //   nodeId: connectionState.nodeId,
+      //   handleId: connectionState.handleId,
+      // });
+    },
+    [screenToFlowPosition],
+  );
+
   return (
     <div className="w-full h-full bg-slate-900 text-white">
       <ReactFlow
@@ -261,6 +334,7 @@ const WorkflowViewInner = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
         fitView
         minZoom={0.1}
         maxZoom={4}
@@ -385,6 +459,7 @@ const WorkflowViewInner = () => {
           onSelect={(type) => {
             const position = screenToFlowPosition({ x: menu.x, y: menu.y });
 
+            console.log(`[WorkflowView] Node type selected: ${type}`, { position, menu });
             if (menu.context.type === `connection`) {
               addNodeToWorkflow(type, position, menu.context.params);
             } else {
