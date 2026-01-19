@@ -21,11 +21,12 @@ void main() {
   gl_Position = vec4(position, 1.0);
 }`;
 
+// SOLVER: Solves for the Offset (Error) relative to Initial Depth
 const SOLVER_FRAGMENT_SHADER = `
 precision highp float;
 
-uniform sampler2D tCurrentDepth;
-uniform sampler2D tInitialDepth;
+uniform sampler2D tCurrentOffset; // Stores the accumulated offset (starts at 0)
+uniform sampler2D tInitialDepth;  // The fixed AI depth
 uniform sampler2D tColor;
 
 uniform vec2 uResolution;
@@ -39,10 +40,14 @@ void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
   vec2 onePixel = 1.0 / uResolution;
 
-  float dCenter = texture(tCurrentDepth, uv).r;
-  vec3 cCenter = texture(tColor, uv).rgb;
+  // 1. Reconstruct Total Depth at Center
   float dInitial = texture(tInitialDepth, uv).r;
+  float offCenter = texture(tCurrentOffset, uv).r;
+  float dCenter = dInitial + offCenter; // dTotal
+  
+  vec3 cCenter = texture(tColor, uv).rgb;
 
+  // 2. Neighbor Sampling
   vec2 offsets[4];
   offsets[0] = vec2(-1, 0);
   offsets[1] = vec2(1, 0);
@@ -55,9 +60,14 @@ void main() {
   for(int i = 0; i < 4; i++) {
       vec2 sampleUV = uv + offsets[i] * onePixel;
       
-      float dNeighbor = texture(tCurrentDepth, sampleUV).r;
+      // Reconstruct Neighbor Total Depth
+      float dInitN = texture(tInitialDepth, sampleUV).r;
+      float offN = texture(tCurrentOffset, sampleUV).r;
+      float dNeighbor = dInitN + offN;
+      
       vec3 cNeighbor = texture(tColor, sampleUV).rgb;
 
+      // Weight Logic
       float colorDiff = length(cCenter - cNeighbor);
       float w = 1.0 / (1.0 + colorDiff * uColorSensitivity);
 
@@ -65,32 +75,54 @@ void main() {
       wSum += w;
   }
 
+  // 3. Calculate Target (Smoothed Total Depth)
   float dSmooth = dCenter;
   if (wSum > 0.0) {
       dSmooth = dSum / wSum;
   }
 
-  float dNext = mix(dCenter, dSmooth, uSmoothStrength);
-  dNext = mix(dNext, dInitial, uAnchorStrength);
+  // 4. Update Step
+  // Move actual depth towards smoothed depth
+  float dNextTotal = mix(dCenter, dSmooth, uSmoothStrength);
+  
+  // 5. Convert back to Offset
+  float offNext = dNextTotal - dInitial;
 
-  fragColor = vec4(dNext, 0.0, 0.0, 1.0);
+  // 6. Anchor / Decay
+  // Decay the offset back towards zero (Initial Depth)
+  // If AnchorStrength is 0, offset can grow indefinitely.
+  // If AnchorStrength is 1, offset is forced to 0.
+  offNext *= (1.0 - uAnchorStrength);
+
+  fragColor = vec4(offNext, 0.0, 0.0, 1.0);
 }`;
 
-const COPY_FRAGMENT_SHADER = `
+// COMBINE: Outputs Initial + Offset
+const COMBINE_FRAGMENT_SHADER = `
 precision highp float;
-uniform sampler2D tInput;
+uniform sampler2D tInitial;
+uniform sampler2D tOffset;
 in vec2 vUv;
 out vec4 fragColor;
 void main() {
-  fragColor = texture(tInput, vUv);
+  float init = texture(tInitial, vUv).r;
+  float off = texture(tOffset, vUv).r;
+  fragColor = vec4(init + off, 0.0, 0.0, 1.0);
 }`;
+
+// ZERO: Initializes texture to 0.0
+const ZERO_FRAGMENT_SHADER = `
+precision highp float;
+out vec4 fragColor;
+void main() { fragColor = vec4(0.0, 0.0, 0.0, 1.0); }
+`;
 
 // ---------------------------------------------------------------------------
 // Types & State
 // ---------------------------------------------------------------------------
 
 interface SolverUniforms {
-  tCurrentDepth: { value: THREE.Texture | null };
+  tCurrentOffset: { value: THREE.Texture | null };
   tInitialDepth: { value: THREE.Texture };
   tColor: { value: THREE.Texture };
   uResolution: { value: THREE.Vector2 };
@@ -99,26 +131,28 @@ interface SolverUniforms {
   uAnchorStrength: { value: number };
 }
 
-interface CopyUniforms {
-  tInput: { value: THREE.Texture | null };
+interface CombineUniforms {
+  tInitial: { value: THREE.Texture | null };
+  tOffset: { value: THREE.Texture | null };
 }
 
 type RuntimeState = {
-  // Resources
   ping?: THREE.WebGLRenderTarget;
   pong?: THREE.WebGLRenderTarget;
   output?: THREE.WebGLRenderTarget;
+
   solverMat?: THREE.RawShaderMaterial;
-  copyMat?: THREE.RawShaderMaterial;
+  combineMat?: THREE.RawShaderMaterial;
+  zeroMat?: THREE.RawShaderMaterial;
+
   quadScene?: THREE.Scene;
   quadCamera?: THREE.Camera;
+
   runner?: THREE.Mesh;
 
-  // Internal Tracking
   initialized?: boolean;
   currentTexture?: THREE.Texture;
 
-  // Dynamic Control Flags (Read by onBeforeRender)
   enabled: boolean;
   shouldReset: boolean;
   iterations: number;
@@ -146,7 +180,6 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
     {
       name: WorkflowBrandedTypes.inputName(`enabled`),
       type: WorkflowBrandedTypes.valueType(`boolean`),
-      // Default false (Paused)
     },
     {
       name: WorkflowBrandedTypes.inputName(`iterations`),
@@ -185,7 +218,7 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
     const enabled = (inputs.enabled as boolean) ?? false;
     const iterations = (inputs.iterations as number) ?? 1;
-    const smoothStrength = (inputs.smoothStrength as number) ?? 0.0001;
+    const smoothStrength = (inputs.smoothStrength as number) ?? 0.1;
     const colorSensitivity = (inputs.colorSensitivity as number) ?? 20.0;
     const anchorStrength = (inputs.anchorStrength as number) ?? 0.01;
     const reset = (inputs.reset as boolean) ?? false;
@@ -194,12 +227,10 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
     const rs = runtimeState as RuntimeState;
 
-    // Update Control State
     rs.enabled = enabled;
     rs.iterations = iterations;
     if (reset) rs.shouldReset = true;
 
-    // Update Material Uniforms (if they exist)
     if (rs.solverMat) {
       const u = rs.solverMat.uniforms as unknown as SolverUniforms;
       u.tInitialDepth.value = depthTexture;
@@ -209,17 +240,12 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
       u.uAnchorStrength.value = anchorStrength;
     }
 
-    // EARLY RETURN: If runner exists, we just updated state. Return undefined.
-    if (rs.runner) {
-      return undefined;
-    }
+    if (rs.runner) return undefined;
 
-    // --- INITIAL CREATION ---
-
+    // --- INITIALIZATION ---
     const width = colorTexture.image?.width ?? 512;
     const height = colorTexture.image?.height ?? 512;
 
-    // 1. Initialize Render Targets
     if (!rs.ping || rs.ping.width !== width || rs.ping.height !== height) {
       rs.ping?.dispose();
       rs.pong?.dispose();
@@ -241,14 +267,13 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
       rs.initialized = false;
     }
 
-    // 2. Initialize GPGPU Scene
     if (!rs.solverMat) {
       rs.solverMat = new THREE.RawShaderMaterial({
         glslVersion: THREE.GLSL3,
         vertexShader: VERTEX_SHADER,
         fragmentShader: SOLVER_FRAGMENT_SHADER,
         uniforms: {
-          tCurrentDepth: { value: null },
+          tCurrentOffset: { value: null },
           tInitialDepth: { value: depthTexture },
           tColor: { value: colorTexture },
           uResolution: { value: new THREE.Vector2(width, height) },
@@ -258,11 +283,20 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
         },
       });
 
-      rs.copyMat = new THREE.RawShaderMaterial({
+      rs.combineMat = new THREE.RawShaderMaterial({
         glslVersion: THREE.GLSL3,
         vertexShader: VERTEX_SHADER,
-        fragmentShader: COPY_FRAGMENT_SHADER,
-        uniforms: { tInput: { value: depthTexture } },
+        fragmentShader: COMBINE_FRAGMENT_SHADER,
+        uniforms: {
+          tInitial: { value: depthTexture },
+          tOffset: { value: null },
+        },
+      });
+
+      rs.zeroMat = new THREE.RawShaderMaterial({
+        glslVersion: THREE.GLSL3,
+        vertexShader: VERTEX_SHADER,
+        fragmentShader: ZERO_FRAGMENT_SHADER,
       });
 
       const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), rs.solverMat);
@@ -272,17 +306,17 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
       rs.quadCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     }
 
-    // 3. Initialize Runner
     if (!rs.runner) {
       const geometry = new THREE.BufferGeometry();
       const material = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
 
       rs.runner = new THREE.Mesh(geometry, material);
       rs.runner.frustumCulled = false;
-      rs.runner.renderOrder = -Infinity; // Ensure initialization happens first
+      rs.runner.renderOrder = -Infinity;
 
       rs.runner.onBeforeRender = (renderer) => {
-        if (!rs.quadScene || !rs.quadCamera || !rs.solverMat || !rs.copyMat) return;
+        if (!rs.quadScene || !rs.quadCamera || !rs.solverMat || !rs.combineMat || !rs.zeroMat)
+          return;
         if (!rs.ping || !rs.pong || !rs.output) return;
 
         const r = renderer as THREE.WebGLRenderer;
@@ -291,29 +325,33 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
         r.autoClear = false;
 
         // A. INITIALIZATION
-        // Runs on start, on reset, or if texture reference changed.
-        // Populates ALL buffers with the initial depth map.
+        // Reset Ping/Pong to Zero (0 Offset)
+        // Populate Output with Initial + 0
         if (!rs.initialized || rs.shouldReset || rs.currentTexture !== depthTexture) {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
-          quad.material = rs.copyMat!;
-          (rs.copyMat!.uniforms as unknown as CopyUniforms).tInput.value = depthTexture;
 
-          // Fill Read, Write, and Output buffers so they are valid immediately
+          // 1. Zero out Ping/Pong
+          quad.material = rs.zeroMat!;
           r.setRenderTarget(rs.ping);
           r.render(rs.quadScene, rs.quadCamera);
-
           r.setRenderTarget(rs.pong);
           r.render(rs.quadScene, rs.quadCamera);
+
+          // 2. Initialize Output (Initial + 0)
+          quad.material = rs.combineMat!;
+          const combineU = rs.combineMat!.uniforms as unknown as CombineUniforms;
+          combineU.tInitial.value = depthTexture;
+          combineU.tOffset.value = rs.ping.texture; // Ping is zero
 
           r.setRenderTarget(rs.output);
           r.render(rs.quadScene, rs.quadCamera);
 
           rs.initialized = true;
-          rs.shouldReset = false; // Clear trigger
+          rs.shouldReset = false;
           rs.currentTexture = depthTexture;
         }
 
-        // B. SOLVER LOOP (Only if Enabled)
+        // B. SOLVER LOOP
         if (rs.enabled) {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
           quad.material = rs.solverMat!;
@@ -325,12 +363,6 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
           rs.runIndex = (rs.runIndex || 0) + 1;
           const iterationMod = (rs.iterations < 1 ? Math.ceil(1 / rs.iterations) : 1) || 0;
 
-          //   console.log(`[threeDepthRefinement] Solver is enabled`, {
-          //     runIndex: rs.runIndex,
-          //     iterations: rs.iterations,
-          //     iterationMod,
-          //   });
-
           if (rs.runIndex % iterationMod === 0) {
             console.log(`[threeDepthRefinement] Running solver`, {
               runIndex: rs.runIndex,
@@ -338,7 +370,7 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
               iterationMod,
             });
             for (let i = 0; i < rs.iterations; i++) {
-              u.tCurrentDepth.value = read.texture;
+              u.tCurrentOffset.value = read.texture;
               r.setRenderTarget(write);
               r.render(rs.quadScene, rs.quadCamera);
 
@@ -351,9 +383,12 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
             rs.pong = write;
           }
 
-          // C. OUTPUT UPDATE (Only if solver ran)
-          quad.material = rs.copyMat!;
-          (rs.copyMat!.uniforms as unknown as CopyUniforms).tInput.value = read.texture;
+          // C. COMBINE & OUTPUT
+          quad.material = rs.combineMat!;
+          const combineU = rs.combineMat!.uniforms as unknown as CombineUniforms;
+          combineU.tInitial.value = depthTexture;
+          combineU.tOffset.value = read.texture; // The calculated offset
+
           r.setRenderTarget(rs.output);
           r.render(rs.quadScene, rs.quadCamera);
         }
