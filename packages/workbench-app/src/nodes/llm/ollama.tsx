@@ -474,10 +474,10 @@ export const OllamaStreamingComponent = (
         </div>
 
         {/* Content Sections */}
-        <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2">
+        <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden">
           {/* Thought Preview */}
           {currentThought && (
-            <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1'}`}>
+            <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}>
               <button
                 onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
                 className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
@@ -486,7 +486,7 @@ export const OllamaStreamingComponent = (
                 <span className="text-purple-400">{thoughtCollapsed ? '▶' : '▼'}</span>
               </button>
               {!thoughtCollapsed && (
-                <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto min-h-[60px]">
+                <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto">
                   <div className="text-purple-400 text-xs font-mono whitespace-pre-wrap">
                     {currentThought}
                   </div>
@@ -496,11 +496,11 @@ export const OllamaStreamingComponent = (
           )}
 
           {/* Response Preview */}
-          <div className="flex flex-col gap-1 flex-1">
+          <div className="flex flex-col gap-1 flex-1 min-h-0">
             <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
               Response Preview
             </div>
-            <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto min-h-[60px]">
+            <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto">
               {currentError ? (
                 <div className="text-red-500 text-xs whitespace-pre-wrap">{currentError}</div>
               ) : (
