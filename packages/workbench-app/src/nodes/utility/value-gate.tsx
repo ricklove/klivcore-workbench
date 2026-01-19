@@ -49,7 +49,7 @@ export const valueGateNodeType: WorkflowRuntimeNodeTypeDefinition = {
       sendOnce: false,
     };
 
-    if (!safeData.autoSend || safeData.sendOnce) {
+    if (!safeData.autoSend && !safeData.sendOnce) {
       return;
     }
 
