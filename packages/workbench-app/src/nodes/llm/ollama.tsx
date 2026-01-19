@@ -120,6 +120,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
       let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;
 
       try {
+        controller.setProgress({ progressRatio: 0.1, message: 'Connecting to Ollama...' });
         emit({
           chunk: {},
           response: undefined,
@@ -150,6 +151,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
           throw new Error('Response body is missing');
         }
 
+        controller.setProgress({ progressRatio: 0.3, message: 'Starting stream...' });
         emit({
           chunk: {},
           response: undefined,
@@ -161,6 +163,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
         reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let chunkCount = 0;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -169,6 +172,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
           }
 
           if (done) {
+            controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
             emit({
               chunk: { done: true },
               response: cumulativeResponse,
@@ -196,6 +200,13 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
                 cumulativeResponse += parsedChunk.response;
               }
 
+              chunkCount++;
+              const progressRatio = Math.min(0.3 + chunkCount * 0.05, 0.9);
+              controller.setProgress({
+                progressRatio,
+                message: `Streaming... (${chunkCount} chunks)`,
+              });
+
               emit({
                 chunk: parsedChunk,
                 response: cumulativeResponse,
@@ -205,6 +216,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
               });
 
               if (parsedChunk.done) {
+                controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
                 emit({
                   chunk: parsedChunk,
                   response: cumulativeResponse,
@@ -215,6 +227,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
                 return;
               }
             } catch (parseError) {
+              controller.setProgress({ progressRatio: 0.0, message: 'Error parsing response' });
               emit({
                 chunk: {
                   error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
@@ -229,6 +242,7 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        controller.setProgress({ progressRatio: 0.0, message: `Error: ${errorMessage}` });
 
         emit({
           chunk: { error: errorMessage },

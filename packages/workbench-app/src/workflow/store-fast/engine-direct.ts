@@ -63,10 +63,12 @@ const executeNode = async ({
   node,
   store,
   controller,
+  onExecutionStateChange,
 }: {
   node: WorkflowRuntimeNode;
   store: WorkflowRuntimeStore;
   controller: WorkflowExecutionArgs['controller'];
+  onExecutionStateChange: (state: WorkflowRuntimeExecutionState) => void;
 }): Promise<undefined | WorkflowRuntimeExecutionState> => {
   const nodeId = node.id;
   if (node.isDeleted) {
@@ -109,13 +111,17 @@ const executeNode = async ({
     return undefined;
   }
 
-  node.executionState = node.executionState ?? createEmptyExecutionState();
-  // prevent running twice
-  node.executionState.status = `running`;
+  // node.executionState = node.executionState ?? createEmptyExecutionState();
+  // // prevent running twice
+  // node.executionState.status = `running`;
+  // onExecutionStateChange(node.executionState);
 
-  const executionState: WorkflowRuntimeExecutionState = {
-    ...node.executionState,
-  };
+  // const executionState: WorkflowRuntimeExecutionState = {
+  //   ...node.executionState,
+  // };
+  const executionState: WorkflowRuntimeExecutionState = createEmptyExecutionState();
+  executionState.status = `running`;
+  onExecutionStateChange(executionState);
 
   executionState.runState = {
     startTimestamp: WorkflowBrandedTypes.now(),
@@ -154,6 +160,7 @@ const executeNode = async ({
     executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
     executionState.runState.asyncExecutionTime = asyncExecutionTime;
     executionState.runState.asyncMicrotaskLagTime = asyncMicrotaskLagTime;
+    onExecutionStateChange(executionState);
 
     logger.log(
       `[createWorkflowEngine:processNodeQueue:executeNode] Node execution done: ${nodeId}`,
@@ -184,6 +191,8 @@ const executeNode = async ({
     if (controller.abortSignal.aborted) {
       executionState.status = `aborted`;
       executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
+      onExecutionStateChange(executionState);
+
       logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
         nodeId,
         args,
@@ -192,6 +201,7 @@ const executeNode = async ({
       executionState.status = `error`;
       executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
       executionState.runState.errorMessage = (err as Error)?.message ?? `Unknown error`;
+      onExecutionStateChange(executionState);
 
       console.error(
         `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
@@ -226,6 +236,7 @@ const executeNode = async ({
   //   errorMessage: rs.errorMessage,
   // });
 
+  onExecutionStateChange(executionState);
   return executionState;
 };
 
@@ -452,7 +463,12 @@ export const createWorkflowEngine = (
           engineState.executionEmitters.get(nodeId)?.unsubscribe();
         }
 
+        const executionState$ = store$.nodes[nodeId]!.executionState;
+
         const executionState = await executeNode({
+          onExecutionStateChange: (executionState) => {
+            executionState$.assign(executionState);
+          },
           node,
           store,
           controller: {
@@ -502,6 +518,7 @@ export const createWorkflowEngine = (
             },
           },
         });
+
         if (executionState) {
           const node$ = store$.nodes[nodeId]!;
           node$.executionState.assign(executionState);
@@ -515,8 +532,19 @@ export const createWorkflowEngine = (
       promises.push(promise);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const results = await Promise.all(promises);
+    // try to finish in parallel, but with a max time limit
+    await new Promise<void>((resolve) => {
+      const MAX_EXECUTION_TIME_MS = 25;
+      const timeoutId = setTimeout(() => {
+        resolve();
+      }, MAX_EXECUTION_TIME_MS);
+
+      Promise.all(promises).then(() => {
+        clearTimeout(timeoutId);
+        resolve();
+      });
+    });
+    // const results = await Promise.all(promises);
     // for (const result of results) {
     //   // const node$ = store$.nodes[result.nodeId]!;
     //   // if (result.executionState) {
