@@ -469,6 +469,9 @@ const WorkflowViewInner = () => {
             setMenu(null);
           }}
           onClose={() => setMenu(null)}
+          filterDefaultNodeTypes={
+            menu.context.type !== `connection` ? (x) => x.type !== `reroute` : undefined
+          }
         />
       )}
     </div>

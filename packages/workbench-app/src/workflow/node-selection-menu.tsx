@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   WorkflowBrandedTypes,
   type WorkflowNodeTypeName,
+  type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
 } from './types';
 import { useValue } from '@legendapp/state/react';
@@ -12,6 +13,7 @@ type NodeSelectionMenuProps = {
   position: { x: number; y: number };
   onSelect: (nodeType: WorkflowNodeTypeName) => void;
   onClose: () => void;
+  filterDefaultNodeTypes: undefined | ((x: WorkflowRuntimeNodeTypeDefinition) => boolean);
 };
 
 export const NodeSelectionMenu: React.FC<NodeSelectionMenuProps> = ({
@@ -19,12 +21,16 @@ export const NodeSelectionMenu: React.FC<NodeSelectionMenuProps> = ({
   position,
   onSelect,
   onClose,
+  filterDefaultNodeTypes,
 }) => {
-  const nodeDefinitions = useValue(() =>
+  const nodeDefinitionsAll = useValue(() =>
     Object.values(store$.nodeTypes.get()).filter(
       (def) => def.type !== WorkflowBrandedTypes.typeName(`default`),
     ),
   );
+  const nodeDefinitions = !filterDefaultNodeTypes
+    ? nodeDefinitionsAll
+    : nodeDefinitionsAll.filter(filterDefaultNodeTypes);
 
   const [searchTerm, setSearchTerm] = useState(``);
   const [highlightedIndex, setHighlightedIndex] = useState(0);

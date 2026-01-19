@@ -7,27 +7,7 @@ import {
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 import { useObservable, useValue } from '@legendapp/state/react';
-
-// --- UTILS ---
-
-type ClassValue = string | number | boolean | undefined | null;
-
-function clsx(...args: ClassValue[]) {
-  let i = 0,
-    tmp,
-    str = '';
-  const len = args.length;
-  for (; i < len; i++) {
-    if ((tmp = args[i])) {
-      if (typeof tmp === 'string') {
-        str += (str && ' ') + tmp;
-      }
-    }
-  }
-  return str;
-}
-
-// --- TYPES ---
+import { clsx } from '../../utils/clsx';
 
 type TimelineData = {
   initialValue: number;
