@@ -49,29 +49,22 @@ export const valueGateNodeType: WorkflowRuntimeNodeTypeDefinition = {
       sendOnce: false,
     };
 
-    // Determine if we should send the value
-    const shouldSend = safeData.autoSend || safeData.sendOnce;
-
-    if (!shouldSend) {
-      // Don't output anything when conditions aren't met
-      return {
-        outputs: {
-          value: undefined,
-        },
-      };
+    if (!safeData.autoSend || safeData.sendOnce) {
+      return;
     }
-
-    // Auto-reset sendOnce after execution
-    const updatedData = {
-      ...safeData,
-      sendOnce: false,
-    };
 
     return {
       outputs: {
-        value: inputs.value, // Pass through the input value
+        value: inputs.value,
       },
-      data: updatedData,
+      ...(safeData.sendOnce
+        ? {
+            data: {
+              ...safeData,
+              sendOnce: false,
+            },
+          }
+        : {}),
     };
   },
 };
@@ -91,7 +84,7 @@ export const ValueGateComponent = (
   };
 
   const handleSend = () => {
-    data$.sendOnce.set(true); // Trigger single send
+    data$.sendOnce.set(true);
   };
 
   return (
