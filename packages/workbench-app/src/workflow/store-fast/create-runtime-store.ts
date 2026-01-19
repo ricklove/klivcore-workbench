@@ -17,6 +17,7 @@ import { observable, ObservableHint, type Observable } from '@legendapp/state';
 import { createRuntimeValue } from './runtime-value';
 import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
 import { webglNodeTypes } from '../../nodes/webgl/webgl-nodes';
+import { llmNodeTypes } from '../../nodes/llm/llm-nodes';
 
 const getters = {
   node: {
@@ -611,6 +612,7 @@ export const createWorkflowStoreFromDocument = (
     ...builtinNodeTypes,
     ...codeBuiltinNodeTypes,
     ...webglNodeTypes,
+    ...llmNodeTypes,
   };
 
   // populate node types
