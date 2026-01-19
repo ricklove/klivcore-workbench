@@ -215,30 +215,31 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
               const parsedChunk: OllamaStreamChunk = JSON.parse(trimmedLine);
 
               if (parsedChunk.response) {
-                // Always add to cumulative thought initially
-                cumulativeThought += parsedChunk.response;
-
-                // Check if this is the first time we're finding the closing tag
-                const foundCloseThoughtTag = thoughtClosed
-                  ? undefined
-                  : THINK_CLOSE_TAGS.find((tag) => cumulativeThought.includes(tag))!;
-
-                if (foundCloseThoughtTag) {
-                  // Find the first closing tag that appears
-                  const splitIndex = cumulativeThought.indexOf(foundCloseThoughtTag);
-                  const thoughtContent = cumulativeThought.substring(0, splitIndex);
-                  const responseContent = cumulativeThought.substring(
-                    splitIndex + foundCloseThoughtTag.length,
-                  );
-
-                  // Update cumulative variables
-                  cumulativeThought = thoughtContent;
-                  cumulativeResponse = responseContent;
-                  thoughtClosed = true;
-                }
-                // If thought is already closed, add to response
-                else if (thoughtClosed) {
+                if (thoughtClosed) {
+                  // If thought is already closed, add directly to response
                   cumulativeResponse += parsedChunk.response;
+                } else {
+                  // Add to thought and check for closing tag
+                  cumulativeThought += parsedChunk.response;
+
+                  // Check if this is the first time we're finding the closing tag
+                  const foundCloseThoughtTag = THINK_CLOSE_TAGS.find((tag) =>
+                    cumulativeThought.includes(tag),
+                  )!;
+
+                  if (foundCloseThoughtTag) {
+                    // Find the first closing tag that appears
+                    const splitIndex = cumulativeThought.indexOf(foundCloseThoughtTag);
+                    const thoughtContent = cumulativeThought.substring(0, splitIndex);
+                    const responseContent = cumulativeThought.substring(
+                      splitIndex + foundCloseThoughtTag.length,
+                    );
+
+                    // Update cumulative variables
+                    cumulativeThought = thoughtContent;
+                    cumulativeResponse = responseContent;
+                    thoughtClosed = true;
+                  }
                 }
               }
 
