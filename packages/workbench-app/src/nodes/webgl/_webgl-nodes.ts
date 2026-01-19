@@ -1,12 +1,15 @@
 import {
   EmptyNodeComponent,
   NodeTypeWrapComponentWithNodeWrapper,
-} from '../../workflow/node-types-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
+} from '../../workflow/node-types-wrapper.tsx';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types.ts';
 import * as THREE from 'three';
 import { ObservableHint } from '@legendapp/state';
 import { threeSceneView } from './canvas.tsx';
-import { unbox, box, type Box } from './types';
+import { unbox, box, type Box } from './types.ts';
 import { threePositionControllerNodeType } from './three-position.tsx';
 import { orbitControlsNodeTypes } from './orbit-controls.tsx';
 import { timelineControlNodeType } from './timeline.tsx';

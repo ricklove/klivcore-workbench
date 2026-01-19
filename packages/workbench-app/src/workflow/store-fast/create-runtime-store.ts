@@ -16,8 +16,8 @@ import { builtinNodeTypes } from '../node-types';
 import { observable, ObservableHint, type Observable } from '@legendapp/state';
 import { createRuntimeValue } from './runtime-value';
 import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
-import { webglNodeTypes } from '../../nodes/webgl/webgl-nodes';
-import { llmNodeTypes } from '../../nodes/llm/llm-nodes';
+import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
+import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
 import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
 
 const getters = {
