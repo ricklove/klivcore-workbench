@@ -178,7 +178,7 @@ const WrapperHeader = memo(
                   <div className="flex flex-row items-center gap-1 ">
                     <div className="flex-1 self-stretch nowheel nodrag nopan pointer-events-none" />
                     <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
-                      <div className="flex-1">{`🔷`}</div>
+                      {/* <div className="flex-1">{`🔷`}</div> */}
                       <div className="flex flex-row items-center min-w-0 gap-1 nowheel nodrag nopan ">
                         {/* {data.refresh && (
                 <div
