@@ -18,6 +18,7 @@ import { createRuntimeValue } from './runtime-value';
 import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
 import { webglNodeTypes } from '../../nodes/webgl/webgl-nodes';
 import { llmNodeTypes } from '../../nodes/llm/llm-nodes';
+import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
 
 const getters = {
   node: {
@@ -613,6 +614,7 @@ export const createWorkflowStoreFromDocument = (
     ...codeBuiltinNodeTypes,
     ...webglNodeTypes,
     ...llmNodeTypes,
+    ...valueGateNodeTypes,
   };
 
   // populate node types
