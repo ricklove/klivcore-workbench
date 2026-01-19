@@ -6,17 +6,16 @@ import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
-  type WorkflowJsonObject,
 } from '../../workflow/types';
 import { useValue } from '@legendapp/state/react';
 import { clsx } from '../../utils/clsx';
 
 // --- TYPE DEFINITIONS ---
 
-interface OllamaData extends WorkflowJsonObject {
+type OllamaData = {
   ollamaUrl: string;
   model: string;
-}
+};
 
 interface OllamaInputs {
   prompt: string;
@@ -117,146 +116,148 @@ export const ollamaStreamingNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     let cumulativeResponse = '';
 
-    controller.registerEvent((emit) => {
+    const processStream = async (emit: (output: OllamaOutputs) => void): Promise<void> => {
       let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;
 
-      const processStream = async (): Promise<void> => {
-        try {
-          emit({
-            chunk: {},
-            response: undefined,
-            done: false,
-            error: undefined,
-            status: 'connecting',
-          });
+      try {
+        emit({
+          chunk: {},
+          response: undefined,
+          done: false,
+          error: undefined,
+          status: 'connecting',
+        });
 
-          const response = await fetch(`${ollamaUrl}/api/generate`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model,
-              prompt,
-              stream: true,
-            }),
-            signal: controller.abortSignal,
-          });
+        const response = await fetch(`${ollamaUrl}/api/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model,
+            prompt,
+            stream: true,
+          }),
+          signal: controller.abortSignal,
+        });
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        if (!response.body) {
+          throw new Error('Response body is missing');
+        }
+
+        emit({
+          chunk: {},
+          response: undefined,
+          done: false,
+          error: undefined,
+          status: 'streaming',
+        });
+
+        reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (controller.abortSignal.aborted) {
+            throw new Error('Request was aborted');
           }
 
-          if (!response.body) {
-            throw new Error('Response body is missing');
+          if (done) {
+            emit({
+              chunk: { done: true },
+              response: cumulativeResponse,
+              done: true,
+              error: undefined,
+              status: 'completed',
+            });
+            return;
           }
 
-          emit({
-            chunk: {},
-            response: undefined,
-            done: false,
-            error: undefined,
-            status: 'streaming',
-          });
+          const chunkText = decoder.decode(value, { stream: true });
+          buffer += chunkText;
 
-          reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = '';
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
 
-          while (true) {
-            const { done, value } = await reader.read();
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
 
-            if (done) {
+            try {
+              const parsedChunk: OllamaStreamChunk = JSON.parse(trimmedLine);
+
+              if (parsedChunk.response) {
+                cumulativeResponse += parsedChunk.response;
+              }
+
               emit({
-                chunk: { done: true },
+                chunk: parsedChunk,
                 response: cumulativeResponse,
-                done: true,
-                error: undefined,
-                status: 'completed',
+                done: parsedChunk.done ?? false,
+                error: parsedChunk.error,
+                status: 'streaming',
               });
-              return;
-            }
 
-            const chunkText = decoder.decode(value, { stream: true });
-            buffer += chunkText;
-
-            const lines = buffer.split('\n');
-            buffer = lines.pop() ?? '';
-
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (!trimmedLine) continue;
-
-              try {
-                const parsedChunk: OllamaStreamChunk = JSON.parse(trimmedLine);
-
-                if (parsedChunk.response) {
-                  cumulativeResponse += parsedChunk.response;
-                }
-
+              if (parsedChunk.done) {
                 emit({
                   chunk: parsedChunk,
-                  response: parsedChunk.response,
-                  done: parsedChunk.done ?? false,
-                  error: parsedChunk.error,
-                  status: 'streaming',
+                  response: cumulativeResponse,
+                  done: true,
+                  error: undefined,
+                  status: 'completed',
                 });
-
-                if (parsedChunk.done) {
-                  emit({
-                    chunk: parsedChunk,
-                    response: cumulativeResponse,
-                    done: true,
-                    error: undefined,
-                    status: 'completed',
-                  });
-                  return;
-                }
-              } catch (parseError) {
-                emit({
-                  chunk: {
-                    error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-                  },
-                  response: undefined,
-                  done: false,
-                  error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-                  status: 'error',
-                });
+                return;
               }
+            } catch (parseError) {
+              emit({
+                chunk: {
+                  error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+                },
+                response: undefined,
+                done: false,
+                error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+                status: 'error',
+              });
             }
           }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-
-          emit({
-            chunk: { error: errorMessage },
-            response: undefined,
-            done: false,
-            error: errorMessage,
-            status: 'error',
-          });
         }
-      };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
 
-      processStream();
+        emit({
+          chunk: { error: errorMessage },
+          response: undefined,
+          done: false,
+          error: errorMessage,
+          status: 'error',
+        });
+      }
+    };
 
-      return {
-        unsubscribe: () => {
-          if (reader) {
-            reader.cancel();
-          }
-        },
-      };
+    await new Promise<void>((resolve, reject) => {
+      controller.registerEvent((emit) => {
+        processStream(emit as () => void)
+          .then(resolve)
+          .catch(reject);
+        return {
+          unsubscribe: () => {},
+        };
+      });
     });
 
     return {
       outputs: {
-        chunk: {},
-        response: undefined,
-        done: false,
-        error: undefined,
-        status: 'idle',
+        chunk: null,
+        response: cumulativeResponse,
+        done: true,
+        error: null,
+        status: 'success',
       },
     };
   },
