@@ -1,6 +1,6 @@
 import { WorkflowNodeDefault } from './node-wrapper';
 import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from './types';
-import { JsonNodeComponent, StringNodeComponent } from './nodes';
+import { JsonNodeComponent, RerouteComponent, StringNodeComponent } from './nodes';
 import { TempWrapper } from './node-temp-wrapper';
 import { NodeTypeWrapComponent } from './node-types-wrapper';
 
@@ -101,6 +101,31 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
 
       return {
         outputs: { value: obj },
+      };
+    },
+  },
+  reroute: {
+    type: WorkflowBrandedTypes.typeName(`reroute`),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(RerouteComponent) }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`T`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`T`),
+      },
+    ],
+    execute: async ({ inputs }) => {
+      const inputsTyped = inputs as {
+        value: undefined | unknown;
+      };
+
+      return {
+        outputs: { value: inputsTyped.value },
       };
     },
   },

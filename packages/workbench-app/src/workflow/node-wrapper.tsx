@@ -266,43 +266,44 @@ const WrapperHeader = memo(
   },
 );
 
-const WrapperHandles = memo((props: { data: { node$: Observable<WorkflowRuntimeNode> } }) => {
-  const BASE_HANDLE_TOP_OFFSET_PX = 12;
-  const BASE_HANDLE_SIDE_OFFSET_PX = 6;
-  const HANDLE_VERTICAL_SPACING_PX = 24;
+export const WrapperHandles = memo(
+  (props: { data: { node$: Observable<WorkflowRuntimeNode> } }) => {
+    const BASE_HANDLE_TOP_OFFSET_PX = 12;
+    const BASE_HANDLE_SIDE_OFFSET_PX = 6;
+    const HANDLE_VERTICAL_SPACING_PX = 24;
 
-  const { fitView } = useReactFlow();
+    const { fitView } = useReactFlow();
 
-  const moveToNode = useCallback(
-    (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
-    [fitView],
-  );
+    const moveToNode = useCallback(
+      (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
+      [fitView],
+    );
 
-  const inputs = useValue(() =>
-    props.data.node$.inputs.map((x) => ({
-      name: x.name.get(),
-      edgeId: x.edgeId.get(),
-      edge: x.getEdge(),
-    })),
-  );
-  const outputs = useValue(() =>
-    props.data.node$.outputs.map((x) => ({
-      name: x.name.get(),
-      edgeIds: x.edgeIds.get(),
-      edges: x.getEdges(),
-    })),
-  );
+    const inputs = useValue(() =>
+      props.data.node$.inputs.map((x) => ({
+        name: x.name.get(),
+        edgeId: x.edgeId.get(),
+        edge: x.getEdge(),
+      })),
+    );
+    const outputs = useValue(() =>
+      props.data.node$.outputs.map((x) => ({
+        name: x.name.get(),
+        edgeIds: x.edgeIds.get(),
+        edges: x.getEdges(),
+      })),
+    );
 
-  return (
-    <>
-      {Object.values(inputs).map((input, index) => {
-        const key = input.name;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const edgeId = input.edgeId;
-        const edge = input.edge;
-        return (
-          <React.Fragment key={key}>
-            {/* {debug && (
+    return (
+      <>
+        {Object.values(inputs).map((input, index) => {
+          const key = input.name;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const edgeId = input.edgeId;
+          const edge = input.edge;
+          return (
+            <React.Fragment key={key}>
+              {/* {debug && (
                   <div
                     className="absolute top-0 left-0 p-1 text-xs text-white bg-black rounded opacity-90"
                     style={{
@@ -313,49 +314,49 @@ const WrapperHandles = memo((props: { data: { node$: Observable<WorkflowRuntimeN
                     in {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
                   </div>
                 )} */}
-            <Handle
-              type="target"
-              position={Position.Left}
-              id={key}
-              style={{
-                width: `12px`,
-                height: `12px`,
-                ...(edge
-                  ? { background: `#44aa44`, borderColor: `#44aa44` }
-                  : { background: `#777777`, borderColor: `#777777` }),
-                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                borderTopRightRadius: `0px`,
-                borderBottomRightRadius: `0px`,
-              }}
-              // className="hover:top-0"
-            >
-              <div className="absolute right-0 opacity-0 hover:opacity-100">
-                <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
-                  {edge && (
-                    <div
-                      className="pointer-events-auto cursor-pointer"
-                      onClick={() => moveToNode(edge.source.nodeId)}
-                      title={`Go to '${edge.source.nodeId}'`}
-                    >
-                      🔗
-                    </div>
-                  )}
-                  <div>{key}</div>
+              <Handle
+                type="target"
+                position={Position.Left}
+                id={key}
+                style={{
+                  width: `12px`,
+                  height: `12px`,
+                  ...(edge
+                    ? { background: `#44aa44`, borderColor: `#44aa44` }
+                    : { background: `#777777`, borderColor: `#777777` }),
+                  top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                  left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                  borderTopRightRadius: `0px`,
+                  borderBottomRightRadius: `0px`,
+                }}
+                // className="hover:top-0"
+              >
+                <div className="absolute right-0 opacity-0 hover:opacity-100">
+                  <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
+                    {edge && (
+                      <div
+                        className="pointer-events-auto cursor-pointer"
+                        onClick={() => moveToNode(edge.source.nodeId)}
+                        title={`Go to '${edge.source.nodeId}'`}
+                      >
+                        🔗
+                      </div>
+                    )}
+                    <div>{key}</div>
+                  </div>
                 </div>
-              </div>
-            </Handle>
-          </React.Fragment>
-        );
-      })}
-      {Object.values(outputs).map((output, index) => {
-        const key = output.name;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const edgeIds = output.edgeIds;
-        const edges = output.edges;
-        return (
-          <React.Fragment key={key}>
-            {/* {debug && (
+              </Handle>
+            </React.Fragment>
+          );
+        })}
+        {Object.values(outputs).map((output, index) => {
+          const key = output.name;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const edgeIds = output.edgeIds;
+          const edges = output.edges;
+          return (
+            <React.Fragment key={key}>
+              {/* {debug && (
             <div
               className="absolute left-0 p-1 text-xs text-white bg-black rounded top-16 opacity-90"
               style={{
@@ -366,31 +367,32 @@ const WrapperHandles = memo((props: { data: { node$: Observable<WorkflowRuntimeN
               out {key} {value.id}: {JSON.stringify(value.lastValue)?.substring(0, 100)}
             </div>
           )} */}
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={key}
-              style={{
-                width: `12px`,
-                height: `12px`,
-                ...(edges.length
-                  ? { background: `#44aa44`, borderColor: `#44aa44` }
-                  : { background: `#777777`, borderColor: `#777777` }),
-                top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
-                right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
-                borderTopLeftRadius: `0px`,
-                borderBottomLeftRadius: `0px`,
-              }}
-            >
-              <div className="absolute left-0 opacity-0 hover:opacity-100">
-                <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
-                  {key}
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={key}
+                style={{
+                  width: `12px`,
+                  height: `12px`,
+                  ...(edges.length
+                    ? { background: `#44aa44`, borderColor: `#44aa44` }
+                    : { background: `#777777`, borderColor: `#777777` }),
+                  top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
+                  right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
+                  borderTopLeftRadius: `0px`,
+                  borderBottomLeftRadius: `0px`,
+                }}
+              >
+                <div className="absolute left-0 opacity-0 hover:opacity-100">
+                  <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
+                    {key}
+                  </div>
                 </div>
-              </div>
-            </Handle>
-          </React.Fragment>
-        );
-      })}
-    </>
-  );
-});
+              </Handle>
+            </React.Fragment>
+          );
+        })}
+      </>
+    );
+  },
+);

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { WorkflowNodeWrapperSimple } from './node-wrapper';
+import { WorkflowNodeWrapperSimple, WrapperHandles } from './node-wrapper';
 import { type WorkflowComponentProps_Obs } from './types';
 import { useObservable, useValue } from '@legendapp/state/react';
 import { linked } from '@legendapp/state';
@@ -87,4 +87,26 @@ export const JsonNodeComponent = (
     }),
   );
   return <StringNodeComponent {...props} data={{ ...props.data, inputs$, data$, outputs$ }} />;
+};
+
+export const RerouteComponent = (
+  props: WorkflowComponentProps_Obs<{ value: string }, { value: Record<string, unknown> }>,
+) => {
+  useLayoutEffect(() => {
+    const size = 24;
+    const pos$ = props.data.node$.position;
+    if (pos$.peek().width === size && pos$.peek().height === size) {
+      return;
+    }
+    pos$.width.set(size);
+    pos$.height.set(size);
+  }, []);
+  return (
+    <>
+      <div className="w-6 h-6 flex flex-row items-center">
+        <div className="flex-1 h-2 bg-gray-400"></div>
+      </div>
+      <WrapperHandles {...props} />
+    </>
+  );
 };
