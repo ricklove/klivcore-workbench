@@ -95,9 +95,11 @@ export const RerouteComponent = (
   useLayoutEffect(() => {
     const size = 24;
     const pos$ = props.data.node$.position;
+
     if (pos$.peek().width === size && pos$.peek().height === size) {
       return;
     }
+    console.log('[RerouteComponent] resetting size', { size, pos$: pos$.peek() });
     pos$.width.set(size);
     pos$.height.set(size);
   }, []);

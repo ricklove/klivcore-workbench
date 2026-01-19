@@ -318,6 +318,7 @@ export interface WorkflowExecutionController {
 export interface WorkflowRuntimeNodeTypeDefinition {
   type: WorkflowNodeTypeName;
   getComponent: () => { Component: React.ComponentType<WorkflowComponentProps> };
+  defaultSize?: { width: number; height: number };
   inputs: {
     name: WorkflowInputName;
     type: WorkflowValueType;

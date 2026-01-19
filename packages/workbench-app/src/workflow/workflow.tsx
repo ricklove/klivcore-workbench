@@ -208,10 +208,11 @@ const WorkflowViewInner = () => {
         };
       })();
 
+      const s = nodeType.peek().defaultSize ?? { width: 128, height: 24 };
       runtimeStore$.actions.createNode({
         id: newId,
         type: typeName,
-        position: { x: position.x - 64, y: position.y - 24, width: 128, height: 24 },
+        position: { x: position.x - s.width / 2, y: position.y - s.height, ...s },
       });
 
       if (inputEdge) {

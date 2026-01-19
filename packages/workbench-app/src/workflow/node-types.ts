@@ -107,6 +107,7 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   reroute: {
     type: WorkflowBrandedTypes.typeName(`reroute`),
     getComponent: () => ({ Component: NodeTypeWrapComponent(RerouteComponent) }),
+    defaultSize: { width: 24, height: 24 },
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`value`),
