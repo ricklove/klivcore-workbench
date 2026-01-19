@@ -14,17 +14,15 @@ import { unbox, box, type Box } from './types';
 const VERTEX_SHADER = `
 precision highp float;
 
-// Custom Uniforms
 uniform sampler2D tDepth;
 uniform float uFovRadians;
 uniform float uAspect;
 uniform float uNearMeters;
 uniform float uFarMeters;
 uniform float uDepthPower;
-uniform float uPerspectiveMix; // 0.0 = Ortho, 1.0 = Persp
-uniform int uDepthMode;        // 0 = Inverse (1/d), 1 = Linear
+uniform float uPerspectiveMix; 
+uniform int uDepthMode;        
 
-// Varyings
 out vec2 vUv;
 out float vDepthMeters;
 
@@ -38,11 +36,10 @@ void main() {
 
   // 2. Map Depth
   if (uDepthMode == 1) {
-     // Linear Mapping (Common for "Displacement")
-     // White (1.0) = Near, Black (0.0) = Far
+     // Linear
      zMeters = mix(uFarMeters, uNearMeters, dCurve);
   } else {
-     // Inverse/Reciprocal Mapping (Physically correct for Camera Z)
+     // Inverse
      float minDisp = 1.0 / uFarMeters;
      float maxDisp = 1.0 / uNearMeters;
      float currentDisp = mix(minDisp, maxDisp, dCurve);
@@ -54,56 +51,84 @@ void main() {
 
   vDepthMeters = zMeters;
 
-  // 3. Calculate Frustum Slice Dimensions
-  // Perspective Width at depth Z
+  // 3. Projection Logic
   float viewHeightAtZ = 2.0 * zMeters * tan(uFovRadians * 0.5);
   float viewWidthAtZ  = viewHeightAtZ * uAspect;
 
-  // Orthographic Width (Reference at Near Plane or 1.0m)
-  // We use the Near Plane size as the "Ortho" reference size
   float viewHeightOrtho = 2.0 * uNearMeters * tan(uFovRadians * 0.5);
   float viewWidthOrtho  = viewHeightOrtho * uAspect;
 
-  // 4. Mix Perspective Width
-  // If Mix is 0.0, we use the same width for all Z (Straight Extrusion)
-  // If Mix is 1.0, we use the expanding width (Cone)
   float effectiveWidth  = mix(viewWidthOrtho, viewWidthAtZ, uPerspectiveMix);
   float effectiveHeight = mix(viewHeightOrtho, viewHeightAtZ, uPerspectiveMix);
-
-  // Position (-0.5 to 0.5) -> Local Space
-  // We need to scale position based on the Z-plane we are effectively "at"
-  // For Ortho (Mix=0), we are geometrically projecting parallel, 
-  // but to keep the image covering the screen, we scale by the Z ratio if we want it to look right?
-  // Actually, standard displacement just keeps X/Y constant relative to UV.
-  // UV 0..1 maps to -0.5..0.5.
-  
-  // To keep alignment with the camera image at the origin:
-  // At the origin, Ray(u,v) hits (x,y,z).
-  // x = z * tan(angle).
-  // If we reduce x (Ortho), the pixel moves INWARD.
-  // This means from the origin, the image will look "pinched" if uPerspectiveMix < 1.0.
-  // BUT, from the side, it looks like a clean extrusion.
   
   float xLocal = position.x * effectiveWidth;
   float yLocal = position.y * effectiveHeight;
 
-  // Local Position
-  vec4 localPos = vec4(xLocal, yLocal, -zMeters, 1.0);
-
-  // Transform
-  gl_Position = projectionMatrix * modelViewMatrix * localPos;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(xLocal, yLocal, -zMeters, 1.0);
 }`;
 
 const FRAGMENT_SHADER = `
 precision highp float;
 
 uniform sampler2D tColor;
+uniform sampler2D tDepth;
+
+uniform float uNearMeters;
+uniform float uFarMeters;
+uniform float uDepthPower;
+uniform int uDepthMode;
+
+uniform float uGapThreshold; 
+uniform float uGapSoftness; 
+
 in vec2 vUv;
+in float vDepthMeters;
+
 out vec4 fragColor;
 
+float getDepthMeters(vec2 uvCoord) {
+    float dRaw = texture(tDepth, uvCoord).r;
+    float dCurve = pow(dRaw, uDepthPower);
+    if (dRaw < 0.001) return uFarMeters;
+
+    if (uDepthMode == 1) {
+         return mix(uFarMeters, uNearMeters, dCurve);
+    } else {
+         float minDisp = 1.0 / uFarMeters;
+         float maxDisp = 1.0 / uNearMeters;
+         float currentDisp = mix(minDisp, maxDisp, dCurve);
+         return 1.0 / currentDisp;
+    }
+}
+
 void main() {
-  vec4 color = texture(tColor, vUv);
-  fragColor = color;
+    vec4 color = texture(tColor, vUv);
+
+    // GAP DETECTION
+    if (uGapThreshold > 0.0) {
+        ivec2 size = textureSize(tDepth, 0);
+        vec2 onePixel = 1.0 / vec2(size);
+        
+        float dCenter = getDepthMeters(vUv);
+        float dRight  = getDepthMeters(vUv + vec2(onePixel.x, 0.0));
+        float dUp     = getDepthMeters(vUv + vec2(0.0, onePixel.y));
+        
+        float diff = max(abs(dCenter - dRight), abs(dCenter - dUp));
+        
+        if (diff > uGapThreshold) {
+            if (uGapSoftness <= 0.0) {
+                discard;
+            } else {
+                float fade = clamp(1.0 - (diff - uGapThreshold) / uGapSoftness, 0.0, 1.0);
+                color.a *= fade;
+                
+                // Discard near-invisible pixels to prevent Z-buffer pollution
+                if (color.a < 0.01) discard;
+            }
+        }
+    }
+
+    fragColor = color;
 }`;
 
 // ---------------------------------------------------------------------------
@@ -141,14 +166,20 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
       type: WorkflowBrandedTypes.valueType(`number`),
     },
     {
-      name: `perspectiveMix`,
+      name: WorkflowBrandedTypes.inputName(`perspectiveMix`),
       type: WorkflowBrandedTypes.valueType(`number`),
-      // 0.0 = Cylindrical/Ortho, 1.0 = Conical/Perspective
     },
     {
-      name: `depthMode`,
+      name: WorkflowBrandedTypes.inputName(`depthMode`),
       type: WorkflowBrandedTypes.valueType(`string`),
-      // 'inverse' | 'linear'
+    },
+    {
+      name: WorkflowBrandedTypes.inputName(`gapThreshold`),
+      type: WorkflowBrandedTypes.valueType(`number`),
+    },
+    {
+      name: WorkflowBrandedTypes.inputName(`gapSoftness`),
+      type: WorkflowBrandedTypes.valueType(`number`),
     },
   ],
   outputs: [
@@ -165,13 +196,29 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
     const near = (inputs.near as number) ?? 0.5;
     const far = (inputs.far as number) ?? 100.0;
     const depthPower = (inputs.depthPower as number) ?? 1.0;
-    const perspectiveMix = (inputs.perspectiveMix as number) ?? 1.0; // Default to correct physics
+    const perspectiveMix = (inputs.perspectiveMix as number) ?? 1.0;
     const depthModeStr = (inputs.depthMode as string) ?? 'inverse';
+    const gapThreshold = (inputs.gapThreshold as number) ?? 0.0;
+    const gapSoftness = (inputs.gapSoftness as number) ?? 0.0;
 
-    // Map string to int for shader
     const depthModeInt = depthModeStr === 'linear' ? 1 : 0;
 
     if (!texture || !depthTexture) return;
+
+    // Filter Logic: Nearest is required for Gap Cutting to look clean
+    if (gapThreshold > 0) {
+      if (depthTexture.minFilter !== THREE.NearestFilter) {
+        depthTexture.minFilter = THREE.NearestFilter;
+        depthTexture.magFilter = THREE.NearestFilter;
+        depthTexture.needsUpdate = true;
+      }
+    } else {
+      if (depthTexture.minFilter !== THREE.LinearFilter) {
+        depthTexture.minFilter = THREE.LinearFilter;
+        depthTexture.magFilter = THREE.LinearFilter;
+        depthTexture.needsUpdate = true;
+      }
+    }
 
     const rs = runtimeState as {
       texture?: THREE.Texture;
@@ -179,14 +226,27 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
       mesh?: THREE.Mesh;
       material?: THREE.ShaderMaterial;
       dispose?: () => void;
-      cachedParams?: Record<string, any>;
+      cachedParams?: Record<string, unknown>;
     };
 
     const hasTextureChanged = texture !== rs.texture || depthTexture !== rs.depthTexture;
 
-    // Helper to check params
-    const currentParams = { fov, near, far, depthPower, perspectiveMix, depthModeInt };
+    const currentParams = {
+      fov,
+      near,
+      far,
+      depthPower,
+      perspectiveMix,
+      depthModeInt,
+      gapThreshold,
+      gapSoftness,
+    };
     const paramsChanged = JSON.stringify(currentParams) !== JSON.stringify(rs.cachedParams);
+
+    // Transparency Logic:
+    // Only enable expensive transparency if we actually use Soft Gaps.
+    // Otherwise, use Opaque mode (transparent=false) with 'discard' for performance and correct Z-sorting.
+    const useTransparent = gapSoftness > 0;
 
     if (rs.mesh && rs.material && !hasTextureChanged) {
       if (paramsChanged) {
@@ -197,6 +257,8 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
           uDepthPower: { value: number };
           uPerspectiveMix: { value: number };
           uDepthMode: { value: number };
+          uGapThreshold: { value: number };
+          uGapSoftness: { value: number };
           uAspect: { value: number };
         };
 
@@ -206,11 +268,19 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
         uniforms.uDepthPower.value = depthPower;
         uniforms.uPerspectiveMix.value = perspectiveMix;
         uniforms.uDepthMode.value = depthModeInt;
+        uniforms.uGapThreshold.value = gapThreshold;
+        uniforms.uGapSoftness.value = gapSoftness;
 
         if (texture.image) {
           const aspect = texture.image.width / texture.image.height;
           uniforms.uAspect.value = aspect;
         }
+
+        // Toggle transparency state dynamically
+        rs.material.transparent = useTransparent;
+        rs.material.depthWrite = true; // Always write depth to fix overlap issues
+        rs.material.needsUpdate = true;
+
         rs.cachedParams = currentParams;
       }
       return { outputs: { mesh: ObservableHint.opaque(box(rs.mesh)) } };
@@ -243,9 +313,13 @@ export const threeMeshDepthProjectionPlane: WorkflowRuntimeNodeTypeDefinition = 
         uDepthPower: { value: depthPower },
         uPerspectiveMix: { value: perspectiveMix },
         uDepthMode: { value: depthModeInt },
+        uGapThreshold: { value: gapThreshold },
+        uGapSoftness: { value: gapSoftness },
       },
       side: THREE.DoubleSide,
-      transparent: false,
+      transparent: useTransparent, // Only true if needed
+      depthTest: true,
+      depthWrite: true, // Crucial for self-occlusion and background sorting
     });
 
     const segsX = Math.min(dims.w, 512);
