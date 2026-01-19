@@ -8,7 +8,7 @@ import { ObservableHint } from '@legendapp/state';
 import { unbox, box, type Box } from './types';
 
 // ---------------------------------------------------------------------------
-// Shaders
+// Shaders (GLSL 3.0)
 // ---------------------------------------------------------------------------
 
 const VERTEX_SHADER = `
@@ -39,12 +39,10 @@ void main() {
   vec2 uv = gl_FragCoord.xy / uResolution;
   vec2 onePixel = 1.0 / uResolution;
 
-  // 1. Center Data
   float dCenter = texture(tCurrentDepth, uv).r;
   vec3 cCenter = texture(tColor, uv).rgb;
   float dInitial = texture(tInitialDepth, uv).r;
 
-  // 2. Neighbor Sampling
   vec2 offsets[4];
   offsets[0] = vec2(-1, 0);
   offsets[1] = vec2(1, 0);
@@ -60,7 +58,6 @@ void main() {
       float dNeighbor = texture(tCurrentDepth, sampleUV).r;
       vec3 cNeighbor = texture(tColor, sampleUV).rgb;
 
-      // Weight: High similarity = High Weight
       float colorDiff = length(cCenter - cNeighbor);
       float w = 1.0 / (1.0 + colorDiff * uColorSensitivity);
 
@@ -68,13 +65,11 @@ void main() {
       wSum += w;
   }
 
-  // 3. Smooth
   float dSmooth = dCenter;
   if (wSum > 0.0) {
       dSmooth = dSum / wSum;
   }
 
-  // 4. Mix
   float dNext = mix(dCenter, dSmooth, uSmoothStrength);
   dNext = mix(dNext, dInitial, uAnchorStrength);
 
@@ -108,22 +103,27 @@ interface CopyUniforms {
   tInput: { value: THREE.Texture | null };
 }
 
-interface RuntimeState {
+type RuntimeState = {
+  // Resources
   ping?: THREE.WebGLRenderTarget;
   pong?: THREE.WebGLRenderTarget;
-  output?: THREE.WebGLRenderTarget; // Stable output
-
+  output?: THREE.WebGLRenderTarget;
   solverMat?: THREE.RawShaderMaterial;
   copyMat?: THREE.RawShaderMaterial;
-
   quadScene?: THREE.Scene;
   quadCamera?: THREE.Camera;
+  runner?: THREE.Mesh;
 
-  runner?: THREE.Mesh; // The "Host" object
-
+  // Internal Tracking
   initialized?: boolean;
   currentTexture?: THREE.Texture;
-}
+
+  // Dynamic Control Flags (Read by onBeforeRender)
+  enabled: boolean;
+  shouldReset: boolean;
+  iterations: number;
+  runIndex: number;
+};
 
 // ---------------------------------------------------------------------------
 // Node Definition
@@ -142,6 +142,11 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
     {
       name: WorkflowBrandedTypes.inputName(`depthTexture`),
       type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+    },
+    {
+      name: WorkflowBrandedTypes.inputName(`enabled`),
+      type: WorkflowBrandedTypes.valueType(`boolean`),
+      // Default false (Paused)
     },
     {
       name: WorkflowBrandedTypes.inputName(`iterations`),
@@ -178,8 +183,9 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
     const colorTexture = unbox(inputs.colorTexture as Box<THREE.Texture<HTMLImageElement>>);
     const depthTexture = unbox(inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>);
 
+    const enabled = (inputs.enabled as boolean) ?? false;
     const iterations = (inputs.iterations as number) ?? 1;
-    const smoothStrength = (inputs.smoothStrength as number) ?? 0.1;
+    const smoothStrength = (inputs.smoothStrength as number) ?? 0.0001;
     const colorSensitivity = (inputs.colorSensitivity as number) ?? 20.0;
     const anchorStrength = (inputs.anchorStrength as number) ?? 0.01;
     const reset = (inputs.reset as boolean) ?? false;
@@ -187,6 +193,28 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
     if (!colorTexture || !depthTexture) return;
 
     const rs = runtimeState as RuntimeState;
+
+    // Update Control State
+    rs.enabled = enabled;
+    rs.iterations = iterations;
+    if (reset) rs.shouldReset = true;
+
+    // Update Material Uniforms (if they exist)
+    if (rs.solverMat) {
+      const u = rs.solverMat.uniforms as unknown as SolverUniforms;
+      u.tInitialDepth.value = depthTexture;
+      u.tColor.value = colorTexture;
+      u.uSmoothStrength.value = smoothStrength;
+      u.uColorSensitivity.value = colorSensitivity;
+      u.uAnchorStrength.value = anchorStrength;
+    }
+
+    // EARLY RETURN: If runner exists, we just updated state. Return undefined.
+    if (rs.runner) {
+      return undefined;
+    }
+
+    // --- INITIAL CREATION ---
 
     const width = colorTexture.image?.width ?? 512;
     const height = colorTexture.image?.height ?? 512;
@@ -213,10 +241,10 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
       rs.initialized = false;
     }
 
-    // 2. Initialize GPGPU Scene (Quad)
+    // 2. Initialize GPGPU Scene
     if (!rs.solverMat) {
       rs.solverMat = new THREE.RawShaderMaterial({
-        glslVersion: THREE.GLSL3, // <--- FIX: Enable GLSL 3.0
+        glslVersion: THREE.GLSL3,
         vertexShader: VERTEX_SHADER,
         fragmentShader: SOLVER_FRAGMENT_SHADER,
         uniforms: {
@@ -231,7 +259,7 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
       });
 
       rs.copyMat = new THREE.RawShaderMaterial({
-        glslVersion: THREE.GLSL3, // <--- FIX: Enable GLSL 3.0
+        glslVersion: THREE.GLSL3,
         vertexShader: VERTEX_SHADER,
         fragmentShader: COPY_FRAGMENT_SHADER,
         uniforms: { tInput: { value: depthTexture } },
@@ -244,23 +272,14 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
       rs.quadCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     }
 
-    // 3. Update Uniforms
-    if (rs.solverMat) {
-      const u = rs.solverMat.uniforms as unknown as SolverUniforms;
-      u.tInitialDepth.value = depthTexture;
-      u.tColor.value = colorTexture;
-      u.uSmoothStrength.value = smoothStrength;
-      u.uColorSensitivity.value = colorSensitivity;
-      u.uAnchorStrength.value = anchorStrength;
-    }
-
-    // 4. Initialize Runner
+    // 3. Initialize Runner
     if (!rs.runner) {
       const geometry = new THREE.BufferGeometry();
       const material = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
 
       rs.runner = new THREE.Mesh(geometry, material);
       rs.runner.frustumCulled = false;
+      rs.runner.renderOrder = -Infinity; // Ensure initialization happens first
 
       rs.runner.onBeforeRender = (renderer) => {
         if (!rs.quadScene || !rs.quadCamera || !rs.solverMat || !rs.copyMat) return;
@@ -271,45 +290,73 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
         const currentAutoClear = r.autoClear;
         r.autoClear = false;
 
-        // A. Initialization
-        if (!rs.initialized || reset || rs.currentTexture !== depthTexture) {
+        // A. INITIALIZATION
+        // Runs on start, on reset, or if texture reference changed.
+        // Populates ALL buffers with the initial depth map.
+        if (!rs.initialized || rs.shouldReset || rs.currentTexture !== depthTexture) {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
           quad.material = rs.copyMat!;
           (rs.copyMat!.uniforms as unknown as CopyUniforms).tInput.value = depthTexture;
 
+          // Fill Read, Write, and Output buffers so they are valid immediately
           r.setRenderTarget(rs.ping);
           r.render(rs.quadScene, rs.quadCamera);
 
+          r.setRenderTarget(rs.pong);
+          r.render(rs.quadScene, rs.quadCamera);
+
+          r.setRenderTarget(rs.output);
+          r.render(rs.quadScene, rs.quadCamera);
+
           rs.initialized = true;
+          rs.shouldReset = false; // Clear trigger
           rs.currentTexture = depthTexture;
         }
 
-        // B. Solver Loop
-        const quad = rs.quadScene.children[0] as THREE.Mesh;
-        quad.material = rs.solverMat!;
-        const u = rs.solverMat!.uniforms as unknown as SolverUniforms;
+        // B. SOLVER LOOP (Only if Enabled)
+        if (rs.enabled) {
+          const quad = rs.quadScene.children[0] as THREE.Mesh;
+          quad.material = rs.solverMat!;
+          const u = rs.solverMat!.uniforms as unknown as SolverUniforms;
 
-        let read = rs.ping;
-        let write = rs.pong;
+          let read = rs.ping!;
+          let write = rs.pong!;
 
-        for (let i = 0; i < iterations; i++) {
-          u.tCurrentDepth.value = read.texture;
-          r.setRenderTarget(write);
+          rs.runIndex = (rs.runIndex || 0) + 1;
+          const iterationMod = (rs.iterations < 1 ? Math.ceil(1 / rs.iterations) : 1) || 0;
+
+          //   console.log(`[threeDepthRefinement] Solver is enabled`, {
+          //     runIndex: rs.runIndex,
+          //     iterations: rs.iterations,
+          //     iterationMod,
+          //   });
+
+          if (rs.runIndex % iterationMod === 0) {
+            console.log(`[threeDepthRefinement] Running solver`, {
+              runIndex: rs.runIndex,
+              iterations: rs.iterations,
+              iterationMod,
+            });
+            for (let i = 0; i < rs.iterations; i++) {
+              u.tCurrentDepth.value = read.texture;
+              r.setRenderTarget(write);
+              r.render(rs.quadScene, rs.quadCamera);
+
+              const temp = read;
+              read = write;
+              write = temp;
+            }
+
+            rs.ping = read;
+            rs.pong = write;
+          }
+
+          // C. OUTPUT UPDATE (Only if solver ran)
+          quad.material = rs.copyMat!;
+          (rs.copyMat!.uniforms as unknown as CopyUniforms).tInput.value = read.texture;
+          r.setRenderTarget(rs.output);
           r.render(rs.quadScene, rs.quadCamera);
-
-          const temp = read;
-          read = write;
-          write = temp;
         }
-
-        rs.ping = read;
-        rs.pong = write;
-
-        // C. Stable Output
-        quad.material = rs.copyMat!;
-        (rs.copyMat!.uniforms as unknown as CopyUniforms).tInput.value = read.texture;
-        r.setRenderTarget(rs.output);
-        r.render(rs.quadScene, rs.quadCamera);
 
         r.setRenderTarget(currentRt);
         r.autoClear = currentAutoClear;
