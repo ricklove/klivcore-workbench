@@ -47,7 +47,7 @@ const WorkflowNodeWrapper = ({
       <NodeResizer isVisible={selected && !isMultiSelect} />
       <WrapperHeader id={id} selected={selected} data={dataReactFlow} />
       {children}
-      <WrapperHandles data={{ node$: dataReactFlow.node$ }} />
+      <WrapperHandles selected={selected} data={{ node$: dataReactFlow.node$ }} />
     </>
   );
 };
@@ -118,7 +118,7 @@ const WrapperHeader = memo(
     return (
       <>
         <div className="absolute top-0 left-0 right-0 z-10 h-0">
-          <div className="absolute bottom-0 left-0 right-0 bg-amber-200/10">
+          <div className="absolute bottom-0 left-0 right-0 ">
             {expandInfo && (
               <div className="absolute top-0 left-0 right-0 h-0 scale-50">
                 <div
@@ -287,17 +287,16 @@ const WrapperHeader = memo(
 );
 
 export const WrapperHandles = memo(
-  (props: { data: { node$: Observable<WorkflowRuntimeNode> } }) => {
+  (props: { selected: boolean; data: { node$: Observable<WorkflowRuntimeNode> } }) => {
     const BASE_HANDLE_TOP_OFFSET_PX = 12;
     const BASE_HANDLE_SIDE_OFFSET_PX = 6;
     const HANDLE_VERTICAL_SPACING_PX = 24;
 
-    const { fitView } = useReactFlow();
-
-    const moveToNode = useCallback(
-      (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
-      [fitView],
-    );
+    // const { fitView } = useReactFlow();
+    // const moveToNode = useCallback(
+    //   (id: string) => fitView({ nodes: [{ id }], duration: 250 }),
+    //   [fitView],
+    // );
 
     const inputs = useValue(() =>
       props.data.node$.inputs.map((x) => ({
@@ -318,6 +317,7 @@ export const WrapperHandles = memo(
       <>
         {Object.values(inputs).map((input, index) => {
           const key = input.name;
+
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const edgeId = input.edgeId;
           const edge = input.edge;
@@ -338,12 +338,16 @@ export const WrapperHandles = memo(
                 type="target"
                 position={Position.Left}
                 id={key}
+                className={`${
+                  edge
+                    ? 'bg-green-800! border-green-400! hover:bg-green-600!'
+                    : props.selected
+                      ? `bg-gray-400! opacity-75 hover:opacity-100`
+                      : 'bg-gray-400! opacity-10 hover:opacity-100'
+                }`}
                 style={{
                   width: `12px`,
                   height: `12px`,
-                  ...(edge
-                    ? { background: `#44aa44`, borderColor: `#44aa44` }
-                    : { background: `#777777`, borderColor: `#777777` }),
                   top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
                   left: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
                   borderTopRightRadius: `0px`,
@@ -351,9 +355,10 @@ export const WrapperHandles = memo(
                 }}
                 // className="hover:top-0"
               >
-                <div className="absolute right-0 opacity-0 hover:opacity-100">
-                  <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-4 pointer-events-none">
-                    {edge && (
+                <div className="absolute right-0 opacity-0 hover:opacity-100 w-4 h-4">
+                  <div className="absolute right-0 pointer-events-none">
+                    <div className="flex flex-row items-center gap-1 relative p-1 text-xs border rounded bg-slate-700 border-slate-800 bottom-2 right-2 pointer-events-none">
+                      {/* {edge && (
                       <div
                         className="pointer-events-auto cursor-pointer"
                         onClick={() => moveToNode(edge.source.nodeId)}
@@ -361,8 +366,9 @@ export const WrapperHandles = memo(
                       >
                         🔗
                       </div>
-                    )}
-                    <div>{key}</div>
+                    )} */}
+                      <div>{key}</div>
+                    </div>
                   </div>
                 </div>
               </Handle>
@@ -391,21 +397,27 @@ export const WrapperHandles = memo(
                 type="source"
                 position={Position.Right}
                 id={key}
+                className={`${
+                  edges.length
+                    ? 'bg-green-800! border-green-400! hover:bg-green-600!'
+                    : props.selected
+                      ? `bg-gray-400! opacity-75 hover:opacity-100`
+                      : 'bg-gray-400! opacity-10 hover:opacity-100'
+                }`}
                 style={{
                   width: `12px`,
                   height: `12px`,
-                  ...(edges.length
-                    ? { background: `#44aa44`, borderColor: `#44aa44` }
-                    : { background: `#777777`, borderColor: `#777777` }),
                   top: `${BASE_HANDLE_TOP_OFFSET_PX + index * HANDLE_VERTICAL_SPACING_PX}px`,
                   right: `-${BASE_HANDLE_SIDE_OFFSET_PX}px`,
                   borderTopLeftRadius: `0px`,
                   borderBottomLeftRadius: `0px`,
                 }}
               >
-                <div className="absolute left-0 opacity-0 hover:opacity-100">
-                  <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-4">
-                    {key}
+                <div className="absolute left-0 opacity-0 hover:opacity-100 w-4 h-4">
+                  <div className="absolute left-0 pointer-events-none">
+                    <div className="relative p-1 text-xs border rounded pointer-events-none bg-slate-700 border-slate-800 bottom-2 left-2">
+                      {key}
+                    </div>
                   </div>
                 </div>
               </Handle>
