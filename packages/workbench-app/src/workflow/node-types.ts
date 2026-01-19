@@ -4,8 +4,6 @@ import { JsonNodeComponent, RerouteComponent, StringNodeComponent } from './node
 import { TempWrapper } from './node-temp-wrapper';
 import { NodeTypeWrapComponent } from './node-types-wrapper';
 
-const debug = false;
-let testId = 0;
 export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
   default: {
     type: WorkflowBrandedTypes.typeName(`default`),
@@ -14,6 +12,32 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
     outputs: [],
     execute: async () => {
       throw new Error('Not implemented');
+    },
+  },
+  reroute: {
+    type: WorkflowBrandedTypes.typeName(`reroute`),
+    getComponent: () => ({ Component: NodeTypeWrapComponent(RerouteComponent) }),
+    defaultSize: { width: 24, height: 24 },
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`T`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`T`),
+      },
+    ],
+    execute: async ({ inputs }) => {
+      const inputsTyped = inputs as {
+        value: undefined | unknown;
+      };
+
+      return {
+        outputs: { value: inputsTyped.value },
+      };
     },
   },
   string: {
@@ -31,41 +55,20 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
         type: WorkflowBrandedTypes.valueType(`string`),
       },
     ],
-    execute: async ({ inputs, data, controller, node }) => {
+    execute: async ({ inputs, data }) => {
       const inputsTyped = inputs as {
         value: undefined | string;
       };
-      const dataTyped = data as undefined | { value: undefined | string };
-
-      if (debug) {
-        const tid = testId++;
-        // TEMP: testing
-        controller.setProgress({ progressRatio: 0, message: 'Starting delay...' });
-        if (node.inputs.every((x) => !x.edgeId)) {
-          controller.registerEvent<{ value: string }>((emit) => {
-            const id = setInterval(() => {
-              emit({
-                value: `${dataTyped?.value ?? ''} [${node.id}:${tid}] @ ${new Date().toISOString()}`,
-              });
-            }, 100);
-            return { unsubscribe: () => clearInterval(id) };
-          });
-        } else {
-          if (Math.random() < 0.1) {
-            throw new Error('Random error for testing purposes');
-          }
-          // if (Math.random() < 0.001) {
-          //   await new Promise((resolve) => setTimeout(resolve, 5000 * Math.random()));
-          // }
-          if (Math.random() < 0.01) {
-            await new Promise((resolve) => setTimeout(resolve, 500 * Math.random()));
-          }
-        }
-        controller.setProgress({ progressRatio: 1, message: 'Delay complete' });
-      }
+      const dataTyped = data as undefined | { value: undefined | string; overrideInput?: boolean };
 
       return {
-        outputs: { value: inputsTyped.value ?? dataTyped?.value ?? null },
+        outputs: {
+          value:
+            (dataTyped?.overrideInput ? dataTyped?.value : undefined) ??
+            inputsTyped.value ??
+            dataTyped?.value ??
+            null,
+        },
       };
     },
   },
@@ -104,32 +107,7 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
       };
     },
   },
-  reroute: {
-    type: WorkflowBrandedTypes.typeName(`reroute`),
-    getComponent: () => ({ Component: NodeTypeWrapComponent(RerouteComponent) }),
-    defaultSize: { width: 24, height: 24 },
-    inputs: [
-      {
-        name: WorkflowBrandedTypes.inputName(`value`),
-        type: WorkflowBrandedTypes.valueType(`T`),
-      },
-    ],
-    outputs: [
-      {
-        name: WorkflowBrandedTypes.outputName(`value`),
-        type: WorkflowBrandedTypes.valueType(`T`),
-      },
-    ],
-    execute: async ({ inputs }) => {
-      const inputsTyped = inputs as {
-        value: undefined | unknown;
-      };
 
-      return {
-        outputs: { value: inputsTyped.value },
-      };
-    },
-  },
   tempWrapper: {
     type: WorkflowBrandedTypes.typeName(`tempWrapper`),
     getComponent: () => ({ Component: NodeTypeWrapComponent(TempWrapper) }),

@@ -45,7 +45,7 @@ const WorkflowNodeWrapper = ({
   return (
     <>
       <NodeResizer isVisible={selected && !isMultiSelect} />
-      <WrapperHeader id={id} data={dataReactFlow} />
+      <WrapperHeader id={id} selected={selected} data={dataReactFlow} />
       {children}
       <WrapperHandles data={{ node$: dataReactFlow.node$ }} />
     </>
@@ -55,7 +55,11 @@ const WorkflowNodeWrapper = ({
 const expandedInfoByNode$ = observable({} as Record<WorkflowNodeId, false | `data` | `document`>);
 
 const WrapperHeader = memo(
-  ({ id: nodeIdRaw, data: dataReactFlow }: Pick<WorkflowComponentPropsAny, 'id' | 'data'>) => {
+  ({
+    id: nodeIdRaw,
+    selected,
+    data: dataReactFlow,
+  }: Pick<WorkflowComponentPropsAny, 'id' | 'data' | `selected`>) => {
     // console.log(`[NodeWrapper] rendering node ${nodeIdRaw}`, { dataReactFlow });
     const { deleteElements } = useReactFlow();
 
@@ -114,11 +118,11 @@ const WrapperHeader = memo(
     return (
       <>
         <div className="absolute top-0 left-0 right-0 z-10 h-0">
-          <div className="absolute bottom-0 left-0 right-0 ">
+          <div className="absolute bottom-0 left-0 right-0 bg-amber-200/10">
             {expandInfo && (
               <div className="absolute top-0 left-0 right-0 h-0 scale-50">
                 <div
-                  className="absolute bottom-10 flex flex-col justify-end gap-1 min-w-75 min-h-75"
+                  className="absolute bottom-1 flex flex-col justify-end gap-1 min-w-75 min-h-75"
                   style={{ width: `200%`, marginLeft: `-50%` }}
                 >
                   <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
@@ -168,10 +172,15 @@ const WrapperHeader = memo(
                 </div>
               </div>
             )}
-            <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
-              <div className="flex-1">{`🔷`}</div>
-              <div className="flex flex-row items-center min-w-0 gap-1 nowheel nodrag nopan ">
-                {/* {data.refresh && (
+            <div className="flex flex-col">
+              <div className="relative">
+                <div className="absolute bottom-0 right-0">
+                  <div className="flex flex-row items-center gap-1 ">
+                    <div className="flex-1 self-stretch nowheel nodrag nopan pointer-events-none" />
+                    <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
+                      <div className="flex-1">{`🔷`}</div>
+                      <div className="flex flex-row items-center min-w-0 gap-1 nowheel nodrag nopan ">
+                        {/* {data.refresh && (
                 <div
                   className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
                   onClick={() => data.refresh?.()}
@@ -179,86 +188,97 @@ const WrapperHeader = memo(
                   {`▶️`}
                 </div>
               )} */}
-                <div
-                  className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                  onClick={() => {
-                    setExpandInfo(expandInfoRaw === `data` ? false : `data`);
-                    console.log(`dataReactFlow ${nodeId}`, dataReactFlow);
-                  }}
-                  onMouseEnter={() => setExpandInfoQuick(true)}
-                  onMouseLeave={() => setExpandInfoQuick(false)}
-                >
-                  {`🔎`}
-                </div>
-                <div
-                  className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
-                    expandInfo ? `bg-blue-800` : `bg-blue-400`
-                  }`}
-                  onClick={() => setExpandInfo(expandInfoRaw === `document` ? false : `document`)}
-                >
-                  {`ℹ`}
-                </div>
-                <div
-                  className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
-                  onClick={handleDeleteNode}
-                >
-                  {`🗑️`}
+                        <div
+                          className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                          onClick={() => {
+                            setExpandInfo(expandInfoRaw === `data` ? false : `data`);
+                            console.log(`dataReactFlow ${nodeId}`, dataReactFlow);
+                          }}
+                          onMouseEnter={() => setExpandInfoQuick(true)}
+                          onMouseLeave={() => setExpandInfoQuick(false)}
+                        >
+                          {`🔎`}
+                        </div>
+                        <div
+                          className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
+                            expandInfo ? `bg-blue-800` : `bg-blue-400`
+                          }`}
+                          onClick={() =>
+                            setExpandInfo(expandInfoRaw === `document` ? false : `document`)
+                          }
+                        >
+                          {`ℹ`}
+                        </div>
+                        <div
+                          className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
+                          onClick={handleDeleteNode}
+                        >
+                          {`🗑️`}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex flex-col gap-0">
-              {nodeIdWarning && (
-                <div
-                  className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
-                    nodeIdWarning
-                      ? 'border border-red-500'
-                      : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
-                  }`}
-                >
-                  {`[${nodeIdRaw}] ${nodeIdWarning}`}
-                </div>
-              )}
-              <input
-                type="text"
-                className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
-                  nodeIdWarning
-                    ? 'border border-red-500'
-                    : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
-                }`}
-                title={`${nodeId}: ${typeName}`}
-                value={nodeId}
-                onChange={(x) => setNodeId(x.target.value)}
-                onBlur={handleNodeIdChange}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              />
-            </div>
-            <Memo>
-              {() => (
-                <>
+              <div className="flex flex-col gap-0">
+                {nodeIdWarning && (
                   <div
-                    className={`transition delay-50 duration-300 text-[8px] ${
-                      node$.executionState.status.get() === 'running'
-                        ? 'bg-green-700 opacity-100'
-                        : node$.executionState.status.get() === 'error'
-                          ? 'bg-red-700 opacity-100'
-                          : node$.executionState.status.get() === 'aborted'
-                            ? 'bg-yellow-700 opacity-50'
-                            : node$.executionState.status.get() === 'success'
-                              ? 'bg-gray-600 opacity-10'
-                              : 'bg-gray-700 opacity-10'
+                    className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
+                      nodeIdWarning
+                        ? 'border border-red-500'
+                        : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
                     }`}
                   >
-                    {node$.executionState.status.get()}
-                    {node$.executionState.status.get() === 'error'
-                      ? ` - ${node$.executionState.runState.errorMessage.get() ?? ``}`
-                      : ``}
+                    {`[${nodeIdRaw}] ${nodeIdWarning}`}
                   </div>
-                </>
-              )}
-            </Memo>
+                )}
+                <div
+                  className={`flex flex-row items-center gap-0.5 border-none ${
+                    nodeIdWarning || selected ? '' : 'opacity-5 hover:opacity-100 focus:opacity-100'
+                  }`}
+                >
+                  <div className="w-1 h-1 bg-blue-800 rounded-full" />
+                  <input
+                    type="text"
+                    className={`min-w-0 flex-1 font-bold text-white outline-none bg-transparent p-0 m-0 leading-tight  text-[8px] ${
+                      nodeIdWarning ? '' : 'opacity-5 hover:opacity-100 focus:opacity-100'
+                    }`}
+                    title={`${nodeId}: ${typeName}`}
+                    value={nodeId}
+                    onChange={(x) => setNodeId(x.target.value)}
+                    onBlur={handleNodeIdChange}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  />
+                </div>
+              </div>
+              <Memo>
+                {() => (
+                  <>
+                    <div
+                      className={`transition delay-50 duration-300 text-[8px] ${
+                        node$.executionState.status.get() === 'running'
+                          ? 'bg-green-700 opacity-100'
+                          : node$.executionState.status.get() === 'error'
+                            ? 'bg-red-700 opacity-100'
+                            : node$.executionState.status.get() === 'aborted'
+                              ? 'bg-yellow-700 opacity-50'
+                              : node$.executionState.status.get() === 'success'
+                                ? 'bg-gray-600 opacity-10'
+                                : 'bg-gray-700 opacity-10'
+                      }`}
+                    >
+                      {node$.executionState.status.get()}
+                      {node$.executionState.status.get() === 'error'
+                        ? ` - ${node$.executionState.runState.errorMessage.get() ?? ``}`
+                        : ``}
+                    </div>
+                  </>
+                )}
+              </Memo>
+            </div>
           </div>
         </div>
       </>
