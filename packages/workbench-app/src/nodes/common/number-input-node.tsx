@@ -100,6 +100,7 @@ const NumberScrubber = ({ label, value, onChange, readonly }: NumberScrubberProp
     target.setPointerCapture(e.pointerId);
 
     const startX = e.clientX;
+    const startY = e.clientY;
     const startValue = value || 0;
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
@@ -107,6 +108,15 @@ const NumberScrubber = ({ label, value, onChange, readonly }: NumberScrubberProp
       let multiplier = 1.0;
       if (moveEvent.shiftKey) multiplier = 100.0;
       if (moveEvent.altKey) multiplier = 0.001;
+      if (!isIntegerMode) {
+        // Normalize Y position relative to startY: 0 at startY, 1 at top, -1 at bottom
+        const normalizedY = (startY - moveEvent.clientY) / (window.innerHeight / 2);
+        // Clamp to ensure it's within -1 to 1
+        const clampedY = Math.max(-1, Math.min(1, normalizedY));
+        // Exponent ranges from -3 (bottom, 0.001x) to 3 (top, 1000x), with 0 at startY (1x)
+        const s = Math.pow(10, clampedY * 3);
+        multiplier *= s;
+      }
       const newValue = startValue + deltaX * multiplier;
       if (newValue % 1 !== 0) setIsIntegerMode(false);
       onChange(Math.round(newValue * 1000000) / 1000000);
