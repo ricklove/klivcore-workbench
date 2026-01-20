@@ -226,7 +226,7 @@ const WorkflowViewInner = () => {
       runtimeStore$.actions.createNode({
         id: newId,
         type: typeName,
-        position: { x: position.x - s.width / 2, y: position.y - s.height, ...s },
+        position: { x: position.x - s.width / 2, y: position.y - 24, ...s },
       });
 
       console.log(`[WorkflowView] Added node to workflow`, {
