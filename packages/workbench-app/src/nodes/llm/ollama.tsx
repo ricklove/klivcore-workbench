@@ -1,6 +1,6 @@
-import { createLlmRequestNodes } from './llm-request';
+import { createLlmNodes } from './llm-generic';
 
-export const ollamaNodes = createLlmRequestNodes({
+export const ollamaNodes = createLlmNodes({
   name: 'Ollama',
   typeSuffix: 'ollama',
   defaultUrl: 'http://localhost:11434',

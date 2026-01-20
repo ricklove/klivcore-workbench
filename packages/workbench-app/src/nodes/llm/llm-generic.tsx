@@ -98,12 +98,12 @@ const InputField = ({
 
 // --- NODE TYPE FACTORY ---
 
-export const createLlmNodeType = (
+export const createLlmRequestNodeType = (
   config: LlmConfig,
   ConfiguredComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
 ): WorkflowRuntimeNodeTypeDefinition => {
   return {
-    type: WorkflowBrandedTypes.typeName(`${config.typeSuffix}Streaming`),
+    type: WorkflowBrandedTypes.typeName(`${config.typeSuffix}LlmRequest`),
     getComponent: () => ({
       Component: NodeTypeWrapComponentWithNodeWrapper(ConfiguredComponent),
     }),
@@ -396,7 +396,7 @@ export const createLlmNodeType = (
   };
 };
 
-export const OllamaStreamingComponent = (
+export const LlmRequestComponent = (
   props: WorkflowComponentProps_Obs<OllamaData, OllamaInputs, OllamaOutputs> & {
     config: LlmConfig;
   },
@@ -539,12 +539,8 @@ export const OllamaStreamingComponent = (
 
 // --- MAIN FACTORY FUNCTION ---
 
-export const createLlmRequestNodes = (config: LlmConfig) => {
-  const nodeType = createLlmNodeType(config, (props) => (
-    <OllamaStreamingComponent {...props} config={config} />
-  ));
-
-  return {
-    [`${config.typeSuffix}Streaming`]: nodeType,
-  };
+export const createLlmNodes = (config: LlmConfig) => {
+  return [
+    createLlmRequestNodeType(config, (props) => <LlmRequestComponent {...props} config={config} />),
+  ];
 };
