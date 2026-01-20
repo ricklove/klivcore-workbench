@@ -303,7 +303,7 @@ export const createLlmRequestNodeType = (
           const THINK_CLOSE_TAGS = ['</thinking>', '</thought>'];
 
           while (true) {
-            const { done, value } = await reader.read();
+            const { done: doneStream, value } = await reader.read();
             if (controller.abortSignal.aborted) {
               throw new Error('Request was aborted');
             }
@@ -315,11 +315,13 @@ export const createLlmRequestNodeType = (
             buffer += chunkText;
 
             const lines = buffer.split('\n');
-            buffer = done ? `` : (lines.pop() ?? '');
+            buffer = doneStream ? `` : (lines.pop() ?? '');
 
-            for (const line of lines) {
+            let doneChunk = false;
+
+            const processLine = (line: string) => {
               const trimmedLine = line.trim();
-              if (!trimmedLine) continue;
+              if (!trimmedLine) return;
 
               try {
                 console.log('[llm-generic] stream chunk line', { trimmedLine, chunkText });
@@ -391,21 +393,7 @@ export const createLlmRequestNodeType = (
                 });
 
                 if (parsedChunk.done) {
-                  // If thought was never closed, copy everything to response
-                  if (!thoughtClosed) {
-                    cumulativeResponse = cumulativeThought;
-                    cumulativeThought = '';
-                  }
-
-                  controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
-                  emit({
-                    chunk: rawChunk,
-                    thought: cumulativeThought,
-                    response: cumulativeResponse,
-                    done: true,
-                    status: 'completed',
-                  });
-                  return;
+                  doneChunk = true;
                 }
               } catch (parseError) {
                 console.error('[llm-generic] ERROR stream chunk line', { trimmedLine, chunkText });
@@ -416,9 +404,14 @@ export const createLlmRequestNodeType = (
                   status: 'error',
                 });
               }
+            };
+
+            for (const line of lines) {
+              processLine(line);
             }
 
-            if (done) {
+            const isDone = (doneChunk || doneStream) && !buffer;
+            if (isDone) {
               // If thought was never closed, copy everything to response
               if (!thoughtClosed) {
                 cumulativeResponse = cumulativeThought;
