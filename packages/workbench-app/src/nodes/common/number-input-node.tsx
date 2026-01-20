@@ -1,0 +1,192 @@
+import React, { useRef, useState } from 'react';
+import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
+import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowComponentProps_Obs,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types';
+import { useValue } from '@legendapp/state/react';
+
+// --- LOGIC: Node Definition ---
+// eslint-disable-next-line react-refresh/only-export-components
+export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
+  type: WorkflowBrandedTypes.typeName(`number-input`),
+  getComponent: () => ({
+    Component: NodeTypeWrapComponentWithNodeWrapper(NumberInputComponent),
+  }),
+  inputs: [
+    {
+      name: WorkflowBrandedTypes.inputName(`value`),
+      type: WorkflowBrandedTypes.valueType(`number`),
+    },
+  ],
+  outputs: [
+    {
+      name: WorkflowBrandedTypes.outputName(`value`),
+      type: WorkflowBrandedTypes.valueType(`number`),
+    },
+  ],
+  execute: async ({ inputs, data }) => {
+    const inputValue = (inputs as undefined | { value?: number })?.value;
+    const dataValue = (data as undefined | { value?: number })?.value ?? 0;
+    const value = inputValue ?? dataValue;
+    return {
+      outputs: {
+        value,
+      },
+      ...(!inputValue ? { data: { value } } : {}),
+    };
+  },
+};
+
+export const NumberInputComponent = (
+  props: WorkflowComponentProps_Obs<{ value: number }, { value: number }>,
+) => {
+  const { data$, inputs$, node$ } = props.data;
+
+  const valueInputSlot = useValue(() => node$.getInputInfo<number>(`value`));
+  const isReadonly = valueInputSlot.isConnected;
+
+  const currentValue = useValue(() => {
+    const inputValue = inputs$.value.get();
+    const dataValue = data$.value.get() ?? 0;
+    return inputValue ?? dataValue;
+  });
+
+  const updateValue = (newValue: number) => {
+    if (isReadonly) return;
+    data$.value.set(newValue);
+  };
+
+  return (
+    <WorkflowNodeWrapperSimple {...props}>
+      <div className="p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
+        <NumberScrubber
+          //   label="Value"
+          value={currentValue}
+          onChange={updateValue}
+          readonly={isReadonly}
+        />
+      </div>
+    </WorkflowNodeWrapperSimple>
+  );
+};
+
+interface NumberScrubberProps {
+  label?: string;
+  value: number;
+  onChange: (val: number) => void;
+  readonly?: boolean;
+}
+
+const NumberScrubber = ({ label, value, onChange, readonly }: NumberScrubberProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isIntegerMode, setIsIntegerMode] = useState(value % 1 === 0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const displayValue = isNaN(value)
+    ? isIntegerMode
+      ? '0'
+      : '0.00'
+    : isIntegerMode
+      ? Number(value).toFixed(0)
+      : Number(value).toFixed(2);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isEditing || readonly) return;
+
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+
+    const startX = e.clientX;
+    const startValue = value || 0;
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      let multiplier = 1.0;
+      if (moveEvent.shiftKey) multiplier = 100.0;
+      if (moveEvent.altKey) multiplier = 0.001;
+      const newValue = startValue + deltaX * multiplier;
+      if (newValue % 1 !== 0) setIsIntegerMode(false);
+      onChange(Math.round(newValue * 1000000) / 1000000);
+    };
+
+    const handlePointerUp = (upEvent: PointerEvent) => {
+      target.releasePointerCapture(upEvent.pointerId);
+      target.removeEventListener('pointermove', handlePointerMove);
+      target.removeEventListener('pointerup', handlePointerUp);
+    };
+
+    target.addEventListener('pointermove', handlePointerMove);
+    target.addEventListener('pointerup', handlePointerUp);
+  };
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (readonly) return;
+    if (e.detail === 2) {
+      setIsEditing(true);
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.select();
+        }
+      }, 0);
+    }
+  };
+
+  const handleBlur = () => setIsEditing(false);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') setIsEditing(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const num = parseFloat(e.target.value);
+    if (num % 1 !== 0) setIsIntegerMode(false);
+    onChange(num);
+  };
+
+  return (
+    <div
+      className="flex flex-col items-start gap-0.5 flex-1 min-w-0 group"
+      title={readonly ? 'Value is set by input' : 'Drag to change, Double-click to type'}
+    >
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          type="number"
+          step="0.1"
+          className="w-full bg-neutral-800 text-white text-xs px-1 py-0.5 rounded border border-blue-500 outline-none"
+          value={value}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus
+        />
+      ) : (
+        <div
+          className={`w-full flex items-center bg-neutral-900 border rounded overflow-hidden select-none ${
+            readonly
+              ? 'cursor-default border-neutral-600'
+              : 'cursor-ew-resize border-neutral-700 hover:border-neutral-500 transition-colors'
+          }`}
+          onPointerDown={handlePointerDown}
+          onClick={handleClick}
+        >
+          {label && (
+            <div className="px-1.5 py-0.5 text-[10px] font-bold select-none bg-neutral-800/50 text-neutral-400">
+              {label}
+            </div>
+          )}
+          <div
+            className={`flex-1 px-1.5 text-xs font-mono text-right truncate ${
+              readonly ? 'text-neutral-500' : 'text-neutral-300'
+            }`}
+          >
+            {displayValue}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

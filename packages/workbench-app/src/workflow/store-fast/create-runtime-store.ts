@@ -19,6 +19,7 @@ import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
 import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
 import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
 import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
+import { commonNodeTypes } from '../../nodes/common/_common-nodes';
 
 const getters = {
   node: {
@@ -611,6 +612,7 @@ export const createWorkflowStoreFromDocument = (
   const store$ = loadWorkflowStoreFromDocument(document);
   const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
     ...builtinNodeTypes,
+    ...commonNodeTypes,
     ...codeBuiltinNodeTypes,
     ...webglNodeTypes,
     ...llmNodeTypes,
