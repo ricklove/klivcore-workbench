@@ -24,8 +24,9 @@ interface LlmConfig {
     model: string;
     stream: boolean;
   }) => Record<string, unknown>;
-  parseStreamChunk?: (chunk: string) => {
-    response?: string;
+  parseStreamChunk: (chunk: string) => {
+    content?: string;
+    thought?: string;
     done?: boolean;
     error?: string;
     usage?: {
@@ -74,21 +75,6 @@ interface LlmOutputs {
   settings: LlmSettings;
   usage: undefined | LlmUsage;
   raw: string | undefined;
-}
-
-interface LlmStreamChunk {
-  response?: string;
-  done?: boolean;
-  model?: string;
-  created_at?: string;
-  error?: string;
-  total_duration?: number;
-  load_duration?: number;
-  prompt_eval_count?: number;
-  prompt_eval_duration?: number;
-  eval_count?: number;
-  eval_duration?: number;
-  usage?: LlmUsage;
 }
 
 // --- COMPONENTS ---
@@ -327,17 +313,10 @@ export const createLlmRequestNodeType = (
                 console.log('[llm-generic] stream chunk line', { trimmedLine, chunkText });
                 const rawChunk = trimmedLine;
 
-                let parsedChunk: {
-                  response?: string;
-                  done?: boolean;
-                  error?: string;
-                  usage?: LlmUsage;
-                };
-
-                if (config.parseStreamChunk) {
-                  parsedChunk = config.parseStreamChunk(rawChunk);
-                } else {
-                  parsedChunk = JSON.parse(rawChunk) as LlmStreamChunk;
+                const parsedChunk = config.parseStreamChunk(rawChunk);
+                if (!thoughtClosed && parsedChunk.thought) {
+                  // models that have dedicated thought field close immediately
+                  thoughtClosed = true;
                 }
 
                 if (parsedChunk.usage) {
@@ -346,13 +325,17 @@ export const createLlmRequestNodeType = (
                   });
                 }
 
-                if (parsedChunk.response) {
+                if (parsedChunk.thought) {
+                  cumulativeThought += parsedChunk.thought;
+                }
+
+                if (parsedChunk.content) {
                   if (thoughtClosed) {
                     // If thought is already closed, add directly to response
-                    cumulativeResponse += parsedChunk.response;
+                    cumulativeResponse += parsedChunk.content;
                   } else {
                     // Add to thought and check for closing tag
-                    cumulativeThought += parsedChunk.response;
+                    cumulativeThought += parsedChunk.content;
 
                     // Check if this is first time we're finding the closing tag
                     const foundCloseThoughtTag = THINK_CLOSE_TAGS.find((tag) =>

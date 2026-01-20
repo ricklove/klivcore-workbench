@@ -40,7 +40,8 @@ export const zenNodes = createLlmNodes({
 
     const choice = chunk.choices[0];
     return {
-      response: choice?.delta?.content,
+      content: choice?.delta?.content,
+      thought: choice?.delta?.reasoning_content,
       done: choice?.finish_reason === 'stop',
       usage,
       error: chunk.error,
@@ -51,6 +52,7 @@ export const zenNodes = createLlmNodes({
 // OpenAI-compatible streaming response types
 interface OpenAIStreamDelta {
   content?: string;
+  reasoning_content?: string;
 }
 
 interface OpenAIStreamChoice {
