@@ -73,6 +73,7 @@ interface LlmOutputs {
   status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';
   settings: LlmSettings;
   usage: undefined | LlmUsage;
+  raw: string | undefined;
 }
 
 interface LlmStreamChunk {
@@ -196,6 +197,10 @@ export const createLlmRequestNodeType = (
         name: WorkflowBrandedTypes.outputName('usage'),
         type: WorkflowBrandedTypes.valueType('LlmUsage'),
       },
+      {
+        name: WorkflowBrandedTypes.outputName('raw'),
+        type: WorkflowBrandedTypes.valueType('string'),
+      },
     ],
     execute: async ({ inputs, data, controller }) => {
       const safeData = (data as unknown as LlmData) ?? {
@@ -221,14 +226,14 @@ export const createLlmRequestNodeType = (
         return;
       }
 
-      let cumulativeThought = '';
-      let cumulativeResponse = '';
-      let thoughtClosed = false;
-      let lastUsage: undefined | LlmUsage = undefined;
-
       type PartialNull<T> = {
         [P in keyof T]?: T[P] | null;
       };
+
+      let cumulativeRaw = '';
+      let cumulativeThought = '';
+      let cumulativeResponse = '';
+      let thoughtClosed = false;
 
       const processStream = async (
         emit: (output: Omit<PartialNull<LlmOutputs>, `settings`>) => void,
@@ -304,6 +309,9 @@ export const createLlmRequestNodeType = (
             }
 
             const chunkText = decoder.decode(value, { stream: true });
+            cumulativeRaw += chunkText;
+            emit({ raw: cumulativeRaw });
+
             buffer += chunkText;
 
             const lines = buffer.split('\n');
@@ -331,9 +339,8 @@ export const createLlmRequestNodeType = (
                 }
 
                 if (parsedChunk.usage) {
-                  lastUsage = parsedChunk.usage;
                   emit({
-                    usage: lastUsage,
+                    usage: parsedChunk.usage,
                   });
                 }
 
@@ -463,6 +470,7 @@ export const createLlmRequestNodeType = (
           done: true,
           status: 'success',
           settings: resolvedSettings,
+          // raw: cumulativeRaw,
         },
       };
     },

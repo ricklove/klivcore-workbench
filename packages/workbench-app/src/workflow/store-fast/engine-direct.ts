@@ -179,13 +179,13 @@ const executeNode = async ({
 
     // set outputs
     for (const output of node.outputs) {
-      if (output === undefined) continue;
-      output.value.setValue(result.outputs[output.name] ?? null);
+      if (result.outputs[output.name] === undefined) continue;
+      output.value.setValue(result.outputs[output.name]);
     }
 
     // set node data
     if (result.data !== undefined) {
-      node.data.setValue(result.data ?? null);
+      node.data.setValue(result.data);
     }
   } catch (err) {
     if (controller.abortSignal.aborted) {
@@ -443,10 +443,13 @@ export const createWorkflowEngine = (
     flushBatch();
 
     const store = store$.peek();
-    const promises = [] as Promise<{
-      nodeId: WorkflowNodeId;
-      executionState: undefined | WorkflowRuntimeExecutionState;
-    }>[];
+    const promises = [] as Promise<
+      | undefined
+      | {
+          nodeId: WorkflowNodeId;
+          executionState: undefined | WorkflowRuntimeExecutionState;
+        }
+    >[];
     for (const nodeId of engineState.nodeIdsExecuting) {
       const node = store.nodes[nodeId];
 
@@ -459,9 +462,15 @@ export const createWorkflowEngine = (
       }
 
       const promise = (async () => {
-        if (node.executionState?.status !== `running`) {
-          engineState.executionEmitters.get(nodeId)?.unsubscribe();
+        if (node.executionState?.status === `running`) {
+          // do not rerun a node already running
+          return;
         }
+
+        // if (node.executionState?.status !== `running`) {
+        engineState.executionEmitters.get(nodeId)?.unsubscribe();
+        engineState.executionEmitters.delete(nodeId);
+        // }
 
         const executionState$ = store$.nodes[nodeId]!.executionState;
 
@@ -499,7 +508,7 @@ export const createWorkflowEngine = (
               // purgeBatch();
             },
             registerEvent: (event) => {
-              engineState.executionEmitters.get(nodeId)?.unsubscribe();
+              const lastUnsub = engineState.executionEmitters.get(nodeId);
               const unsub = event((result) => {
                 // console.log(
                 //   `[createWorkflowEngine:executeNode:registerEvent] Node event emitted:`,
@@ -509,12 +518,22 @@ export const createWorkflowEngine = (
                 //   },
                 // );
                 for (const output of node.outputs) {
-                  if (output === undefined) continue;
-                  output.value.setValue(result[output.name] ?? null);
+                  if (result[output.name] === undefined) continue;
+                  output.value.setValue(result[output.name]);
                 }
                 // purgeBatch();
               });
-              engineState.executionEmitters.set(nodeId, unsub);
+              engineState.executionEmitters.set(
+                nodeId,
+                !lastUnsub
+                  ? unsub
+                  : {
+                      unsubscribe: () => {
+                        unsub.unsubscribe();
+                        lastUnsub.unsubscribe();
+                      },
+                    },
+              );
             },
           },
         });
