@@ -226,7 +226,13 @@ export const createLlmRequestNodeType = (
       let thoughtClosed = false;
       let lastUsage: undefined | LlmUsage = undefined;
 
-      const processStream = async (emit: (output: Partial<LlmOutputs>) => void): Promise<void> => {
+      type PartialNull<T> = {
+        [P in keyof T]?: T[P] | null;
+      };
+
+      const processStream = async (
+        emit: (output: Omit<PartialNull<LlmOutputs>, `settings`>) => void,
+      ): Promise<void> => {
         let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;
 
         try {
@@ -235,13 +241,13 @@ export const createLlmRequestNodeType = (
             message: `Connecting to ${config.name}...`,
           });
           emit({
-            chunk: undefined,
-            thought: undefined,
-            response: undefined,
+            chunk: null,
+            thought: null,
+            response: null,
             done: false,
-            error: undefined,
+            error: null,
             status: 'connecting',
-            settings: resolvedSettings,
+            usage: null,
           });
 
           // Build headers
@@ -281,13 +287,7 @@ export const createLlmRequestNodeType = (
 
           controller.setProgress({ progressRatio: 0.3, message: 'Starting stream...' });
           emit({
-            chunk: undefined,
-            thought: undefined,
-            response: undefined,
-            done: false,
-            error: undefined,
             status: 'thinking',
-            settings: resolvedSettings,
           });
 
           reader = response.body.getReader();
@@ -376,12 +376,11 @@ export const createLlmRequestNodeType = (
 
                 emit({
                   chunk: rawChunk,
-                  thought: cumulativeThought || undefined,
-                  response: cumulativeResponse || undefined,
+                  thought: cumulativeThought,
+                  response: cumulativeResponse,
                   done: parsedChunk.done ?? false,
                   error: parsedChunk.error,
                   status: currentStatus,
-                  settings: resolvedSettings,
                 });
 
                 if (parsedChunk.done) {
@@ -394,12 +393,10 @@ export const createLlmRequestNodeType = (
                   controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
                   emit({
                     chunk: rawChunk,
-                    thought: cumulativeThought || undefined,
-                    response: cumulativeResponse || undefined,
+                    thought: cumulativeThought,
+                    response: cumulativeResponse,
                     done: true,
-                    error: undefined,
                     status: 'completed',
-                    settings: resolvedSettings,
                   });
                   return;
                 }
@@ -408,13 +405,8 @@ export const createLlmRequestNodeType = (
 
                 controller.setProgress({ progressRatio: 0.0, message: 'Error parsing response' });
                 emit({
-                  chunk: undefined,
-                  thought: undefined,
-                  response: undefined,
-                  done: false,
                   error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
                   status: 'error',
-                  settings: resolvedSettings,
                 });
               }
             }
@@ -428,13 +420,10 @@ export const createLlmRequestNodeType = (
 
               controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
               emit({
-                chunk: undefined,
-                thought: cumulativeThought || undefined,
-                response: cumulativeResponse || undefined,
+                thought: cumulativeThought,
+                response: cumulativeResponse,
                 done: true,
-                error: undefined,
                 status: 'completed',
-                settings: resolvedSettings,
               });
               return;
             }
@@ -444,13 +433,8 @@ export const createLlmRequestNodeType = (
           controller.setProgress({ progressRatio: 0.0, message: `Error: ${errorMessage}` });
 
           emit({
-            chunk: undefined,
-            thought: undefined,
-            response: undefined,
-            done: false,
             error: errorMessage,
             status: 'error',
-            settings: resolvedSettings,
           });
         }
       };
@@ -474,11 +458,9 @@ export const createLlmRequestNodeType = (
 
       return {
         outputs: {
-          chunk: undefined,
-          thought: cumulativeThought || undefined,
-          response: cumulativeResponse || undefined,
+          thought: cumulativeThought,
+          response: cumulativeResponse,
           done: true,
-          error: undefined,
           status: 'success',
           settings: resolvedSettings,
         },
