@@ -305,7 +305,7 @@ export const createLlmRequestNodeType = (
                 const currentStatus = thoughtClosed ? 'streaming' : 'thinking';
                 controller.setProgress({
                   progressRatio,
-                  message: `${currentStatus === 'thinking' ? 'Thinking' : 'Streaming'}... (${chunkCount} chunks)`,
+                  message: `${currentStatus === 'thinking' ? 'Thinking' : 'Responding'}... (${chunkCount} chunks)`,
                 });
 
                 emit({
@@ -468,7 +468,7 @@ export const LlmRequestComponent = (
       <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-          <div className="text-xs font-bold text-white">{props.config.name} Streaming</div>
+          <div className="text-xs font-bold text-white">{props.config.name} LLM Request</div>
           <div className={clsx('text-xs font-medium', getStatusColor(currentStatus))}>
             {getStatusText(currentStatus)}
           </div>
