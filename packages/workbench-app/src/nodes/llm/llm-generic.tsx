@@ -54,20 +54,20 @@ export const isOpenAIStreamChunk = (chunk: unknown): chunk is OpenAIStreamChunk 
 };
 
 type LlmData = {
-  ollamaUrl: string;
+  url: string;
   model: string;
   apiKey?: string;
 };
 
-interface OllamaInputs {
+interface LlmInputs {
   prompt: string;
   model?: string;
-  ollamaUrl?: string;
+  url?: string;
   apiKey?: string;
 }
 
-interface OllamaOutputs {
-  chunk: OllamaStreamChunk;
+interface LlmOutputs {
+  chunk: LlmStreamChunk;
   thought: undefined | string;
   response: undefined | string;
   done: boolean;
@@ -75,7 +75,7 @@ interface OllamaOutputs {
   status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';
 }
 
-interface OllamaStreamChunk {
+interface LlmStreamChunk {
   response?: string;
   done?: boolean;
   model?: string;
@@ -150,7 +150,7 @@ export const createLlmRequestNodeType = (
         type: WorkflowBrandedTypes.valueType('string'),
       },
       {
-        name: WorkflowBrandedTypes.inputName('ollamaUrl'),
+        name: WorkflowBrandedTypes.inputName('url'),
         type: WorkflowBrandedTypes.valueType('string'),
       },
       {
@@ -161,7 +161,7 @@ export const createLlmRequestNodeType = (
     outputs: [
       {
         name: WorkflowBrandedTypes.outputName('chunk'),
-        type: WorkflowBrandedTypes.valueType('OllamaStreamChunk'),
+        type: WorkflowBrandedTypes.valueType('LlmStreamChunk'),
       },
       {
         name: WorkflowBrandedTypes.outputName('thought'),
@@ -186,18 +186,18 @@ export const createLlmRequestNodeType = (
     ],
     execute: async ({ inputs, data, controller }) => {
       const safeData = (data as unknown as LlmData) ?? {
-        ollamaUrl: config.defaultUrl,
+        url: config.defaultUrl,
         model: config.defaultModel,
       };
 
       const promptInput = inputs.prompt as string | undefined;
       const modelInput = inputs.model as string | undefined;
-      const ollamaUrlInput = inputs.ollamaUrl as string | undefined;
+      const urlInput = inputs.url as string | undefined;
       const apiKeyInput = inputs.apiKey as string | undefined;
 
       const prompt = promptInput ?? '';
       const model = modelInput ?? safeData.model ?? config.defaultModel;
-      const ollamaUrl = ollamaUrlInput ?? safeData.ollamaUrl ?? config.defaultUrl;
+      const url = urlInput ?? safeData.url ?? config.defaultUrl;
       const apiKey = apiKeyInput ?? safeData.apiKey;
 
       if (!prompt.trim()) {
@@ -216,7 +216,7 @@ export const createLlmRequestNodeType = (
       let cumulativeResponse = '';
       let thoughtClosed = false;
 
-      const processStream = async (emit: (output: OllamaOutputs) => void): Promise<void> => {
+      const processStream = async (emit: (output: LlmOutputs) => void): Promise<void> => {
         let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;
 
         try {
@@ -252,7 +252,7 @@ export const createLlmRequestNodeType = (
             };
           }
 
-          const response = await fetch(ollamaUrl, {
+          const response = await fetch(url, {
             method: 'POST',
             headers,
             body: JSON.stringify(requestBody),
@@ -328,7 +328,7 @@ export const createLlmRequestNodeType = (
                 if (config.parseStreamChunk) {
                   parsedChunk = config.parseStreamChunk(rawChunk);
                 } else {
-                  parsedChunk = rawChunk as OllamaStreamChunk;
+                  parsedChunk = rawChunk as LlmStreamChunk;
                 }
 
                 if (parsedChunk.response) {
@@ -457,22 +457,22 @@ export const createLlmRequestNodeType = (
 };
 
 export const LlmRequestComponent = (
-  props: WorkflowComponentProps_Obs<LlmData, OllamaInputs, OllamaOutputs> & {
+  props: WorkflowComponentProps_Obs<LlmData, LlmInputs, LlmOutputs> & {
     config: LlmConfig;
   },
 ) => {
   const { node$, data$ } = props.data;
 
-  const ollamaUrlData = useValue(() => data$.ollamaUrl.get() ?? props.config.defaultUrl);
+  const urlData = useValue(() => data$.url.get() ?? props.config.defaultUrl);
   const modelData = useValue(() => data$.model.get() ?? props.config.defaultModel);
   const apiKeyData = useValue(() => data$.apiKey.get() ?? '');
 
   const modelSlot = useValue(() => node$.getInputInfo<string>('model'));
-  const ollamaUrlSlot = useValue(() => node$.getInputInfo<string>('ollamaUrl'));
+  const urlSlot = useValue(() => node$.getInputInfo<string>('url'));
   const apiKeySlot = useValue(() => node$.getInputInfo<string>('apiKey'));
 
   const isModelReadonly = modelSlot.isConnected;
-  const isOllamaUrlReadonly = ollamaUrlSlot.isConnected;
+  const isUrlReadonly = urlSlot.isConnected;
   const isApiKeyReadonly = apiKeySlot.isConnected;
 
   const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
@@ -480,14 +480,14 @@ export const LlmRequestComponent = (
   const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');
   const currentError = useValue(() => props.data.outputs$.error.get());
 
-  const [localOllamaUrl, setLocalOllamaUrl] = useState(ollamaUrlData);
+  const [localUrl, setLocalUrl] = useState(urlData);
   const [localModel, setLocalModel] = useState(modelData);
   const [localApiKey, setLocalApiKey] = useState(apiKeyData);
   const [thoughtCollapsed, setThoughtCollapsed] = useState(false);
 
   useEffect(() => {
-    data$.ollamaUrl.set(localOllamaUrl);
-  }, [localOllamaUrl, data$]);
+    data$.url.set(localUrl);
+  }, [localUrl, data$]);
 
   useEffect(() => {
     data$.model.set(localModel);
@@ -545,10 +545,10 @@ export const LlmRequestComponent = (
         {/* Configuration */}
         <div className="flex flex-col gap-2">
           <InputField
-            label="Ollama URL"
-            value={localOllamaUrl}
-            onChange={setLocalOllamaUrl}
-            readonly={isOllamaUrlReadonly}
+            label={`${props.config.name} URL`}
+            value={localUrl}
+            onChange={setLocalUrl}
+            readonly={isUrlReadonly}
             placeholder={props.config.defaultUrl}
             type="url"
           />
