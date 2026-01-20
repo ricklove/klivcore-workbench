@@ -24,34 +24,10 @@ interface LlmConfig {
     model: string;
     stream: boolean;
   }) => Record<string, unknown>;
-  parseStreamChunk?: (chunk: unknown) => { response?: string; done?: boolean; error?: string };
+  parseStreamChunk?: (chunk: string) => { response?: string; done?: boolean; error?: string };
 }
 
 // --- TYPE DEFINITIONS ---
-
-// OpenAI-compatible streaming response types
-interface OpenAIStreamDelta {
-  content?: string;
-}
-
-interface OpenAIStreamChoice {
-  delta: OpenAIStreamDelta;
-  finish_reason?: 'stop' | 'length' | null;
-}
-
-interface OpenAIStreamChunk {
-  choices: OpenAIStreamChoice[];
-  error?: string;
-}
-
-export const isOpenAIStreamChunk = (chunk: unknown): chunk is OpenAIStreamChunk => {
-  return (
-    typeof chunk === 'object' &&
-    chunk !== null &&
-    'choices' in chunk &&
-    Array.isArray((chunk as { choices: unknown }).choices)
-  );
-};
 
 type LlmData = {
   url: string;
@@ -321,14 +297,15 @@ export const createLlmRequestNodeType = (
               if (!trimmedLine) continue;
 
               try {
-                const rawChunk = JSON.parse(trimmedLine);
+                console.log('[llm-generic] stream chunk line', { trimmedLine, chunkText });
+                const rawChunk = trimmedLine;
 
                 let parsedChunk: { response?: string; done?: boolean; error?: string };
 
                 if (config.parseStreamChunk) {
                   parsedChunk = config.parseStreamChunk(rawChunk);
                 } else {
-                  parsedChunk = rawChunk as LlmStreamChunk;
+                  parsedChunk = JSON.parse(rawChunk) as LlmStreamChunk;
                 }
 
                 if (parsedChunk.response) {
@@ -396,6 +373,8 @@ export const createLlmRequestNodeType = (
                   return;
                 }
               } catch (parseError) {
+                console.error('[llm-generic] ERROR stream chunk line', { trimmedLine, chunkText });
+
                 controller.setProgress({ progressRatio: 0.0, message: 'Error parsing response' });
                 emit({
                   chunk: {
