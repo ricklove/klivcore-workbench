@@ -75,12 +75,19 @@ export const NumberInputComponent = (
 
 interface NumberScrubberProps {
   label?: string;
+  colorClassName?: string;
   value: number;
   onChange: (val: number) => void;
   readonly?: boolean;
 }
 
-const NumberScrubber = ({ label, value, onChange, readonly }: NumberScrubberProps) => {
+export const NumberScrubber = ({
+  label,
+  colorClassName,
+  value,
+  onChange,
+  readonly,
+}: NumberScrubberProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isIntegerMode, setIsIntegerMode] = useState(value % 1 === 0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -166,7 +173,7 @@ const NumberScrubber = ({ label, value, onChange, readonly }: NumberScrubberProp
           ref={inputRef}
           type="number"
           step="0.1"
-          className="w-full bg-neutral-800 text-white text-xs px-1 py-0.5 rounded border border-blue-500 outline-none"
+          className={`w-full bg-neutral-800 text-white text-xs px-1 py-0.5 rounded border border-blue-500 outline-none`}
           value={value}
           onChange={handleInputChange}
           onBlur={handleBlur}
@@ -184,7 +191,9 @@ const NumberScrubber = ({ label, value, onChange, readonly }: NumberScrubberProp
           onClick={handleClick}
         >
           {label && (
-            <div className="px-1.5 py-0.5 text-[10px] font-bold select-none bg-neutral-800/50 text-neutral-400">
+            <div
+              className={`px-1.5 py-0.5 text-[10px] font-bold select-none bg-neutral-800/50 ${colorClassName ?? 'text-neutral-400'}`}
+            >
               {label}
             </div>
           )}
