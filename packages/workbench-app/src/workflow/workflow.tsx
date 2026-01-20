@@ -209,7 +209,20 @@ const WorkflowViewInner = () => {
         };
       })();
 
-      const s = nodeType.defaultSize ?? { width: 128, height: 24 };
+      const s = nodeType.defaultSize ??
+        (() => {
+          // clone the last nodes size as the default size
+          const nodes = runtimeStore$.get().nodes;
+          const nodesOfType = Object.values(nodes).filter((n) => n.type === typeName);
+          if (nodesOfType.length === 0) {
+            return undefined;
+          }
+          const lastNode = nodesOfType[nodesOfType.length - 1];
+          if (!lastNode) {
+            return undefined;
+          }
+          return { width: lastNode.position.width, height: lastNode.position.height };
+        })() ?? { width: 128, height: 24 };
       runtimeStore$.actions.createNode({
         id: newId,
         type: typeName,
