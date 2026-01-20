@@ -13,24 +13,57 @@ import { clsx } from '../../utils/clsx';
 
 // --- CONFIGURATION TYPE ---
 
-type LlmConfig = {
+interface LlmConfig {
   name: string;
   typeSuffix: string;
   defaultUrl: string;
   defaultModel: string;
-};
+  authKind?: 'bearer';
+  transformRequest?: (config: {
+    prompt: string;
+    model: string;
+    stream: boolean;
+  }) => Record<string, unknown>;
+  parseStreamChunk?: (chunk: unknown) => { response?: string; done?: boolean; error?: string };
+}
 
 // --- TYPE DEFINITIONS ---
 
-type OllamaData = {
+// OpenAI-compatible streaming response types
+interface OpenAIStreamDelta {
+  content?: string;
+}
+
+interface OpenAIStreamChoice {
+  delta: OpenAIStreamDelta;
+  finish_reason?: 'stop' | 'length' | null;
+}
+
+interface OpenAIStreamChunk {
+  choices: OpenAIStreamChoice[];
+  error?: string;
+}
+
+export const isOpenAIStreamChunk = (chunk: unknown): chunk is OpenAIStreamChunk => {
+  return (
+    typeof chunk === 'object' &&
+    chunk !== null &&
+    'choices' in chunk &&
+    Array.isArray((chunk as { choices: unknown }).choices)
+  );
+};
+
+type LlmData = {
   ollamaUrl: string;
   model: string;
+  apiKey?: string;
 };
 
 interface OllamaInputs {
   prompt: string;
   model?: string;
   ollamaUrl?: string;
+  apiKey?: string;
 }
 
 interface OllamaOutputs {
@@ -64,7 +97,7 @@ interface InputFieldProps {
   onChange: (value: string) => void;
   readonly: boolean;
   placeholder?: string;
-  type?: 'text' | 'url';
+  type?: 'text' | 'url' | 'password';
 }
 
 const InputField = ({
@@ -120,6 +153,10 @@ export const createLlmRequestNodeType = (
         name: WorkflowBrandedTypes.inputName('ollamaUrl'),
         type: WorkflowBrandedTypes.valueType('string'),
       },
+      {
+        name: WorkflowBrandedTypes.inputName('apiKey'),
+        type: WorkflowBrandedTypes.valueType('string'),
+      },
     ],
     outputs: [
       {
@@ -148,7 +185,7 @@ export const createLlmRequestNodeType = (
       },
     ],
     execute: async ({ inputs, data, controller }) => {
-      const safeData = (data as unknown as OllamaData) ?? {
+      const safeData = (data as unknown as LlmData) ?? {
         ollamaUrl: config.defaultUrl,
         model: config.defaultModel,
       };
@@ -156,10 +193,12 @@ export const createLlmRequestNodeType = (
       const promptInput = inputs.prompt as string | undefined;
       const modelInput = inputs.model as string | undefined;
       const ollamaUrlInput = inputs.ollamaUrl as string | undefined;
+      const apiKeyInput = inputs.apiKey as string | undefined;
 
       const prompt = promptInput ?? '';
       const model = modelInput ?? safeData.model ?? config.defaultModel;
       const ollamaUrl = ollamaUrlInput ?? safeData.ollamaUrl ?? config.defaultUrl;
+      const apiKey = apiKeyInput ?? safeData.apiKey;
 
       if (!prompt.trim()) {
         return {
@@ -194,16 +233,29 @@ export const createLlmRequestNodeType = (
             status: 'connecting',
           });
 
-          const response = await fetch(`${ollamaUrl}/api/generate`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          // Build headers
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+          if (config.authKind === 'bearer' && apiKey) {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+          }
+
+          // Build request body
+          let requestBody: Record<string, unknown>;
+          if (config.transformRequest) {
+            requestBody = config.transformRequest({ prompt, model, stream: true });
+          } else {
+            requestBody = {
               model,
               prompt,
               stream: true,
-            }),
+            };
+          }
+
+          const response = await fetch(ollamaUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(requestBody),
             signal: controller.abortSignal,
           });
 
@@ -269,7 +321,15 @@ export const createLlmRequestNodeType = (
               if (!trimmedLine) continue;
 
               try {
-                const parsedChunk: OllamaStreamChunk = JSON.parse(trimmedLine);
+                const rawChunk = JSON.parse(trimmedLine);
+
+                let parsedChunk: { response?: string; done?: boolean; error?: string };
+
+                if (config.parseStreamChunk) {
+                  parsedChunk = config.parseStreamChunk(rawChunk);
+                } else {
+                  parsedChunk = rawChunk as OllamaStreamChunk;
+                }
 
                 if (parsedChunk.response) {
                   if (thoughtClosed) {
@@ -397,7 +457,7 @@ export const createLlmRequestNodeType = (
 };
 
 export const LlmRequestComponent = (
-  props: WorkflowComponentProps_Obs<OllamaData, OllamaInputs, OllamaOutputs> & {
+  props: WorkflowComponentProps_Obs<LlmData, OllamaInputs, OllamaOutputs> & {
     config: LlmConfig;
   },
 ) => {
@@ -405,12 +465,15 @@ export const LlmRequestComponent = (
 
   const ollamaUrlData = useValue(() => data$.ollamaUrl.get() ?? props.config.defaultUrl);
   const modelData = useValue(() => data$.model.get() ?? props.config.defaultModel);
+  const apiKeyData = useValue(() => data$.apiKey.get() ?? '');
 
   const modelSlot = useValue(() => node$.getInputInfo<string>('model'));
   const ollamaUrlSlot = useValue(() => node$.getInputInfo<string>('ollamaUrl'));
+  const apiKeySlot = useValue(() => node$.getInputInfo<string>('apiKey'));
 
   const isModelReadonly = modelSlot.isConnected;
   const isOllamaUrlReadonly = ollamaUrlSlot.isConnected;
+  const isApiKeyReadonly = apiKeySlot.isConnected;
 
   const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
   const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');
@@ -419,6 +482,7 @@ export const LlmRequestComponent = (
 
   const [localOllamaUrl, setLocalOllamaUrl] = useState(ollamaUrlData);
   const [localModel, setLocalModel] = useState(modelData);
+  const [localApiKey, setLocalApiKey] = useState(apiKeyData);
   const [thoughtCollapsed, setThoughtCollapsed] = useState(false);
 
   useEffect(() => {
@@ -428,6 +492,10 @@ export const LlmRequestComponent = (
   useEffect(() => {
     data$.model.set(localModel);
   }, [localModel, data$]);
+
+  useEffect(() => {
+    data$.apiKey.set(localApiKey);
+  }, [localApiKey, data$]);
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -492,6 +560,17 @@ export const LlmRequestComponent = (
             readonly={isModelReadonly}
             placeholder={props.config.defaultModel}
           />
+
+          {props.config.authKind && (
+            <InputField
+              label="API Key"
+              value={localApiKey}
+              onChange={setLocalApiKey}
+              readonly={isApiKeyReadonly}
+              placeholder="Enter API key"
+              type="password"
+            />
+          )}
         </div>
 
         {/* Content Sections */}
