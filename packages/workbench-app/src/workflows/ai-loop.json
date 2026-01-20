@@ -1,0 +1,2660 @@
+{
+    "nodes": [
+        {
+            "id": "n-string-1768796530280",
+            "type": "string",
+            "position": {
+                "x": -136,
+                "y": -56,
+                "width": 40,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "ideas"
+            }
+        },
+        {
+            "id": "n-string-1768801820643",
+            "type": "string",
+            "position": {
+                "x": -72,
+                "y": 192,
+                "width": 184,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "scene reconstruction"
+            }
+        },
+        {
+            "id": "n-string-1768803165144",
+            "type": "string",
+            "position": {
+                "x": -72,
+                "y": 32,
+                "width": 184,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workbench"
+            }
+        },
+        {
+            "id": "n-string-1768804504623",
+            "type": "string",
+            "position": {
+                "x": -56,
+                "y": 56,
+                "width": 168,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "code editing"
+            }
+        },
+        {
+            "id": "n-string-1768804529831",
+            "type": "string",
+            "position": {
+                "x": 160,
+                "y": -56,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "business"
+            }
+        },
+        {
+            "id": "n-string-1768804546209",
+            "type": "string",
+            "position": {
+                "x": 312,
+                "y": 32,
+                "width": 168,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workbench"
+            }
+        },
+        {
+            "id": "n-string-1768806846065",
+            "type": "string",
+            "position": {
+                "x": 312,
+                "y": 216,
+                "width": 168,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "lofr"
+            }
+        },
+        {
+            "id": "n-string-1768807032372",
+            "type": "string",
+            "position": {
+                "x": -56,
+                "y": 80,
+                "width": 168,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "nested workflows"
+            }
+        },
+        {
+            "id": "n-string-1768807081870",
+            "type": "string",
+            "position": {
+                "x": -40,
+                "y": 104,
+                "width": 152,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "execution code gen"
+            }
+        },
+        {
+            "id": "n-string-1768807783326",
+            "type": "string",
+            "position": {
+                "x": -72,
+                "y": 224,
+                "width": 184,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "pixel art editor"
+            }
+        },
+        {
+            "id": "n-string-1768808217499",
+            "type": "string",
+            "position": {
+                "x": -72,
+                "y": 264,
+                "width": 184,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "ai indexing all my code"
+            }
+        },
+        {
+            "id": "n-string-1768808268160",
+            "type": "string",
+            "position": {
+                "x": -56,
+                "y": 296,
+                "width": 168,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "high-speed snippets"
+            }
+        },
+        {
+            "id": "n-string-1768808383556",
+            "type": "string",
+            "position": {
+                "x": 328,
+                "y": 160,
+                "width": 152,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "portfolio"
+            }
+        },
+        {
+            "id": "n-string-1768808419488",
+            "type": "string",
+            "position": {
+                "x": -72,
+                "y": 160,
+                "width": 184,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "bible tools"
+            }
+        },
+        {
+            "id": "n-string-1768808508692",
+            "type": "string",
+            "position": {
+                "x": 328,
+                "y": 56,
+                "width": 152,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "ai workbench?"
+            }
+        },
+        {
+            "id": "n-string-1768808533086",
+            "type": "string",
+            "position": {
+                "x": 328,
+                "y": 80,
+                "width": 152,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "comfy ui alternative?"
+            }
+        },
+        {
+            "id": "n-reroute-1768809061416",
+            "type": "reroute",
+            "position": {
+                "x": 272,
+                "y": 8,
+                "width": 16,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T",
+                    "source": {
+                        "nodeId": "n-string-1768804529831",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-reroute-1768809141691",
+            "type": "reroute",
+            "position": {
+                "x": -112,
+                "y": 8,
+                "width": 16,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T",
+                    "source": {
+                        "nodeId": "n-string-1768796530280",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768809985661",
+            "type": "string",
+            "position": {
+                "x": 328,
+                "y": 104,
+                "width": 152,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "excel killer"
+            }
+        },
+        {
+            "id": "n-string-1768809993441",
+            "type": "string",
+            "position": {
+                "x": 328,
+                "y": 128,
+                "width": 152,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "dev tool"
+            }
+        },
+        {
+            "id": "n-string-1768837950207",
+            "type": "string",
+            "position": {
+                "x": 712,
+                "y": 32,
+                "width": 488,
+                "height": 320
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "ai system generation loop (using a cheap local ai worker):\n\n- code-node  (loads the code)\n- setup test system\n- isolate sub code\n- loop until fulfill expected\n- cleanup\n- standard tests, performance, scalability, security, stability, etc."
+            }
+        },
+        {
+            "id": "n-string-1768838323843",
+            "type": "string",
+            "position": {
+                "x": 1280,
+                "y": 32,
+                "width": 456,
+                "height": 320
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": ""
+            }
+        },
+        {
+            "id": "n-ollamaStreaming-1768853738800",
+            "type": "ollamaLlmRequest",
+            "position": {
+                "x": 2208,
+                "y": 664,
+                "width": 320,
+                "height": 504
+            },
+            "inputs": [
+                {
+                    "name": "prompt",
+                    "type": "string"
+                },
+                {
+                    "name": "model",
+                    "type": "string"
+                },
+                {
+                    "name": "ollamaUrl",
+                    "type": "string"
+                },
+                {
+                    "name": "apiKey",
+                    "type": "string"
+                },
+                {
+                    "name": "url",
+                    "type": "string"
+                },
+                {
+                    "name": "config",
+                    "type": "LlmConfig"
+                },
+                {
+                    "name": "settings",
+                    "type": "LlmSettings"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "chunk",
+                    "type": "OllamaStreamChunk"
+                },
+                {
+                    "name": "response",
+                    "type": "string"
+                },
+                {
+                    "name": "done",
+                    "type": "boolean"
+                },
+                {
+                    "name": "error",
+                    "type": "string"
+                },
+                {
+                    "name": "status",
+                    "type": "string"
+                },
+                {
+                    "name": "thought",
+                    "type": "string"
+                },
+                {
+                    "name": "config",
+                    "type": "LlmConfig"
+                },
+                {
+                    "name": "settings",
+                    "type": "LlmSettings"
+                },
+                {
+                    "name": "usage",
+                    "type": "LlmUsage"
+                }
+            ],
+            "data": {
+                "ollamaUrl": "http://localhost:11434",
+                "model": "nemotron-3-nano:latest",
+                "apiKey": "",
+                "url": "http://localhost:11434/api/generate"
+            }
+        },
+        {
+            "id": "n-json-1768853767920",
+            "type": "json",
+            "position": {
+                "x": 2832,
+                "y": 648,
+                "width": 552,
+                "height": 168
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "chunk"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768853771216",
+            "type": "json",
+            "position": {
+                "x": 2880,
+                "y": 872,
+                "width": 488,
+                "height": 192
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "response"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768853774060",
+            "type": "json",
+            "position": {
+                "x": 2600,
+                "y": 800,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "done"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768853776804",
+            "type": "json",
+            "position": {
+                "x": 2600,
+                "y": 864,
+                "width": 232,
+                "height": 48
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "error"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768853780894",
+            "type": "json",
+            "position": {
+                "x": 2600,
+                "y": 952,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "status"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768853806502",
+            "type": "string",
+            "position": {
+                "x": 856,
+                "y": 1208,
+                "width": 240,
+                "height": 184
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768877436452",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "why is this returning model glm-4.6 instead of big-pickle?\n\n```\nimport { createLlmNodes } from './llm-generic';\n\nexport const zenNodes = createLlmNodes({\n  name: 'Zen',\n  typeSuffix: 'zen',\n  // using vite proxy to avoid CORS issues\n  defaultUrl: '/zen-api/chat/completions',\n  // defaultUrl: 'https://opencode.ai/zen/v1/chat/completions',\n  defaultModel: 'big-pickle',\n\n  authKind: 'bearer',\n\n  transformRequest: ({ prompt, model, stream }) => ({\n    model,\n    messages: [{ role: 'user', content: prompt }],\n    stream,\n    temperature: 0.7,\n  }),\n\n  parseStreamChunk: (chunkRaw: string) => {\n    const chunkResult = parseOpenAIStreamChunk(chunkRaw);\n    if (chunkResult.done) {\n      return { done: true };\n    }\n\n    const chunk = chunkResult.data;\n    console.log('[zenNodes:parseStreamChunk] zen stream chunk', { chunk });\n\n    const choice = chunk.choices[0];\n    return {\n      response: choice?.delta?.content,\n      done: choice?.finish_reason === 'stop',\n      error: chunk.error,\n    };\n  },\n});\n\n// OpenAI-compatible streaming response types\ninterface OpenAIStreamDelta {\n  content?: string;\n}\n\ninterface OpenAIStreamChoice {\n  delta: OpenAIStreamDelta;\n  finish_reason?: 'stop' | 'length' | null;\n}\n\ninterface OpenAIStreamChunk {\n  choices: OpenAIStreamChoice[];\n  error?: string;\n}\n\nexport const parseOpenAIStreamChunk = (\n  chunk: string,\n): { data: OpenAIStreamChunk; done: undefined } | { done: true } => {\n  // sample chunk: data: {\"id\":\"202601201012272d050670fdfb4755\",\"created\":1768875147,\"object\":\"chat.completion.chunk\",\"model\":\"glm-4.6\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"reasoning_content\":\".\\\"\"}}]}\n  // sample chunk: data: [DONE]\n  // data: {\"id\":\"202601201023337549e8e30c944322\",\"created\":1768875813,\"object\":\"chat.completion.chunk\",\"model\":\"glm-4.6\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"reasoning_content\":\" feeling\"}}]}\n\n  const chunkDataText = chunk\n    .trim()\n    .replace(/^data:\\s*/, '')\n    .trim();\n  if (chunkDataText === '[DONE]') {\n    return { done: true };\n  }\n\n  try {\n    const parsed = JSON.parse(chunkDataText) as OpenAIStreamChunk;\n    if (\n      !(\n        parsed &&\n        typeof parsed === 'object' &&\n        'choices' in parsed &&\n        Array.isArray((parsed as { choices: unknown }).choices)\n      )\n    ) {\n      throw new Error('Invalid OpenAI stream chunk format');\n    }\n    return { data: parsed, done: undefined };\n  } catch (err) {\n    console.error('[parseOpenAIStreamChunk] error parsing chunk', { chunk, err });\n    throw err;\n  }\n};\n\n```"
+            }
+        },
+        {
+            "id": "n-string-1768853900857",
+            "type": "string",
+            "position": {
+                "x": 2864,
+                "y": 1376,
+                "width": 544,
+                "height": 256
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "response"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768855995343",
+            "type": "string",
+            "position": {
+                "x": 728,
+                "y": 1904,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768855999549",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "a"
+            }
+        },
+        {
+            "id": "n-string-1768855997875",
+            "type": "string",
+            "position": {
+                "x": 728,
+                "y": 1808,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768855995343",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "b"
+            }
+        },
+        {
+            "id": "n-string-1768855999549",
+            "type": "string",
+            "position": {
+                "x": 728,
+                "y": 1856,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-string-1768855997875",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "c"
+            }
+        },
+        {
+            "id": "n-string-1768860885129",
+            "type": "string",
+            "position": {
+                "x": 2896,
+                "y": 1104,
+                "width": 416,
+                "height": 240
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-ollamaStreaming-1768853738800",
+                        "name": "thought"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-valueGate-1768864343048",
+            "type": "valueGate",
+            "position": {
+                "x": 912,
+                "y": 1464,
+                "width": 208,
+                "height": 112
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768853806502",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "unknown"
+                }
+            ],
+            "data": {
+                "sendOnce": false,
+                "autoSend": false
+            }
+        },
+        {
+            "id": "n-zenLlmRequest-1768869877943",
+            "type": "zenLlmRequest",
+            "position": {
+                "x": 1160,
+                "y": 1808,
+                "width": 320,
+                "height": 384
+            },
+            "inputs": [
+                {
+                    "name": "prompt",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-valueGate-1768864343048",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "model",
+                    "type": "string"
+                },
+                {
+                    "name": "ollamaUrl",
+                    "type": "string"
+                },
+                {
+                    "name": "apiKey",
+                    "type": "string"
+                },
+                {
+                    "name": "url",
+                    "type": "string"
+                },
+                {
+                    "name": "config",
+                    "type": "LlmConfig"
+                },
+                {
+                    "name": "settings",
+                    "type": "LlmSettings"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "chunk",
+                    "type": "OllamaStreamChunk"
+                },
+                {
+                    "name": "thought",
+                    "type": "string"
+                },
+                {
+                    "name": "response",
+                    "type": "string"
+                },
+                {
+                    "name": "done",
+                    "type": "boolean"
+                },
+                {
+                    "name": "error",
+                    "type": "string"
+                },
+                {
+                    "name": "status",
+                    "type": "string"
+                },
+                {
+                    "name": "config",
+                    "type": "LlmConfig"
+                },
+                {
+                    "name": "settings",
+                    "type": "LlmSettings"
+                },
+                {
+                    "name": "usage",
+                    "type": "LlmUsage"
+                }
+            ],
+            "data": {
+                "ollamaUrl": "https://opencode.ai/zen/v1/chat/completions",
+                "model": "grok-code",
+                "apiKey": "sk-A9CmmxHOlYCnHfiN6N5V27zKYrxa82MdRxKFDjqc9kGJN9JhVw54GoigzxqSBbga",
+                "url": "/zen-api/chat/completions"
+            }
+        },
+        {
+            "id": "n-json-1768869932681",
+            "type": "json",
+            "position": {
+                "x": 1128,
+                "y": 2248,
+                "width": 248,
+                "height": 144
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "chunk"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768869939531",
+            "type": "json",
+            "position": {
+                "x": 1456,
+                "y": 2256,
+                "width": 280,
+                "height": 72
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "error"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768874519038",
+            "type": "string",
+            "position": {
+                "x": 1056,
+                "y": 2536,
+                "width": 336,
+                "height": 432
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "thought"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768874523657",
+            "type": "string",
+            "position": {
+                "x": 1440,
+                "y": 2560,
+                "width": 528,
+                "height": 440
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "response"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768877278457",
+            "type": "string",
+            "position": {
+                "x": -488,
+                "y": 1608,
+                "width": 368,
+                "height": 232
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "/* eslint-disable react-refresh/only-export-components */\nimport { useState, useEffect } from 'react';\nimport { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';\nimport { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';\nimport {\n  WorkflowBrandedTypes,\n  type WorkflowComponentProps_Obs,\n  type WorkflowComponentPropsAny_Ops,\n  type WorkflowRuntimeNodeTypeDefinition,\n} from '../../workflow/types';\nimport { useValue } from '@legendapp/state/react';\nimport { clsx } from '../../utils/clsx';\n\n// --- CONFIGURATION TYPE ---\n\ninterface LlmConfig {\n  name: string;\n  typeSuffix: string;\n  defaultUrl: string;\n  defaultModel: string;\n  authKind?: 'bearer';\n  transformRequest?: (config: {\n    prompt: string;\n    model: string;\n    stream: boolean;\n  }) => Record<string, unknown>;\n  parseStreamChunk?: (chunk: string) => {\n    response?: string;\n    done?: boolean;\n    error?: string;\n    usage?: {\n      inputTokens: number;\n      outputTokens: number;\n      totalTokens: number;\n    };\n  };\n}\n\n// --- TYPE DEFINITIONS ---\n\ntype LlmData = {\n  url: string;\n  model: string;\n  apiKey?: string;\n};\n\ninterface LlmSettings {\n  model: string;\n  url: string;\n  apiKey?: string;\n}\n\ninterface LlmInputs {\n  prompt: string;\n  model?: string;\n  url?: string;\n  apiKey?: string;\n  settings?: LlmSettings;\n}\n\ninterface LlmOutputs {\n  chunk: LlmStreamChunk;\n  thought: undefined | string;\n  response: undefined | string;\n  done: boolean;\n  error: undefined | string;\n  status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';\n  settings: LlmSettings;\n}\n\ninterface LlmStreamChunk {\n  response?: string;\n  done?: boolean;\n  model?: string;\n  created_at?: string;\n  error?: string;\n  total_duration?: number;\n  load_duration?: number;\n  prompt_eval_count?: number;\n  prompt_eval_duration?: number;\n  eval_count?: number;\n  eval_duration?: number;\n}\n\n// --- COMPONENTS ---\n\ninterface InputFieldProps {\n  label: string;\n  value: string;\n  onChange: (value: string) => void;\n  readonly: boolean;\n  placeholder?: string;\n  type?: 'text' | 'url' | 'password';\n}\n\nconst InputField = ({\n  label,\n  value,\n  onChange,\n  readonly,\n  placeholder,\n  type = 'text',\n}: InputFieldProps) => (\n  <div className=\"flex flex-col gap-1\">\n    <label className=\"text-[10px] font-bold text-neutral-400 uppercase tracking-wider\">\n      {label}\n    </label>\n    <input\n      type={type}\n      className={clsx(\n        'w-full bg-black/25 text-white text-xs px-2 py-1 rounded outline-none border border-transparent transition-colors',\n        readonly\n          ? 'bg-neutral-800/25 border-neutral-700 cursor-not-allowed'\n          : 'hover:border-neutral-600',\n      )}\n      value={value}\n      onChange={(e) => !readonly && onChange(e.target.value)}\n      readOnly={readonly}\n      placeholder={placeholder}\n      title={readonly ? 'Controlled by input connection' : `Enter ${label.toLowerCase()}`}\n    />\n  </div>\n);\n\n// --- NODE TYPE FACTORY ---\n\nexport const createLlmRequestNodeType = (\n  config: LlmConfig,\n  ConfiguredComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,\n): WorkflowRuntimeNodeTypeDefinition => {\n  return {\n    type: WorkflowBrandedTypes.typeName(`${config.typeSuffix}LlmRequest`),\n    getComponent: () => ({\n      Component: NodeTypeWrapComponentWithNodeWrapper(ConfiguredComponent),\n    }),\n    inputs: [\n      {\n        name: WorkflowBrandedTypes.inputName('prompt'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('model'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('url'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('apiKey'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('settings'),\n        type: WorkflowBrandedTypes.valueType('LlmSettings'),\n      },\n    ],\n    outputs: [\n      {\n        name: WorkflowBrandedTypes.outputName('chunk'),\n        type: WorkflowBrandedTypes.valueType('LlmStreamChunk'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('thought'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('response'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('done'),\n        type: WorkflowBrandedTypes.valueType('boolean'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('error'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('status'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('settings'),\n        type: WorkflowBrandedTypes.valueType('LlmSettings'),\n      },\n    ],\n    execute: async ({ inputs, data, controller }) => {\n      const safeData = (data as unknown as LlmData) ?? {\n        url: config.defaultUrl,\n        model: config.defaultModel,\n      };\n\n      const promptInput = inputs.prompt as string | undefined;\n      const modelInput = inputs.model as string | undefined;\n      const urlInput = inputs.url as string | undefined;\n      const apiKeyInput = inputs.apiKey as string | undefined;\n      const settingsInput = inputs.settings as LlmSettings | undefined;\n\n      const prompt = promptInput ?? '';\n      // Priority: settingsInput > individual inputs > data > defaults\n      const model = settingsInput?.model ?? modelInput ?? safeData.model ?? config.defaultModel;\n      const url = settingsInput?.url ?? urlInput ?? safeData.url ?? config.defaultUrl;\n      const apiKey = settingsInput?.apiKey ?? apiKeyInput ?? safeData.apiKey;\n\n      const resolvedSettings: LlmSettings = { model, url, apiKey };\n\n      if (!prompt.trim()) {\n        return {\n          outputs: {\n            chunk: { error: 'Prompt is required' },\n            response: undefined,\n            done: false,\n            error: 'Prompt is required',\n            status: 'error',\n            settings: resolvedSettings,\n          },\n        };\n      }\n\n      let cumulativeThought = '';\n      let cumulativeResponse = '';\n      let thoughtClosed = false;\n\n      const processStream = async (emit: (output: LlmOutputs) => void): Promise<void> => {\n        let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;\n\n        try {\n          controller.setProgress({\n            progressRatio: 0.1,\n            message: `Connecting to ${config.name}...`,\n          });\n          emit({\n            chunk: {},\n            thought: undefined,\n            response: undefined,\n            done: false,\n            error: undefined,\n            status: 'connecting',\n            settings: resolvedSettings,\n          });\n\n          // Build headers\n          const headers: Record<string, string> = { 'Content-Type': 'application/json' };\n\n          if (config.authKind === 'bearer' && apiKey) {\n            headers['Authorization'] = `Bearer ${apiKey}`;\n          }\n\n          // Build request body\n          let requestBody: Record<string, unknown>;\n          if (config.transformRequest) {\n            requestBody = config.transformRequest({ prompt, model, stream: true });\n          } else {\n            requestBody = {\n              model,\n              prompt,\n              stream: true,\n            };\n          }\n\n          const response = await fetch(url, {\n            method: 'POST',\n            headers,\n            body: JSON.stringify(requestBody),\n            signal: controller.abortSignal,\n          });\n\n          if (!response.ok) {\n            const errorText = await response.text();\n            throw new Error(`HTTP ${response.status}: ${errorText}`);\n          }\n\n          if (!response.body) {\n            throw new Error('Response body is missing');\n          }\n\n          controller.setProgress({ progressRatio: 0.3, message: 'Starting stream...' });\n          emit({\n            chunk: {},\n            thought: undefined,\n            response: undefined,\n            done: false,\n            error: undefined,\n            status: 'thinking',\n            settings: resolvedSettings,\n          });\n\n          reader = response.body.getReader();\n          const decoder = new TextDecoder();\n          let buffer = '';\n          let chunkCount = 0;\n\n          const THINK_CLOSE_TAGS = ['</thinking>', '</thought>'];\n\n          while (true) {\n            const { done, value } = await reader.read();\n            if (controller.abortSignal.aborted) {\n              throw new Error('Request was aborted');\n            }\n\n            if (done) {\n              // If thought was never closed, copy everything to response\n              if (!thoughtClosed) {\n                cumulativeResponse = cumulativeThought;\n                cumulativeThought = '';\n              }\n\n              controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });\n              emit({\n                chunk: { done: true },\n                thought: cumulativeThought || undefined,\n                response: cumulativeResponse || undefined,\n                done: true,\n                error: undefined,\n                status: 'completed',\n                settings: resolvedSettings,\n              });\n              return;\n            }\n\n            const chunkText = decoder.decode(value, { stream: true });\n            buffer += chunkText;\n\n            const lines = buffer.split('\\n');\n            buffer = lines.pop() ?? '';\n\n            for (const line of lines) {\n              const trimmedLine = line.trim();\n              if (!trimmedLine) continue;\n\n              try {\n                console.log('[llm-generic] stream chunk line', { trimmedLine, chunkText });\n                const rawChunk = trimmedLine;\n\n                let parsedChunk: { response?: string; done?: boolean; error?: string };\n\n                if (config.parseStreamChunk) {\n                  parsedChunk = config.parseStreamChunk(rawChunk);\n                } else {\n                  parsedChunk = JSON.parse(rawChunk) as LlmStreamChunk;\n                }\n\n                if (parsedChunk.response) {\n                  if (thoughtClosed) {\n                    // If thought is already closed, add directly to response\n                    cumulativeResponse += parsedChunk.response;\n                  } else {\n                    // Add to thought and check for closing tag\n                    cumulativeThought += parsedChunk.response;\n\n                    // Check if this is first time we're finding the closing tag\n                    const foundCloseThoughtTag = THINK_CLOSE_TAGS.find((tag) =>\n                      cumulativeThought.includes(tag),\n                    );\n\n                    if (foundCloseThoughtTag) {\n                      // Find the first closing tag that appears\n                      const splitIndex = cumulativeThought.indexOf(foundCloseThoughtTag);\n                      const thoughtContent = cumulativeThought.substring(0, splitIndex);\n                      const responseContent = cumulativeThought.substring(\n                        splitIndex + foundCloseThoughtTag.length,\n                      );\n\n                      // Update cumulative variables\n                      cumulativeThought = thoughtContent;\n                      cumulativeResponse = responseContent;\n                      thoughtClosed = true;\n                    }\n                  }\n                }\n\n                chunkCount++;\n                const progressRatio = Math.min(0.3 + chunkCount * 0.05, 0.9);\n                const currentStatus = thoughtClosed ? 'streaming' : 'thinking';\n                controller.setProgress({\n                  progressRatio,\n                  message: `${currentStatus === 'thinking' ? 'Thinking' : 'Responding'}... (${chunkCount} chunks)`,\n                });\n\n                emit({\n                  chunk: parsedChunk,\n                  thought: cumulativeThought || undefined,\n                  response: cumulativeResponse || undefined,\n                  done: parsedChunk.done ?? false,\n                  error: parsedChunk.error,\n                  status: currentStatus,\n                  settings: resolvedSettings,\n                });\n\n                if (parsedChunk.done) {\n                  // If thought was never closed, copy everything to response\n                  if (!thoughtClosed) {\n                    cumulativeResponse = cumulativeThought;\n                    cumulativeThought = '';\n                  }\n\n                  controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });\n                  emit({\n                    chunk: parsedChunk,\n                    thought: cumulativeThought || undefined,\n                    response: cumulativeResponse || undefined,\n                    done: true,\n                    error: undefined,\n                    status: 'completed',\n                    settings: resolvedSettings,\n                  });\n                  return;\n                }\n              } catch (parseError) {\n                console.error('[llm-generic] ERROR stream chunk line', { trimmedLine, chunkText });\n\n                controller.setProgress({ progressRatio: 0.0, message: 'Error parsing response' });\n                emit({\n                  chunk: {\n                    error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,\n                  },\n                  thought: undefined,\n                  response: undefined,\n                  done: false,\n                  error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,\n                  status: 'error',\n                  settings: resolvedSettings,\n                });\n              }\n            }\n          }\n        } catch (error) {\n          const errorMessage = error instanceof Error ? error.message : String(error);\n          controller.setProgress({ progressRatio: 0.0, message: `Error: ${errorMessage}` });\n\n          emit({\n            chunk: { error: errorMessage },\n            thought: undefined,\n            response: undefined,\n            done: false,\n            error: errorMessage,\n            status: 'error',\n            settings: resolvedSettings,\n          });\n        }\n      };\n\n      await new Promise<void>((resolve, reject) => {\n        controller.registerEvent((emit) => {\n          processStream(emit as () => void)\n            .then(resolve)\n            .catch(reject);\n          return {\n            unsubscribe: () => {},\n          };\n        });\n      });\n\n      // Final processing for the return statement\n      if (!thoughtClosed && cumulativeThought) {\n        cumulativeResponse = cumulativeThought;\n        cumulativeThought = '';\n      }\n\n      return {\n        outputs: {\n          chunk: null,\n          thought: cumulativeThought || undefined,\n          response: cumulativeResponse || undefined,\n          done: true,\n          error: null,\n          status: 'success',\n          settings: resolvedSettings,\n        },\n      };\n    },\n  };\n};\n\nexport const LlmRequestComponent = (\n  props: WorkflowComponentProps_Obs<LlmData, LlmInputs, LlmOutputs> & {\n    config: LlmConfig;\n  },\n) => {\n  const { node$, data$ } = props.data;\n\n  const urlData = useValue(() => data$.url.get() ?? props.config.defaultUrl);\n  const modelData = useValue(() => data$.model.get() ?? props.config.defaultModel);\n  const apiKeyData = useValue(() => data$.apiKey.get() ?? '');\n\n  const modelSlot = useValue(() => node$.getInputInfo<string>('model'));\n  const urlSlot = useValue(() => node$.getInputInfo<string>('url'));\n  const apiKeySlot = useValue(() => node$.getInputInfo<string>('apiKey'));\n  const settingsSlot = useValue(() => node$.getInputInfo<LlmSettings>('settings'));\n\n  const isModelReadonly = modelSlot.isConnected || settingsSlot.isConnected;\n  const isUrlReadonly = urlSlot.isConnected || settingsSlot.isConnected;\n  const isApiKeyReadonly = apiKeySlot.isConnected || settingsSlot.isConnected;\n\n  const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');\n  const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');\n  const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');\n  const currentError = useValue(() => props.data.outputs$.error.get());\n\n  const [localUrl, setLocalUrl] = useState(urlData);\n  const [localModel, setLocalModel] = useState(modelData);\n  const [localApiKey, setLocalApiKey] = useState(apiKeyData);\n  const [thoughtCollapsed, setThoughtCollapsed] = useState(false);\n\n  useEffect(() => {\n    data$.url.set(localUrl);\n  }, [localUrl, data$]);\n\n  useEffect(() => {\n    data$.model.set(localModel);\n  }, [localModel, data$]);\n\n  useEffect(() => {\n    data$.apiKey.set(localApiKey);\n  }, [localApiKey, data$]);\n\n  const getStatusColor = (status: string): string => {\n    switch (status) {\n      case 'connecting':\n        return 'text-yellow-500';\n      case 'thinking':\n        return 'text-purple-500';\n      case 'streaming':\n        return 'text-blue-500';\n      case 'completed':\n        return 'text-green-500';\n      case 'error':\n        return 'text-red-500';\n      default:\n        return 'text-gray-500';\n    }\n  };\n\n  const getStatusText = (status: string): string => {\n    switch (status) {\n      case 'connecting':\n        return 'Connecting...';\n      case 'thinking':\n        return 'Thinking...';\n      case 'streaming':\n        return 'Streaming';\n      case 'completed':\n        return 'Completed';\n      case 'error':\n        return 'Error';\n      default:\n        return 'Idle';\n    }\n  };\n\n  return (\n    <WorkflowNodeWrapperSimple {...props}>\n      <div className=\"w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan\">\n        {/* Header */}\n        <div className=\"flex items-center justify-between border-b border-neutral-800 pb-2\">\n          <div className=\"text-xs font-bold text-white\">{props.config.name} LLM Request</div>\n          <div className={clsx('text-xs font-medium', getStatusColor(currentStatus))}>\n            {getStatusText(currentStatus)}\n          </div>\n        </div>\n\n        {/* Configuration */}\n        <div className=\"flex flex-col gap-2\">\n          <InputField\n            label={`${props.config.name} URL`}\n            value={localUrl}\n            onChange={setLocalUrl}\n            readonly={isUrlReadonly}\n            placeholder={props.config.defaultUrl}\n            type=\"url\"\n          />\n\n          <InputField\n            label=\"Model\"\n            value={localModel}\n            onChange={setLocalModel}\n            readonly={isModelReadonly}\n            placeholder={props.config.defaultModel}\n          />\n\n          {props.config.authKind && (\n            <InputField\n              label=\"API Key\"\n              value={localApiKey}\n              onChange={setLocalApiKey}\n              readonly={isApiKeyReadonly}\n              placeholder=\"Enter API key\"\n              type=\"password\"\n            />\n          )}\n        </div>\n\n        {/* Content Sections */}\n        <div className=\"flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden\">\n          {/* Thought Preview */}\n          {currentThought && (\n            <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}>\n              <button\n                onClick={() => setThoughtCollapsed(!thoughtCollapsed)}\n                className=\"flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer\"\n              >\n                <span>Thought Process</span>\n                <span className=\"text-purple-400\">{thoughtCollapsed ? '▶' : '▼'}</span>\n              </button>\n              {!thoughtCollapsed && (\n                <div className=\"bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto\">\n                  <div className=\"text-purple-400 text-xs font-mono whitespace-pre-wrap\">\n                    {currentThought}\n                  </div>\n                </div>\n              )}\n            </div>\n          )}\n\n          {/* Response Preview */}\n          <div className=\"flex flex-col gap-1 flex-1 min-h-0\">\n            <div className=\"text-[10px] font-bold text-neutral-400 uppercase tracking-wider\">\n              Response Preview\n            </div>\n            <div className=\"bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto\">\n              {currentError ? (\n                <div className=\"text-red-500 text-xs whitespace-pre-wrap\">{currentError}</div>\n              ) : (\n                <div className=\"text-green-400 text-xs font-mono whitespace-pre-wrap\">\n                  {currentResponse || 'No response yet...'}\n                </div>\n              )}\n            </div>\n          </div>\n        </div>\n      </div>\n    </WorkflowNodeWrapperSimple>\n  );\n};\n\n// --- MAIN FACTORY FUNCTION ---\n\nexport const createLlmNodes = (config: LlmConfig) => {\n  return [\n    createLlmRequestNodeType(config, (props) => <LlmRequestComponent {...props} config={config} />),\n  ];\n};\n"
+            }
+        },
+        {
+            "id": "n-string-1768877284191",
+            "type": "string",
+            "position": {
+                "x": -1360,
+                "y": 1568,
+                "width": 736,
+                "height": 296
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "add usage as an output (as an object), just output the last value (default to null)"
+            }
+        },
+        {
+            "id": "n-toFunction-1768877383986",
+            "type": "toFunction",
+            "position": {
+                "x": 232,
+                "y": 1480,
+                "width": 128,
+                "height": 192
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879154021",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879178726",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768877460721",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y, z)=>`${x} \n\n${z}\n\n\\`\\`\\`\n${y}\n\\`\\`\\``;"
+            }
+        },
+        {
+            "id": "n-string-1768877436452",
+            "type": "string",
+            "position": {
+                "x": 200,
+                "y": 1696,
+                "width": 288,
+                "height": 208
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768877383986",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768877460721",
+            "type": "string",
+            "position": {
+                "x": -248,
+                "y": 1232,
+                "width": 328,
+                "height": 120
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "<code-standards>\ncode should be in typescript, completely and fully typed (never use 'any' or escape from the type system), also strict mode is on and indexing must always be checked. \nAlways prefer early returns and never nested logic. \nPrefer const \nChained Ternaries are fine as long as the chain is flat (one condition at a time, etc).\nfile-names-use-kebab-case\nIn types, prefer `undefined |` at the front of the type instead of the end\nprefer undefined and use null only when needed to reset values (like in json)\navoid else, instead use early return\nfor functions, prefer const lambda declarations if short, only use function syntax for large functions and top level declarations.\nfor types, use interface unless working with type algebra\n</code-standards>"
+            }
+        },
+        {
+            "id": "n-toFunction-1768877652781",
+            "type": "toFunction",
+            "position": {
+                "x": 2064,
+                "y": 2440,
+                "width": 224,
+                "height": 120
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768874519038",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768874523657",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y) =>\n x+\n `</thinking>`+ \ny"
+            }
+        },
+        {
+            "id": "n-string-1768877685925",
+            "type": "string",
+            "position": {
+                "x": 2056,
+                "y": 2600,
+                "width": 368,
+                "height": 192
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768877652781",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768877718029",
+            "type": "toFunction",
+            "position": {
+                "x": 2440,
+                "y": 2448,
+                "width": 520,
+                "height": 192
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768877685925",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown"
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>{\nconst lines = x.split(`\\n`);\nconst iStartLine = lines.findIndex(l=>l.startsWith('```'));\nconst iEndLine = lines.findIndex((l,i)=>i>iStartLine && l.startsWith('```'));\n\nconst result = lines.slice(iStartLine+1, iEndLine-iStartLine).join(`\\n`);\n// console.log(`[[getCodeBlock]]`, {x,iStart,iEnd, result});\nreturn result;}"
+            }
+        },
+        {
+            "id": "n-string-1768877741869",
+            "type": "string",
+            "position": {
+                "x": 3032,
+                "y": 2448,
+                "width": 536,
+                "height": 304
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768877718029",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-reroute-1768878783597",
+            "type": "reroute",
+            "position": {
+                "x": -512,
+                "y": 2064,
+                "width": 16,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T",
+                    "source": {
+                        "nodeId": "n-string-1768877741869",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768878995945",
+            "type": "string",
+            "position": {
+                "x": -496,
+                "y": 2104,
+                "width": 336,
+                "height": 232
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-reroute-1768878783597",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768879004314",
+            "type": "string",
+            "position": {
+                "x": -1368,
+                "y": 2096,
+                "width": 816,
+                "height": 224
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": ""
+            }
+        },
+        {
+            "id": "n-valueGate-1768879032039",
+            "type": "valueGate",
+            "position": {
+                "x": -264,
+                "y": 1976,
+                "width": 136,
+                "height": 104
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768878995945",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "unknown"
+                }
+            ],
+            "data": {
+                "sendOnce": false
+            }
+        },
+        {
+            "id": "n-toFunction-1768879154021",
+            "type": "toFunction",
+            "position": {
+                "x": -24,
+                "y": 1648,
+                "width": 88,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768877284191",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-valueGate-1768879267776",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=>y||x"
+            }
+        },
+        {
+            "id": "n-toFunction-1768879178726",
+            "type": "toFunction",
+            "position": {
+                "x": -24,
+                "y": 1768,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768877278457",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-valueGate-1768879032039",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=>y||x"
+            }
+        },
+        {
+            "id": "n-valueGate-1768879267776",
+            "type": "valueGate",
+            "position": {
+                "x": -688,
+                "y": 1968,
+                "width": 136,
+                "height": 112
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768879004314",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "unknown"
+                }
+            ],
+            "data": {
+                "sendOnce": false
+            }
+        },
+        {
+            "id": "n-string-1768879326347",
+            "type": "string",
+            "position": {
+                "x": -40,
+                "y": 1960,
+                "width": 152,
+                "height": 88
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879154021",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768879330984",
+            "type": "string",
+            "position": {
+                "x": 160,
+                "y": 1960,
+                "width": 168,
+                "height": 88
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879178726",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768879470785",
+            "type": "json",
+            "position": {
+                "x": -24,
+                "y": 2416,
+                "width": 128,
+                "height": 136
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879489761",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "[]"
+            }
+        },
+        {
+            "id": "n-json-1768879476247",
+            "type": "json",
+            "position": {
+                "x": 152,
+                "y": 2416,
+                "width": 160,
+                "height": 136
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879698848",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "[]"
+            }
+        },
+        {
+            "id": "n-toFunction-1768879489761",
+            "type": "toFunction",
+            "position": {
+                "x": -32,
+                "y": 2192,
+                "width": 224,
+                "height": 176
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768879470785",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768879326347",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=>{\nx = x ?? [];\nif(y===x[x.length-1]){return x}\nx.push(y);\nreturn x.filter(Boolean);\n}"
+            }
+        },
+        {
+            "id": "n-toFunction-1768879698848",
+            "type": "toFunction",
+            "position": {
+                "x": 240,
+                "y": 2192,
+                "width": 208,
+                "height": 176
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768879476247",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768879330984",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=>{\nx = x ?? [];\nif(y===x[x.length-1]){return x}\nx.push(y);\nreturn x.filter(Boolean);\n}"
+            }
+        },
+        {
+            "id": "n-toFunction-1768879801470",
+            "type": "toFunction",
+            "position": {
+                "x": -24,
+                "y": 2592,
+                "width": 104,
+                "height": 48
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768879470785",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown"
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x.length"
+            }
+        },
+        {
+            "id": "n-json-1768879826967",
+            "type": "json",
+            "position": {
+                "x": -24,
+                "y": 2720,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879801470",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768879837345",
+            "type": "toFunction",
+            "position": {
+                "x": 152,
+                "y": 2592,
+                "width": 152,
+                "height": 56
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768879476247",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown"
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x.length"
+            }
+        },
+        {
+            "id": "n-json-1768879848382",
+            "type": "json",
+            "position": {
+                "x": 152,
+                "y": 2712,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879837345",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768879926701",
+            "type": "toFunction",
+            "position": {
+                "x": -24,
+                "y": 2784,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768879470785",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-number-input-1768881475535",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x[y]"
+            }
+        },
+        {
+            "id": "n-string-1768879943355",
+            "type": "string",
+            "position": {
+                "x": -32,
+                "y": 2912,
+                "width": 152,
+                "height": 136
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879926701",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768879953605",
+            "type": "toFunction",
+            "position": {
+                "x": 152,
+                "y": 2784,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768879476247",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-number-input-1768881475535",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x[y]"
+            }
+        },
+        {
+            "id": "n-string-1768879966311",
+            "type": "string",
+            "position": {
+                "x": 152,
+                "y": 2912,
+                "width": 160,
+                "height": 136
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879953605",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768880432419",
+            "type": "string",
+            "position": {
+                "x": -736,
+                "y": 104,
+                "width": 264,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "TODO: copy nodes"
+            }
+        },
+        {
+            "id": "n-number-input-1768881475535",
+            "type": "number-input",
+            "position": {
+                "x": -344,
+                "y": 2832,
+                "width": 80,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "number"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "number"
+                }
+            ],
+            "data": {
+                "value": 0
+            }
+        },
+        {
+            "id": "n-string-1768884915643",
+            "type": "string",
+            "position": {
+                "x": -152,
+                "y": 392,
+                "width": 264,
+                "height": 72
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "painter-window-node (paint on the canvas background)"
+            }
+        },
+        {
+            "id": "n-toFunction-1768885980342",
+            "type": "toFunction",
+            "position": {
+                "x": 712,
+                "y": 2168,
+                "width": 192,
+                "height": 184
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768886609421",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "chunk"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "(x,y)=>{\nx = x ?? [];\nif(x.includes(y))return x;\nif(y===x[x.length-1]){return x}\nif(!y) return x;\nx.push(y);\nreturn x;\n}"
+            }
+        },
+        {
+            "id": "n-json-1768885995024",
+            "type": "json",
+            "position": {
+                "x": 712,
+                "y": 2376,
+                "width": 128,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768885980342",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "[]"
+            }
+        },
+        {
+            "id": "n-toFunction-1768886068901",
+            "type": "toFunction",
+            "position": {
+                "x": 696,
+                "y": 2496,
+                "width": 216,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768885995024",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-number-input-1768886130633",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>y<0? x[x.length+y]:x[y]"
+            }
+        },
+        {
+            "id": "n-number-input-1768886130633",
+            "type": "number-input",
+            "position": {
+                "x": 512,
+                "y": 2544,
+                "width": 80,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "number"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "number"
+                }
+            ],
+            "data": {
+                "value": -1
+            }
+        },
+        {
+            "id": "n-json-1768886187621",
+            "type": "json",
+            "position": {
+                "x": 640,
+                "y": 2664,
+                "width": 336,
+                "height": 208
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768886068901",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768886338935",
+            "type": "toFunction",
+            "position": {
+                "x": 664,
+                "y": 2432,
+                "width": 112,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768885995024",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown"
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x.length"
+            }
+        },
+        {
+            "id": "n-json-1768886356336",
+            "type": "json",
+            "position": {
+                "x": 832,
+                "y": 2424,
+                "width": 64,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768886338935",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768886609421",
+            "type": "json",
+            "position": {
+                "x": 584,
+                "y": 2216,
+                "width": 64,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768885980342",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ],
+            "data": {
+                "value": "[]"
+            }
+        },
+        {
+            "id": "n-toFunction-1768887023021",
+            "type": "toFunction",
+            "position": {
+                "x": 592,
+                "y": 2888,
+                "width": 368,
+                "height": 128
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-json-1768886187621",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown"
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>JSON.parse(x.replace('data:',''));"
+            }
+        },
+        {
+            "id": "n-json-1768887058578",
+            "type": "json",
+            "position": {
+                "x": 616,
+                "y": 3024,
+                "width": 312,
+                "height": 464
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768887023021",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768890276756",
+            "type": "json",
+            "position": {
+                "x": 1720,
+                "y": 1928,
+                "width": 232,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "done"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768890287855",
+            "type": "json",
+            "position": {
+                "x": 1720,
+                "y": 2000,
+                "width": 232,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "usage"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768890301063",
+            "type": "json",
+            "position": {
+                "x": 1720,
+                "y": 1848,
+                "width": 232,
+                "height": 40
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "status"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768890736347",
+            "type": "string",
+            "position": {
+                "x": -736,
+                "y": 168,
+                "width": 264,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "TODO: recorder"
+            }
+        }
+    ]
+}
