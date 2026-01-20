@@ -5,6 +5,7 @@ import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
+  type WorkflowComponentPropsAny_Ops,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 import { useValue } from '@legendapp/state/react';
@@ -95,152 +96,16 @@ const InputField = ({
   </div>
 );
 
-// --- FACTORY FUNCTION ---
+// --- NODE TYPE FACTORY ---
 
-export const createLlmRequestNodes = (config: LlmConfig) => {
-  const OllamaStreamingComponent = (
-    props: WorkflowComponentProps_Obs<OllamaData, OllamaInputs, OllamaOutputs>,
-  ) => {
-    const { node$, data$ } = props.data;
-
-    const ollamaUrlData = useValue(() => data$.ollamaUrl.get() ?? config.defaultUrl);
-    const modelData = useValue(() => data$.model.get() ?? config.defaultModel);
-
-    const modelSlot = useValue(() => node$.getInputInfo<string>('model'));
-    const ollamaUrlSlot = useValue(() => node$.getInputInfo<string>('ollamaUrl'));
-
-    const isModelReadonly = modelSlot.isConnected;
-    const isOllamaUrlReadonly = ollamaUrlSlot.isConnected;
-
-    const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
-    const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');
-    const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');
-    const currentError = useValue(() => props.data.outputs$.error.get());
-
-    const [localOllamaUrl, setLocalOllamaUrl] = useState(ollamaUrlData);
-    const [localModel, setLocalModel] = useState(modelData);
-    const [thoughtCollapsed, setThoughtCollapsed] = useState(false);
-
-    useEffect(() => {
-      data$.ollamaUrl.set(localOllamaUrl);
-    }, [localOllamaUrl, data$]);
-
-    useEffect(() => {
-      data$.model.set(localModel);
-    }, [localModel, data$]);
-
-    const getStatusColor = (status: string): string => {
-      switch (status) {
-        case 'connecting':
-          return 'text-yellow-500';
-        case 'thinking':
-          return 'text-purple-500';
-        case 'streaming':
-          return 'text-blue-500';
-        case 'completed':
-          return 'text-green-500';
-        case 'error':
-          return 'text-red-500';
-        default:
-          return 'text-gray-500';
-      }
-    };
-
-    const getStatusText = (status: string): string => {
-      switch (status) {
-        case 'connecting':
-          return 'Connecting...';
-        case 'thinking':
-          return 'Thinking...';
-        case 'streaming':
-          return 'Streaming';
-        case 'completed':
-          return 'Completed';
-        case 'error':
-          return 'Error';
-        default:
-          return 'Idle';
-      }
-    };
-
-    return (
-      <WorkflowNodeWrapperSimple {...props}>
-        <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-            <div className="text-xs font-bold text-white">{config.name} Streaming</div>
-            <div className={clsx('text-xs font-medium', getStatusColor(currentStatus))}>
-              {getStatusText(currentStatus)}
-            </div>
-          </div>
-
-          {/* Configuration */}
-          <div className="flex flex-col gap-2">
-            <InputField
-              label="Ollama URL"
-              value={localOllamaUrl}
-              onChange={setLocalOllamaUrl}
-              readonly={isOllamaUrlReadonly}
-              placeholder={config.defaultUrl}
-              type="url"
-            />
-
-            <InputField
-              label="Model"
-              value={localModel}
-              onChange={setLocalModel}
-              readonly={isModelReadonly}
-              placeholder={config.defaultModel}
-            />
-          </div>
-
-          {/* Content Sections */}
-          <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden">
-            {/* Thought Preview */}
-            {currentThought && (
-              <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}>
-                <button
-                  onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
-                  className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
-                >
-                  <span>Thought Process</span>
-                  <span className="text-purple-400">{thoughtCollapsed ? '▶' : '▼'}</span>
-                </button>
-                {!thoughtCollapsed && (
-                  <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto">
-                    <div className="text-purple-400 text-xs font-mono whitespace-pre-wrap">
-                      {currentThought}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Response Preview */}
-            <div className="flex flex-col gap-1 flex-1 min-h-0">
-              <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                Response Preview
-              </div>
-              <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto">
-                {currentError ? (
-                  <div className="text-red-500 text-xs whitespace-pre-wrap">{currentError}</div>
-                ) : (
-                  <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
-                    {currentResponse || 'No response yet...'}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </WorkflowNodeWrapperSimple>
-    );
-  };
-
-  const llmRequestNodeType: WorkflowRuntimeNodeTypeDefinition = {
+export const createLlmNodeType = (
+  config: LlmConfig,
+  ConfiguredComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
+): WorkflowRuntimeNodeTypeDefinition => {
+  return {
     type: WorkflowBrandedTypes.typeName(`${config.typeSuffix}Streaming`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponentWithNodeWrapper(OllamaStreamingComponent),
+      Component: NodeTypeWrapComponentWithNodeWrapper(ConfiguredComponent),
     }),
     inputs: [
       {
@@ -414,7 +279,7 @@ export const createLlmRequestNodes = (config: LlmConfig) => {
                     // Add to thought and check for closing tag
                     cumulativeThought += parsedChunk.response;
 
-                    // Check if this is the first time we're finding the closing tag
+                    // Check if this is first time we're finding the closing tag
                     const foundCloseThoughtTag = THINK_CLOSE_TAGS.find((tag) =>
                       cumulativeThought.includes(tag),
                     );
@@ -529,8 +394,157 @@ export const createLlmRequestNodes = (config: LlmConfig) => {
       };
     },
   };
+};
+
+export const OllamaStreamingComponent = (
+  props: WorkflowComponentProps_Obs<OllamaData, OllamaInputs, OllamaOutputs> & {
+    config: LlmConfig;
+  },
+) => {
+  const { node$, data$ } = props.data;
+
+  const ollamaUrlData = useValue(() => data$.ollamaUrl.get() ?? props.config.defaultUrl);
+  const modelData = useValue(() => data$.model.get() ?? props.config.defaultModel);
+
+  const modelSlot = useValue(() => node$.getInputInfo<string>('model'));
+  const ollamaUrlSlot = useValue(() => node$.getInputInfo<string>('ollamaUrl'));
+
+  const isModelReadonly = modelSlot.isConnected;
+  const isOllamaUrlReadonly = ollamaUrlSlot.isConnected;
+
+  const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
+  const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');
+  const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');
+  const currentError = useValue(() => props.data.outputs$.error.get());
+
+  const [localOllamaUrl, setLocalOllamaUrl] = useState(ollamaUrlData);
+  const [localModel, setLocalModel] = useState(modelData);
+  const [thoughtCollapsed, setThoughtCollapsed] = useState(false);
+
+  useEffect(() => {
+    data$.ollamaUrl.set(localOllamaUrl);
+  }, [localOllamaUrl, data$]);
+
+  useEffect(() => {
+    data$.model.set(localModel);
+  }, [localModel, data$]);
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'connecting':
+        return 'text-yellow-500';
+      case 'thinking':
+        return 'text-purple-500';
+      case 'streaming':
+        return 'text-blue-500';
+      case 'completed':
+        return 'text-green-500';
+      case 'error':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case 'connecting':
+        return 'Connecting...';
+      case 'thinking':
+        return 'Thinking...';
+      case 'streaming':
+        return 'Streaming';
+      case 'completed':
+        return 'Completed';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Idle';
+    }
+  };
+
+  return (
+    <WorkflowNodeWrapperSimple {...props}>
+      <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+          <div className="text-xs font-bold text-white">{props.config.name} Streaming</div>
+          <div className={clsx('text-xs font-medium', getStatusColor(currentStatus))}>
+            {getStatusText(currentStatus)}
+          </div>
+        </div>
+
+        {/* Configuration */}
+        <div className="flex flex-col gap-2">
+          <InputField
+            label="Ollama URL"
+            value={localOllamaUrl}
+            onChange={setLocalOllamaUrl}
+            readonly={isOllamaUrlReadonly}
+            placeholder={props.config.defaultUrl}
+            type="url"
+          />
+
+          <InputField
+            label="Model"
+            value={localModel}
+            onChange={setLocalModel}
+            readonly={isModelReadonly}
+            placeholder={props.config.defaultModel}
+          />
+        </div>
+
+        {/* Content Sections */}
+        <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden">
+          {/* Thought Preview */}
+          {currentThought && (
+            <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}>
+              <button
+                onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
+                className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
+              >
+                <span>Thought Process</span>
+                <span className="text-purple-400">{thoughtCollapsed ? '▶' : '▼'}</span>
+              </button>
+              {!thoughtCollapsed && (
+                <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto">
+                  <div className="text-purple-400 text-xs font-mono whitespace-pre-wrap">
+                    {currentThought}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Response Preview */}
+          <div className="flex flex-col gap-1 flex-1 min-h-0">
+            <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+              Response Preview
+            </div>
+            <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto">
+              {currentError ? (
+                <div className="text-red-500 text-xs whitespace-pre-wrap">{currentError}</div>
+              ) : (
+                <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
+                  {currentResponse || 'No response yet...'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </WorkflowNodeWrapperSimple>
+  );
+};
+
+// --- MAIN FACTORY FUNCTION ---
+
+export const createLlmRequestNodes = (config: LlmConfig) => {
+  const nodeType = createLlmNodeType(config, (props) => (
+    <OllamaStreamingComponent {...props} config={config} />
+  ));
 
   return {
-    [`${config.typeSuffix}Streaming`]: llmRequestNodeType,
+    [`${config.typeSuffix}Streaming`]: nodeType,
   };
 };
