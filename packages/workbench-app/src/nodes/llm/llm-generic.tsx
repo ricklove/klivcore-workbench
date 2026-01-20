@@ -35,11 +35,18 @@ type LlmData = {
   apiKey?: string;
 };
 
+interface LlmSettings {
+  model: string;
+  url: string;
+  apiKey?: string;
+}
+
 interface LlmInputs {
   prompt: string;
   model?: string;
   url?: string;
   apiKey?: string;
+  settings?: LlmSettings;
 }
 
 interface LlmOutputs {
@@ -49,6 +56,7 @@ interface LlmOutputs {
   done: boolean;
   error: undefined | string;
   status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';
+  settings: LlmSettings;
 }
 
 interface LlmStreamChunk {
@@ -133,6 +141,10 @@ export const createLlmRequestNodeType = (
         name: WorkflowBrandedTypes.inputName('apiKey'),
         type: WorkflowBrandedTypes.valueType('string'),
       },
+      {
+        name: WorkflowBrandedTypes.inputName('settings'),
+        type: WorkflowBrandedTypes.valueType('LlmSettings'),
+      },
     ],
     outputs: [
       {
@@ -159,6 +171,10 @@ export const createLlmRequestNodeType = (
         name: WorkflowBrandedTypes.outputName('status'),
         type: WorkflowBrandedTypes.valueType('string'),
       },
+      {
+        name: WorkflowBrandedTypes.outputName('settings'),
+        type: WorkflowBrandedTypes.valueType('LlmSettings'),
+      },
     ],
     execute: async ({ inputs, data, controller }) => {
       const safeData = (data as unknown as LlmData) ?? {
@@ -170,11 +186,15 @@ export const createLlmRequestNodeType = (
       const modelInput = inputs.model as string | undefined;
       const urlInput = inputs.url as string | undefined;
       const apiKeyInput = inputs.apiKey as string | undefined;
+      const settingsInput = inputs.settings as LlmSettings | undefined;
 
       const prompt = promptInput ?? '';
-      const model = modelInput ?? safeData.model ?? config.defaultModel;
-      const url = urlInput ?? safeData.url ?? config.defaultUrl;
-      const apiKey = apiKeyInput ?? safeData.apiKey;
+      // Priority: settingsInput > individual inputs > data > defaults
+      const model = settingsInput?.model ?? modelInput ?? safeData.model ?? config.defaultModel;
+      const url = settingsInput?.url ?? urlInput ?? safeData.url ?? config.defaultUrl;
+      const apiKey = settingsInput?.apiKey ?? apiKeyInput ?? safeData.apiKey;
+
+      const resolvedSettings: LlmSettings = { model, url, apiKey };
 
       if (!prompt.trim()) {
         return {
@@ -184,6 +204,7 @@ export const createLlmRequestNodeType = (
             done: false,
             error: 'Prompt is required',
             status: 'error',
+            settings: resolvedSettings,
           },
         };
       }
@@ -207,6 +228,7 @@ export const createLlmRequestNodeType = (
             done: false,
             error: undefined,
             status: 'connecting',
+            settings: resolvedSettings,
           });
 
           // Build headers
@@ -252,6 +274,7 @@ export const createLlmRequestNodeType = (
             done: false,
             error: undefined,
             status: 'thinking',
+            settings: resolvedSettings,
           });
 
           reader = response.body.getReader();
@@ -282,6 +305,7 @@ export const createLlmRequestNodeType = (
                 done: true,
                 error: undefined,
                 status: 'completed',
+                settings: resolvedSettings,
               });
               return;
             }
@@ -352,6 +376,7 @@ export const createLlmRequestNodeType = (
                   done: parsedChunk.done ?? false,
                   error: parsedChunk.error,
                   status: currentStatus,
+                  settings: resolvedSettings,
                 });
 
                 if (parsedChunk.done) {
@@ -369,6 +394,7 @@ export const createLlmRequestNodeType = (
                     done: true,
                     error: undefined,
                     status: 'completed',
+                    settings: resolvedSettings,
                   });
                   return;
                 }
@@ -385,6 +411,7 @@ export const createLlmRequestNodeType = (
                   done: false,
                   error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
                   status: 'error',
+                  settings: resolvedSettings,
                 });
               }
             }
@@ -400,6 +427,7 @@ export const createLlmRequestNodeType = (
             done: false,
             error: errorMessage,
             status: 'error',
+            settings: resolvedSettings,
           });
         }
       };
@@ -429,6 +457,7 @@ export const createLlmRequestNodeType = (
           done: true,
           error: null,
           status: 'success',
+          settings: resolvedSettings,
         },
       };
     },
@@ -449,10 +478,11 @@ export const LlmRequestComponent = (
   const modelSlot = useValue(() => node$.getInputInfo<string>('model'));
   const urlSlot = useValue(() => node$.getInputInfo<string>('url'));
   const apiKeySlot = useValue(() => node$.getInputInfo<string>('apiKey'));
+  const settingsSlot = useValue(() => node$.getInputInfo<LlmSettings>('settings'));
 
-  const isModelReadonly = modelSlot.isConnected;
-  const isUrlReadonly = urlSlot.isConnected;
-  const isApiKeyReadonly = apiKeySlot.isConnected;
+  const isModelReadonly = modelSlot.isConnected || settingsSlot.isConnected;
+  const isUrlReadonly = urlSlot.isConnected || settingsSlot.isConnected;
+  const isApiKeyReadonly = apiKeySlot.isConnected || settingsSlot.isConnected;
 
   const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
   const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');
