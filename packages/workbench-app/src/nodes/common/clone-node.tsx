@@ -7,6 +7,11 @@ import {
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 import { useValue } from '@legendapp/state/react';
+import {
+  EmptyNodeComponent,
+  NodeTypeWrapComponentWithNodeWrapper,
+} from '../../workflow/node-types-wrapper';
+import { WrapperHandles } from '../../workflow/node-wrapper';
 
 export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`clone`),
@@ -27,40 +32,48 @@ export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
     // const inputValue = inputSlot.isConnected ? inputSlot.getValue() : undefined;
     // const dataValue = (node.data as undefined | { value?: unknown })?.value;
     // const value = inputValue ?? dataValue;
+
     return undefined;
   },
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
 const CloneComponent = (props: WorkflowComponentProps) => {
-  const nodeId = useValue(props.data.node$.id.get());
-  const targetNode = useValue(() => props.data.node$.inputs[0]?.getEdge()?.source.getNode());
-  const targetNodeType = useValue(() =>
-    !targetNode ? undefined : props.data.store$.nodeTypes[targetNode.type]?.get(),
-  );
+  const { nodeId, targetNode, targetNodeType } = useValue(() => {
+    const nodeId = props.data.node$.id.get();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _edgeId = props.data.node$.inputs[0]?.edgeId.get();
+    const targetNode = props.data.node$.inputs[0]?.getEdge()?.source.getNode();
+    const targetNodeType = !targetNode
+      ? undefined
+      : props.data.store$.nodeTypes[targetNode.type]?.get();
+    return { nodeId, targetNode, targetNodeType };
+  });
+
   const TargetComponent = useMemo(() => targetNodeType?.getComponent?.(), [targetNodeType]);
 
   if (!nodeId || !targetNode || !TargetComponent) {
-    return (
-      <div className="w-full h-full p-1 whitespace-pre-wrap bg-red-400 text-white rounded">
-        {`Error: Node not found`}
-      </div>
-    );
+    const DefaultComponent = NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent);
+    return <DefaultComponent {...props} />;
   }
 
   return (
-    <TargetComponent.Component
-      {...props}
-      data={
-        getReactFlowNodeDataProp(
-          props.data.store$,
-          props.data.store$.nodes[targetNode.id]!,
-        ) as unknown as WorkflowComponentProps<
-          WorkflowJsonObject,
-          WorkflowJsonObject,
-          WorkflowJsonObject
-        >['data']
-      }
-    />
+    <>
+      <TargetComponent.Component
+        {...props}
+        hideHandles={true}
+        data={
+          getReactFlowNodeDataProp(
+            props.data.store$,
+            props.data.store$.nodes[targetNode.id]!,
+          ) as unknown as WorkflowComponentProps<
+            WorkflowJsonObject,
+            WorkflowJsonObject,
+            WorkflowJsonObject
+          >['data']
+        }
+      />
+      <WrapperHandles selected={props.selected} data={{ node$: props.data.node$ }} />
+    </>
   );
 };

@@ -112,7 +112,7 @@ const CustomEdgeInner = memo(
 
     return (
       <>
-        <BaseEdge id={id} path={edgePath} />
+        <BaseEdge id={id} path={edgePath} className="hover:bg-green-400" />
         {!(props.isMultiSelect && props.selected) && (
           <EdgeLabelRenderer>
             <button

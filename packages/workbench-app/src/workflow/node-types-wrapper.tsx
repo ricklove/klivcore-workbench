@@ -4,7 +4,11 @@ import { ErrorBoundary } from './error-boundary';
 import { useValue } from '@legendapp/state/react';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 
-export const EmptyNodeComponent = () => <></>;
+export const EmptyNodeComponent = () => (
+  <>
+    <div className="bg-gray-950/25 w-full h-full"></div>
+  </>
+);
 
 export const NodeTypeWrapComponent = (
   InnerComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,

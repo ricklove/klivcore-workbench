@@ -34,6 +34,7 @@ const WorkflowNodeWrapper = ({
   children,
   id,
   selected,
+  hideHandles,
   data: dataReactFlow,
 }: WorkflowComponentPropsAny & {
   children: React.ReactNode;
@@ -47,7 +48,7 @@ const WorkflowNodeWrapper = ({
       <NodeResizer isVisible={selected && !isMultiSelect} />
       <WrapperHeader id={id} selected={selected} data={dataReactFlow} />
       {children}
-      <WrapperHandles selected={selected} data={{ node$: dataReactFlow.node$ }} />
+      {!hideHandles && <WrapperHandles selected={selected} data={{ node$: dataReactFlow.node$ }} />}
     </>
   );
 };

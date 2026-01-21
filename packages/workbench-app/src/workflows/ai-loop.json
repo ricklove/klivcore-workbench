@@ -531,10 +531,10 @@
             "id": "n-string-1768838323843",
             "type": "string",
             "position": {
-                "x": 1280,
-                "y": 32,
-                "width": 456,
-                "height": 320
+                "x": 1992,
+                "y": -360,
+                "width": 1352,
+                "height": 608
             },
             "inputs": [
                 {
@@ -549,7 +549,7 @@
                 }
             ],
             "data": {
-                "value": ""
+                "value": "interface AgentStep {\n// is this correct?\n  category: `plan` | `code` | `quality` | `verification` | `ruggedizing`;\n// what are the qualitative concerns of software engineering and which one does this \n  concern: `user-experience` | `asthetics` | `performance` | `stability` | `data-security` | `reliability` | `redundancy` | `recovery`\n// a short description of the task\ntask: string;\n// \n}\n\n// look at the agent history and create the next step\nfunction decideNextStep(history: AgentStep[]): AgentStep;\n// write an implementation plan to fulfill this step that will be part of the current step context\nfunction planStep(step: AgentStep): AgentStepPlan;\n// predict your likelihood of success and expected quality of output\nfunction predictQualityOfMyStepOutput(step: AgentStep): AgentStepOutputQualityEstimate\n// execute the defined step\nfunction executeNextStep(step: AgentStep): AgentStepOutput;\n// verify that the output (git changes) completes the step, and ensure the agent step history is updated\nfunction verifyStep(step: AgentStep): AgentStepVerification;\n// git commit the changes\nfunction commitStep(step: AgentStep): AgentStepCommitResult;\n// ask for help from a smarter (more costly) agent because the task is hard or the quality of your own expected output seems lower than high quality\nfunction escalateStep(step: AgentStep): AgentStepEscalationResult;"
             }
         },
         {
@@ -557,7 +557,7 @@
             "type": "ollamaLlmRequest",
             "position": {
                 "x": 2208,
-                "y": 664,
+                "y": 680,
                 "width": 320,
                 "height": 504
             },
@@ -627,13 +627,17 @@
                 {
                     "name": "usage",
                     "type": "LlmUsage"
+                },
+                {
+                    "name": "raw",
+                    "type": "string"
                 }
             ],
             "data": {
                 "ollamaUrl": "http://localhost:11434",
                 "model": "nemotron-3-nano:latest",
                 "apiKey": "",
-                "url": "http://localhost:11434/api/generate"
+                "url": "http://localhost:11434/api/generate      DISABLED"
             }
         },
         {
@@ -770,7 +774,7 @@
             "id": "n-string-1768853806502",
             "type": "string",
             "position": {
-                "x": 856,
+                "x": 888,
                 "y": 1208,
                 "width": 240,
                 "height": 184
@@ -938,7 +942,7 @@
             "id": "n-valueGate-1768864343048",
             "type": "valueGate",
             "position": {
-                "x": 912,
+                "x": 928,
                 "y": 1464,
                 "width": 208,
                 "height": 112
@@ -1043,6 +1047,10 @@
                 {
                     "name": "usage",
                     "type": "LlmUsage"
+                },
+                {
+                    "name": "raw",
+                    "type": "string"
                 }
             ],
             "data": {
@@ -1056,8 +1064,8 @@
             "id": "n-json-1768869932681",
             "type": "json",
             "position": {
-                "x": 1128,
-                "y": 2248,
+                "x": 1720,
+                "y": 1680,
                 "width": 248,
                 "height": 144
             },
@@ -1082,8 +1090,8 @@
             "id": "n-json-1768869939531",
             "type": "json",
             "position": {
-                "x": 1456,
-                "y": 2256,
+                "x": 1680,
+                "y": 2008,
                 "width": 280,
                 "height": 72
             },
@@ -1178,7 +1186,7 @@
                 }
             ],
             "data": {
-                "value": "/* eslint-disable react-refresh/only-export-components */\nimport { useState, useEffect } from 'react';\nimport { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';\nimport { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';\nimport {\n  WorkflowBrandedTypes,\n  type WorkflowComponentProps_Obs,\n  type WorkflowComponentPropsAny_Ops,\n  type WorkflowRuntimeNodeTypeDefinition,\n} from '../../workflow/types';\nimport { useValue } from '@legendapp/state/react';\nimport { clsx } from '../../utils/clsx';\n\n// --- CONFIGURATION TYPE ---\n\ninterface LlmConfig {\n  name: string;\n  typeSuffix: string;\n  defaultUrl: string;\n  defaultModel: string;\n  authKind?: 'bearer';\n  transformRequest?: (config: {\n    prompt: string;\n    model: string;\n    stream: boolean;\n  }) => Record<string, unknown>;\n  parseStreamChunk?: (chunk: string) => {\n    response?: string;\n    done?: boolean;\n    error?: string;\n    usage?: {\n      inputTokens: number;\n      outputTokens: number;\n      totalTokens: number;\n    };\n  };\n}\n\n// --- TYPE DEFINITIONS ---\n\ntype LlmData = {\n  url: string;\n  model: string;\n  apiKey?: string;\n};\n\ninterface LlmSettings {\n  model: string;\n  url: string;\n  apiKey?: string;\n}\n\ninterface LlmInputs {\n  prompt: string;\n  model?: string;\n  url?: string;\n  apiKey?: string;\n  settings?: LlmSettings;\n}\n\ninterface LlmOutputs {\n  chunk: LlmStreamChunk;\n  thought: undefined | string;\n  response: undefined | string;\n  done: boolean;\n  error: undefined | string;\n  status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';\n  settings: LlmSettings;\n}\n\ninterface LlmStreamChunk {\n  response?: string;\n  done?: boolean;\n  model?: string;\n  created_at?: string;\n  error?: string;\n  total_duration?: number;\n  load_duration?: number;\n  prompt_eval_count?: number;\n  prompt_eval_duration?: number;\n  eval_count?: number;\n  eval_duration?: number;\n}\n\n// --- COMPONENTS ---\n\ninterface InputFieldProps {\n  label: string;\n  value: string;\n  onChange: (value: string) => void;\n  readonly: boolean;\n  placeholder?: string;\n  type?: 'text' | 'url' | 'password';\n}\n\nconst InputField = ({\n  label,\n  value,\n  onChange,\n  readonly,\n  placeholder,\n  type = 'text',\n}: InputFieldProps) => (\n  <div className=\"flex flex-col gap-1\">\n    <label className=\"text-[10px] font-bold text-neutral-400 uppercase tracking-wider\">\n      {label}\n    </label>\n    <input\n      type={type}\n      className={clsx(\n        'w-full bg-black/25 text-white text-xs px-2 py-1 rounded outline-none border border-transparent transition-colors',\n        readonly\n          ? 'bg-neutral-800/25 border-neutral-700 cursor-not-allowed'\n          : 'hover:border-neutral-600',\n      )}\n      value={value}\n      onChange={(e) => !readonly && onChange(e.target.value)}\n      readOnly={readonly}\n      placeholder={placeholder}\n      title={readonly ? 'Controlled by input connection' : `Enter ${label.toLowerCase()}`}\n    />\n  </div>\n);\n\n// --- NODE TYPE FACTORY ---\n\nexport const createLlmRequestNodeType = (\n  config: LlmConfig,\n  ConfiguredComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,\n): WorkflowRuntimeNodeTypeDefinition => {\n  return {\n    type: WorkflowBrandedTypes.typeName(`${config.typeSuffix}LlmRequest`),\n    getComponent: () => ({\n      Component: NodeTypeWrapComponentWithNodeWrapper(ConfiguredComponent),\n    }),\n    inputs: [\n      {\n        name: WorkflowBrandedTypes.inputName('prompt'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('model'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('url'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('apiKey'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.inputName('settings'),\n        type: WorkflowBrandedTypes.valueType('LlmSettings'),\n      },\n    ],\n    outputs: [\n      {\n        name: WorkflowBrandedTypes.outputName('chunk'),\n        type: WorkflowBrandedTypes.valueType('LlmStreamChunk'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('thought'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('response'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('done'),\n        type: WorkflowBrandedTypes.valueType('boolean'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('error'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('status'),\n        type: WorkflowBrandedTypes.valueType('string'),\n      },\n      {\n        name: WorkflowBrandedTypes.outputName('settings'),\n        type: WorkflowBrandedTypes.valueType('LlmSettings'),\n      },\n    ],\n    execute: async ({ inputs, data, controller }) => {\n      const safeData = (data as unknown as LlmData) ?? {\n        url: config.defaultUrl,\n        model: config.defaultModel,\n      };\n\n      const promptInput = inputs.prompt as string | undefined;\n      const modelInput = inputs.model as string | undefined;\n      const urlInput = inputs.url as string | undefined;\n      const apiKeyInput = inputs.apiKey as string | undefined;\n      const settingsInput = inputs.settings as LlmSettings | undefined;\n\n      const prompt = promptInput ?? '';\n      // Priority: settingsInput > individual inputs > data > defaults\n      const model = settingsInput?.model ?? modelInput ?? safeData.model ?? config.defaultModel;\n      const url = settingsInput?.url ?? urlInput ?? safeData.url ?? config.defaultUrl;\n      const apiKey = settingsInput?.apiKey ?? apiKeyInput ?? safeData.apiKey;\n\n      const resolvedSettings: LlmSettings = { model, url, apiKey };\n\n      if (!prompt.trim()) {\n        return {\n          outputs: {\n            chunk: { error: 'Prompt is required' },\n            response: undefined,\n            done: false,\n            error: 'Prompt is required',\n            status: 'error',\n            settings: resolvedSettings,\n          },\n        };\n      }\n\n      let cumulativeThought = '';\n      let cumulativeResponse = '';\n      let thoughtClosed = false;\n\n      const processStream = async (emit: (output: LlmOutputs) => void): Promise<void> => {\n        let reader: undefined | ReadableStreamDefaultReader<Uint8Array>;\n\n        try {\n          controller.setProgress({\n            progressRatio: 0.1,\n            message: `Connecting to ${config.name}...`,\n          });\n          emit({\n            chunk: {},\n            thought: undefined,\n            response: undefined,\n            done: false,\n            error: undefined,\n            status: 'connecting',\n            settings: resolvedSettings,\n          });\n\n          // Build headers\n          const headers: Record<string, string> = { 'Content-Type': 'application/json' };\n\n          if (config.authKind === 'bearer' && apiKey) {\n            headers['Authorization'] = `Bearer ${apiKey}`;\n          }\n\n          // Build request body\n          let requestBody: Record<string, unknown>;\n          if (config.transformRequest) {\n            requestBody = config.transformRequest({ prompt, model, stream: true });\n          } else {\n            requestBody = {\n              model,\n              prompt,\n              stream: true,\n            };\n          }\n\n          const response = await fetch(url, {\n            method: 'POST',\n            headers,\n            body: JSON.stringify(requestBody),\n            signal: controller.abortSignal,\n          });\n\n          if (!response.ok) {\n            const errorText = await response.text();\n            throw new Error(`HTTP ${response.status}: ${errorText}`);\n          }\n\n          if (!response.body) {\n            throw new Error('Response body is missing');\n          }\n\n          controller.setProgress({ progressRatio: 0.3, message: 'Starting stream...' });\n          emit({\n            chunk: {},\n            thought: undefined,\n            response: undefined,\n            done: false,\n            error: undefined,\n            status: 'thinking',\n            settings: resolvedSettings,\n          });\n\n          reader = response.body.getReader();\n          const decoder = new TextDecoder();\n          let buffer = '';\n          let chunkCount = 0;\n\n          const THINK_CLOSE_TAGS = ['</thinking>', '</thought>'];\n\n          while (true) {\n            const { done, value } = await reader.read();\n            if (controller.abortSignal.aborted) {\n              throw new Error('Request was aborted');\n            }\n\n            if (done) {\n              // If thought was never closed, copy everything to response\n              if (!thoughtClosed) {\n                cumulativeResponse = cumulativeThought;\n                cumulativeThought = '';\n              }\n\n              controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });\n              emit({\n                chunk: { done: true },\n                thought: cumulativeThought || undefined,\n                response: cumulativeResponse || undefined,\n                done: true,\n                error: undefined,\n                status: 'completed',\n                settings: resolvedSettings,\n              });\n              return;\n            }\n\n            const chunkText = decoder.decode(value, { stream: true });\n            buffer += chunkText;\n\n            const lines = buffer.split('\\n');\n            buffer = lines.pop() ?? '';\n\n            for (const line of lines) {\n              const trimmedLine = line.trim();\n              if (!trimmedLine) continue;\n\n              try {\n                console.log('[llm-generic] stream chunk line', { trimmedLine, chunkText });\n                const rawChunk = trimmedLine;\n\n                let parsedChunk: { response?: string; done?: boolean; error?: string };\n\n                if (config.parseStreamChunk) {\n                  parsedChunk = config.parseStreamChunk(rawChunk);\n                } else {\n                  parsedChunk = JSON.parse(rawChunk) as LlmStreamChunk;\n                }\n\n                if (parsedChunk.response) {\n                  if (thoughtClosed) {\n                    // If thought is already closed, add directly to response\n                    cumulativeResponse += parsedChunk.response;\n                  } else {\n                    // Add to thought and check for closing tag\n                    cumulativeThought += parsedChunk.response;\n\n                    // Check if this is first time we're finding the closing tag\n                    const foundCloseThoughtTag = THINK_CLOSE_TAGS.find((tag) =>\n                      cumulativeThought.includes(tag),\n                    );\n\n                    if (foundCloseThoughtTag) {\n                      // Find the first closing tag that appears\n                      const splitIndex = cumulativeThought.indexOf(foundCloseThoughtTag);\n                      const thoughtContent = cumulativeThought.substring(0, splitIndex);\n                      const responseContent = cumulativeThought.substring(\n                        splitIndex + foundCloseThoughtTag.length,\n                      );\n\n                      // Update cumulative variables\n                      cumulativeThought = thoughtContent;\n                      cumulativeResponse = responseContent;\n                      thoughtClosed = true;\n                    }\n                  }\n                }\n\n                chunkCount++;\n                const progressRatio = Math.min(0.3 + chunkCount * 0.05, 0.9);\n                const currentStatus = thoughtClosed ? 'streaming' : 'thinking';\n                controller.setProgress({\n                  progressRatio,\n                  message: `${currentStatus === 'thinking' ? 'Thinking' : 'Responding'}... (${chunkCount} chunks)`,\n                });\n\n                emit({\n                  chunk: parsedChunk,\n                  thought: cumulativeThought || undefined,\n                  response: cumulativeResponse || undefined,\n                  done: parsedChunk.done ?? false,\n                  error: parsedChunk.error,\n                  status: currentStatus,\n                  settings: resolvedSettings,\n                });\n\n                if (parsedChunk.done) {\n                  // If thought was never closed, copy everything to response\n                  if (!thoughtClosed) {\n                    cumulativeResponse = cumulativeThought;\n                    cumulativeThought = '';\n                  }\n\n                  controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });\n                  emit({\n                    chunk: parsedChunk,\n                    thought: cumulativeThought || undefined,\n                    response: cumulativeResponse || undefined,\n                    done: true,\n                    error: undefined,\n                    status: 'completed',\n                    settings: resolvedSettings,\n                  });\n                  return;\n                }\n              } catch (parseError) {\n                console.error('[llm-generic] ERROR stream chunk line', { trimmedLine, chunkText });\n\n                controller.setProgress({ progressRatio: 0.0, message: 'Error parsing response' });\n                emit({\n                  chunk: {\n                    error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,\n                  },\n                  thought: undefined,\n                  response: undefined,\n                  done: false,\n                  error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,\n                  status: 'error',\n                  settings: resolvedSettings,\n                });\n              }\n            }\n          }\n        } catch (error) {\n          const errorMessage = error instanceof Error ? error.message : String(error);\n          controller.setProgress({ progressRatio: 0.0, message: `Error: ${errorMessage}` });\n\n          emit({\n            chunk: { error: errorMessage },\n            thought: undefined,\n            response: undefined,\n            done: false,\n            error: errorMessage,\n            status: 'error',\n            settings: resolvedSettings,\n          });\n        }\n      };\n\n      await new Promise<void>((resolve, reject) => {\n        controller.registerEvent((emit) => {\n          processStream(emit as () => void)\n            .then(resolve)\n            .catch(reject);\n          return {\n            unsubscribe: () => {},\n          };\n        });\n      });\n\n      // Final processing for the return statement\n      if (!thoughtClosed && cumulativeThought) {\n        cumulativeResponse = cumulativeThought;\n        cumulativeThought = '';\n      }\n\n      return {\n        outputs: {\n          chunk: null,\n          thought: cumulativeThought || undefined,\n          response: cumulativeResponse || undefined,\n          done: true,\n          error: null,\n          status: 'success',\n          settings: resolvedSettings,\n        },\n      };\n    },\n  };\n};\n\nexport const LlmRequestComponent = (\n  props: WorkflowComponentProps_Obs<LlmData, LlmInputs, LlmOutputs> & {\n    config: LlmConfig;\n  },\n) => {\n  const { node$, data$ } = props.data;\n\n  const urlData = useValue(() => data$.url.get() ?? props.config.defaultUrl);\n  const modelData = useValue(() => data$.model.get() ?? props.config.defaultModel);\n  const apiKeyData = useValue(() => data$.apiKey.get() ?? '');\n\n  const modelSlot = useValue(() => node$.getInputInfo<string>('model'));\n  const urlSlot = useValue(() => node$.getInputInfo<string>('url'));\n  const apiKeySlot = useValue(() => node$.getInputInfo<string>('apiKey'));\n  const settingsSlot = useValue(() => node$.getInputInfo<LlmSettings>('settings'));\n\n  const isModelReadonly = modelSlot.isConnected || settingsSlot.isConnected;\n  const isUrlReadonly = urlSlot.isConnected || settingsSlot.isConnected;\n  const isApiKeyReadonly = apiKeySlot.isConnected || settingsSlot.isConnected;\n\n  const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');\n  const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');\n  const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');\n  const currentError = useValue(() => props.data.outputs$.error.get());\n\n  const [localUrl, setLocalUrl] = useState(urlData);\n  const [localModel, setLocalModel] = useState(modelData);\n  const [localApiKey, setLocalApiKey] = useState(apiKeyData);\n  const [thoughtCollapsed, setThoughtCollapsed] = useState(false);\n\n  useEffect(() => {\n    data$.url.set(localUrl);\n  }, [localUrl, data$]);\n\n  useEffect(() => {\n    data$.model.set(localModel);\n  }, [localModel, data$]);\n\n  useEffect(() => {\n    data$.apiKey.set(localApiKey);\n  }, [localApiKey, data$]);\n\n  const getStatusColor = (status: string): string => {\n    switch (status) {\n      case 'connecting':\n        return 'text-yellow-500';\n      case 'thinking':\n        return 'text-purple-500';\n      case 'streaming':\n        return 'text-blue-500';\n      case 'completed':\n        return 'text-green-500';\n      case 'error':\n        return 'text-red-500';\n      default:\n        return 'text-gray-500';\n    }\n  };\n\n  const getStatusText = (status: string): string => {\n    switch (status) {\n      case 'connecting':\n        return 'Connecting...';\n      case 'thinking':\n        return 'Thinking...';\n      case 'streaming':\n        return 'Streaming';\n      case 'completed':\n        return 'Completed';\n      case 'error':\n        return 'Error';\n      default:\n        return 'Idle';\n    }\n  };\n\n  return (\n    <WorkflowNodeWrapperSimple {...props}>\n      <div className=\"w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan\">\n        {/* Header */}\n        <div className=\"flex items-center justify-between border-b border-neutral-800 pb-2\">\n          <div className=\"text-xs font-bold text-white\">{props.config.name} LLM Request</div>\n          <div className={clsx('text-xs font-medium', getStatusColor(currentStatus))}>\n            {getStatusText(currentStatus)}\n          </div>\n        </div>\n\n        {/* Configuration */}\n        <div className=\"flex flex-col gap-2\">\n          <InputField\n            label={`${props.config.name} URL`}\n            value={localUrl}\n            onChange={setLocalUrl}\n            readonly={isUrlReadonly}\n            placeholder={props.config.defaultUrl}\n            type=\"url\"\n          />\n\n          <InputField\n            label=\"Model\"\n            value={localModel}\n            onChange={setLocalModel}\n            readonly={isModelReadonly}\n            placeholder={props.config.defaultModel}\n          />\n\n          {props.config.authKind && (\n            <InputField\n              label=\"API Key\"\n              value={localApiKey}\n              onChange={setLocalApiKey}\n              readonly={isApiKeyReadonly}\n              placeholder=\"Enter API key\"\n              type=\"password\"\n            />\n          )}\n        </div>\n\n        {/* Content Sections */}\n        <div className=\"flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden\">\n          {/* Thought Preview */}\n          {currentThought && (\n            <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}>\n              <button\n                onClick={() => setThoughtCollapsed(!thoughtCollapsed)}\n                className=\"flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer\"\n              >\n                <span>Thought Process</span>\n                <span className=\"text-purple-400\">{thoughtCollapsed ? '▶' : '▼'}</span>\n              </button>\n              {!thoughtCollapsed && (\n                <div className=\"bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto\">\n                  <div className=\"text-purple-400 text-xs font-mono whitespace-pre-wrap\">\n                    {currentThought}\n                  </div>\n                </div>\n              )}\n            </div>\n          )}\n\n          {/* Response Preview */}\n          <div className=\"flex flex-col gap-1 flex-1 min-h-0\">\n            <div className=\"text-[10px] font-bold text-neutral-400 uppercase tracking-wider\">\n              Response Preview\n            </div>\n            <div className=\"bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto\">\n              {currentError ? (\n                <div className=\"text-red-500 text-xs whitespace-pre-wrap\">{currentError}</div>\n              ) : (\n                <div className=\"text-green-400 text-xs font-mono whitespace-pre-wrap\">\n                  {currentResponse || 'No response yet...'}\n                </div>\n              )}\n            </div>\n          </div>\n        </div>\n      </div>\n    </WorkflowNodeWrapperSimple>\n  );\n};\n\n// --- MAIN FACTORY FUNCTION ---\n\nexport const createLlmNodes = (config: LlmConfig) => {\n  return [\n    createLlmRequestNodeType(config, (props) => <LlmRequestComponent {...props} config={config} />),\n  ];\n};\n"
+                "value": "/**\n * Agent Protocol Definition\n * Location: /agent-protocol.d.ts\n * \n * This file is the Source of Truth for the Autonomous Agent.\n * It defines the State Machine, the Toolset, and the File System structure.\n */\n\n// ============================================================================\n// 1. CORE AGENT STATE MACHINE\n// ============================================================================\n\nexport interface AgentStep {\n  /**\n   * The kind of work being performed.\n   * - `requirements`: Interacting with humans to define WHAT to build.\n   * - `plan`: Architecting HOW to build it.\n   * - `code`: Writing the implementation.\n   * - `quality`: Refactoring and static analysis.\n   * - `verification`: Running tests and validating behavior.\n   * - `ruggedizing`: Handling edge cases and errors.\n   */\n  kind: 'requirements' | 'plan' | 'code' | 'quality' | 'verification' | 'ruggedizing';\n\n  /**\n   * The qualitative lens through which the task is viewed.\n   * This ensures non-functional requirements are not ignored.\n   */\n  concern: \n    | 'clarity'           // Ensuring requirements are understood\n    | 'user-experience'   // Usability and flows\n    | 'aesthetics'        // Visual fidelity\n    | 'performance'       // Speed and efficiency\n    | 'stability'         // Uptime and error rates\n    | 'data-security'     // Privacy and authorization\n    | 'pentesting'        // Find any possible way to break it, you are `Mal` the hacker\n    | 'reliability'       // Consistency\n    | 'maintainability';  // Code health and standards\n\n  /** A concise description of the task. */\n  task: string;\n}\n\n/**\n * Represents a closed loop: Intent -> Action -> Result.\n * The Agent analyzes these to determine the next move.\n */\nexport interface CompletedStep extends AgentStep {\n  plan: AgentStepPlan;\n  output: AgentStepOutput;\n  verification: AgentStepVerification;\n  escalationResult?: undefined | AgentStepEscalationResult;\n}\n\n// ============================================================================\n// 2. THE FILESYSTEM SPECIFICATION\n// ============================================================================\n\n/**\n * The physical manifestation of the Agent's memory and directives.\n * The Agent is expected to read/write these specific paths.\n */\nexport interface AgentFileSystem {\n  \".agent\": {\n    /**\n     * Agent Internal State (The Brain)\n     */\n    state: {\n      /**\n       * A high-level annotated tree of the project.\n       * Purpose: Provides spatial awareness without running `ls -R` constantly.\n       * Used In: `plan`, `code`\n       */\n      \"project-map.md\": string;\n\n      /**\n       * A text buffer for unorganized thoughts, ideas, or immediate backlog.\n       * Purpose: Prevents \"loop amnesia\" between steps.\n       * Used In: All kinds.\n       */\n      \"scratchpad.md\": string;\n\n      /**\n       * JSON list of active feature IDs being worked on.\n       * Purpose: Tells the agent which folders in `docs/features/` to focus on.\n       * Used In: `requirements`, `plan`\n       */\n      \"active-features.json\": string;\n    };\n\n    /**\n     * Long Term Memory\n     */\n    history: {\n      /**\n       * A sliding window of the last 10-20 `CompletedStep` objects.\n       * Purpose: Immediate context for decision making.\n       * Used In: `decideNextStep`\n       */\n      \"recent-step-history.json\": CompletedStep[];\n\n      /**\n       * Append-only log of every step ever taken.\n       * Purpose: Audit trail and fine-tuning dataset.\n       * Used In: `ruggedizing` (analyzing past failures)\n       */\n      \"step-history.jsonl\": string;\n    };\n  };\n\n  \"docs\": {\n    /**\n     * The Product Backlog & Directives.\n     * Organized by Feature ID.\n     */\n    features: {\n      [featureId: string]: {\n        /**\n         * The Q&A Interface.\n         * Purpose: Agent writes questions here. Human writes answers here.\n         * Also the Agent needs test-data, just ask for it here and create a folder in test-data to hold it and tell the human what to put there.\n         * Used In: `requirements`\n         */\n        \"01-questions.md\": string;\n\n        /**\n         * The Source of Truth for behavior.\n         * Purpose: Derived from Q&A. Uses Gherkin/BDD style (Given/When/Then).\n         * Used In: `plan`, `verification`\n         */\n        \"02-requirements.md\": string;\n\n        /**\n         * Lifecycle State.\n         * Purpose: Tracks phase (gathering -> approved -> implementation -> done).\n         * Used In: `decideNextStep`\n         */\n        \"status.json\": string;\n\n        'checklists':{\n          /** A folder for each requirement. */\n          [requirementId: string]: {\n            /** A file for the quality checklist. */\n            [qualityChecklistName: string]:string; \n          }\n        };\n\n        /**\n         * User-Provided Test Samples.\n         * Purpose: Enables TDD with real data.\n         * Used In: `verification`\n         */\n        \"test-data\": {\n          /** Input files (e.g., broken-export.csv). */\n          [fileName: string]: string;\n        };\n      };\n    };\n\n    /**\n     * Quality Gates & Standards\n     * Purpose: The \"Constitution\" the agent must follow. These can be used as a template to copy into a feature's checklist.\n     * Used In: `quality`, `verification`\n     */\n    checklists: {\n      \"code-standards.md\": string;\n      \"definition-of-done.md\": string;\n      \"security-standards.md\": string;\n      \"pentesting.md\": string;\n      [ruleFile: string]: string;\n    };\n  };\n}\n\n// ============================================================================\n// 3. THE LIFECYCLE FUNCTIONS (The Nervous System)\n// ============================================================================\n\n/**\n * The Brain.\n * Analyzes the `AgentFileSystem` state and `recentHistory` to choose the next move.\n */\ndeclare function decideNextStep(\n  fileSystemState: AgentFileSystem, \n  history: CompletedStep[]\n): AgentStep;\n\n// ----------------------------------------------------------------------------\n\nexport interface AgentStepPlan {\n  filesToModify: string[];\n  implementationStrategy: string;\n  riskAnalysis: string;\n  successCriteria: string[];\n}\n\n/**\n * The Architect.\n * Explicitly outlines the \"how\" before the \"do\".\n * Must be called when kind is 'plan'.\n */\ndeclare function planStep(step: AgentStep): AgentStepPlan;\n\n// ----------------------------------------------------------------------------\n\nexport interface AgentStepOutputQualityEstimate {\n  confidenceScore: number; // 0.0 to 1.0\n  reasoning: string;\n  missingContext?: undefined | string;\n  recommendation: 'proceed' | 'revisePlan' | 'escalate';\n}\n\n/**\n * The Conscience.\n * Predicts likelihood of success. Run this BEFORE `executeNextStep`.\n */\ndeclare function predictQualityOfMyStepOutput(step: AgentStep): AgentStepOutputQualityEstimate;\n\n// ----------------------------------------------------------------------------\n\nexport interface AgentStepArtifact {\n  label: string;\n  type: 'file_path' | 'image_path' | 'url' | 'raw_text';\n  content: string;\n}\n\nexport interface AgentStepOutput {\n  success: boolean;\n  modifiedFiles: string[];\n  errorLogs?: undefined | string;\n  diffSummary: string;\n  artifacts?: undefined | AgentStepArtifact[];\n}\n\n/**\n * The Hands.\n * Performs the actual work:\n * - If `requirements`: Updates `01-questions.md` or `02-requirements.md`.\n * - If `code`: Edits source files.\n * - If `verification`: Runs tests.\n */\ndeclare function executeNextStep(step: AgentStep): AgentStepOutput;\n\n// ----------------------------------------------------------------------------\n\nexport interface AgentStepVerification {\n  verified: boolean;\n  verificationMethod: string;\n  discrepancyDetails?: undefined | string;\n  correctionInstructions?: undefined | string;\n}\n\n/**\n * The Eyes.\n * Verifies that the `output` actually completes the `step`.\n * This checks against `02-requirements.md` and `test-data`.\n */\ndeclare function verifyStep(step: AgentStep): AgentStepVerification;\n\n// ----------------------------------------------------------------------------\n\nexport interface AgentStepCommitResult {\n  commitHash: string;\n  commitMessage: string;\n  branchName: string;\n}\n\n/**\n * The Memory.\n * Commits the changes to Git.\n * Only call this after `verifyStep` returns verified: true.\n */\ndeclare function commitStep(step: AgentStep): AgentStepCommitResult;\n\n// ----------------------------------------------------------------------------\n\nexport interface AgentStepEscalationResult {\n  requestedAgentTier: string;\n  escalationPrompt: string;\n  contextDump: string;\n  reason: string;\n}\n\n/**\n * The Escape Hatch.\n * Ask for help from a human or a smarter model.\n */\ndeclare function escalateStep(step: AgentStep): AgentStepEscalationResult;"
             }
         },
         {
@@ -1203,7 +1211,7 @@
                 }
             ],
             "data": {
-                "value": "add usage as an output (as an object), just output the last value (default to null)"
+                "value": "add comments for things to improve in the code"
             }
         },
         {
@@ -1355,8 +1363,8 @@
             "id": "n-string-1768877685925",
             "type": "string",
             "position": {
-                "x": 2056,
-                "y": 2600,
+                "x": 2016,
+                "y": 2672,
                 "width": 368,
                 "height": 192
             },
@@ -1384,7 +1392,7 @@
                 "x": 2440,
                 "y": 2448,
                 "width": 520,
-                "height": 192
+                "height": 216
             },
             "inputs": [
                 {
@@ -1726,7 +1734,7 @@
             "type": "json",
             "position": {
                 "x": -24,
-                "y": 2416,
+                "y": 2432,
                 "width": 128,
                 "height": 136
             },
@@ -1736,35 +1744,6 @@
                     "type": "T extends Record<string, unknown>",
                     "source": {
                         "nodeId": "n-toFunction-1768879489761",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "T"
-                }
-            ],
-            "data": {
-                "value": "[]"
-            }
-        },
-        {
-            "id": "n-json-1768879476247",
-            "type": "json",
-            "position": {
-                "x": 152,
-                "y": 2416,
-                "width": 160,
-                "height": 136
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "T extends Record<string, unknown>",
-                    "source": {
-                        "nodeId": "n-toFunction-1768879698848",
                         "name": "value"
                     }
                 }
@@ -1795,11 +1774,7 @@
                 },
                 {
                     "name": "x",
-                    "type": "unknown",
-                    "source": {
-                        "nodeId": "n-json-1768879470785",
-                        "name": "value"
-                    }
+                    "type": "unknown"
                 },
                 {
                     "name": "y",
@@ -1821,7 +1796,7 @@
                 }
             ],
             "data": {
-                "value": "(x,y)=>{\nx = x ?? [];\nif(y===x[x.length-1]){return x}\nx.push(y);\nreturn x.filter(Boolean);\n}"
+                "value": "(x,y)=>{\nx = x ?? [];\nif(x.includes(y))return x;\nif(y===x[x.length-1]){return x}\nif(!y) return x;\nx.push(y);\nreturn x;\n}"
             }
         },
         {
@@ -1840,11 +1815,7 @@
                 },
                 {
                     "name": "x",
-                    "type": "unknown",
-                    "source": {
-                        "nodeId": "n-json-1768879476247",
-                        "name": "value"
-                    }
+                    "type": "unknown"
                 },
                 {
                     "name": "y",
@@ -1866,7 +1837,7 @@
                 }
             ],
             "data": {
-                "value": "(x,y)=>{\nx = x ?? [];\nif(y===x[x.length-1]){return x}\nx.push(y);\nreturn x.filter(Boolean);\n}"
+                "value": "(x,y)=>{\nx = x ?? [];\nif(x.includes(y))return x;\nif(y===x[x.length-1]){return x}\nif(!y) return x;\nx.push(y);\nreturn x;\n}"
             }
         },
         {
@@ -1954,7 +1925,7 @@
                     "name": "x",
                     "type": "unknown",
                     "source": {
-                        "nodeId": "n-json-1768879476247",
+                        "nodeId": "n-json-1768891209233",
                         "name": "value"
                     }
                 },
@@ -2045,7 +2016,7 @@
                 }
             ],
             "data": {
-                "value": "x=>x[y]"
+                "value": "x=>x&&x[y]"
             }
         },
         {
@@ -2092,7 +2063,7 @@
                     "name": "x",
                     "type": "unknown",
                     "source": {
-                        "nodeId": "n-json-1768879476247",
+                        "nodeId": "n-json-1768891209233",
                         "name": "value"
                     }
                 },
@@ -2116,7 +2087,7 @@
                 }
             ],
             "data": {
-                "value": "x=>x[y]"
+                "value": "x=>x&&x[y]"
             }
         },
         {
@@ -2244,11 +2215,7 @@
                 },
                 {
                     "name": "y",
-                    "type": "unknown",
-                    "source": {
-                        "nodeId": "n-zenLlmRequest-1768869877943",
-                        "name": "chunk"
-                    }
+                    "type": "unknown"
                 },
                 {
                     "name": "z",
@@ -2461,19 +2428,15 @@
             "id": "n-json-1768886609421",
             "type": "json",
             "position": {
-                "x": 584,
-                "y": 2216,
+                "x": 544,
+                "y": 2200,
                 "width": 64,
                 "height": 40
             },
             "inputs": [
                 {
                     "name": "value",
-                    "type": "T extends Record<string, unknown>",
-                    "source": {
-                        "nodeId": "n-toFunction-1768885980342",
-                        "name": "value"
-                    }
+                    "type": "T extends Record<string, unknown>"
                 }
             ],
             "outputs": [
@@ -2524,7 +2487,7 @@
                 }
             ],
             "data": {
-                "value": "x=>JSON.parse(x.replace('data:',''));"
+                "value": "x=>x&&JSON.parse(x.replace('data:',''));"
             }
         },
         {
@@ -2583,10 +2546,10 @@
             "id": "n-json-1768890287855",
             "type": "json",
             "position": {
-                "x": 1720,
-                "y": 2000,
+                "x": 1456,
+                "y": 2328,
                 "width": 232,
-                "height": 40
+                "height": 160
             },
             "inputs": [
                 {
@@ -2654,6 +2617,465 @@
             ],
             "data": {
                 "value": "TODO: recorder"
+            }
+        },
+        {
+            "id": "n-reroute-1768891005199",
+            "type": "reroute",
+            "position": {
+                "x": 688,
+                "y": 2104,
+                "width": 16,
+                "height": 24
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "chunk"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768891209233",
+            "type": "json",
+            "position": {
+                "x": 200,
+                "y": 2432,
+                "width": 104,
+                "height": 120
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768879698848",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768891284956",
+            "type": "string",
+            "position": {
+                "x": -272,
+                "y": 2448,
+                "width": 120,
+                "height": 224
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "TODO: recorder"
+            }
+        },
+        {
+            "id": "n-string-1768891432698",
+            "type": "string",
+            "position": {
+                "x": 240,
+                "y": -432,
+                "width": 432,
+                "height": 344
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "LoveWorkBench\n\nthis is a real product now.\n\nMarket it! Sell it!\n\n- Marketing website\n- Demos\n- Use it now"
+            }
+        },
+        {
+            "id": "n-string-1768921896513",
+            "type": "string",
+            "position": {
+                "x": 2040,
+                "y": 1672,
+                "width": 392,
+                "height": 528
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "raw"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "id": "n-toFunction-1768922790694",
+            "type": "toFunction",
+            "position": {
+                "x": 2600,
+                "y": 1720,
+                "width": 360,
+                "height": 304
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                },
+                {
+                    "name": "x",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768921896513",
+                        "name": "value"
+                    }
+                },
+                {
+                    "name": "y",
+                    "type": "unknown"
+                },
+                {
+                    "name": "z",
+                    "type": "unknown"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "x=>x\n.split(`\\n`)\n.filter(a=>a)\n.map(a=>a.replace(`data:`, ``))\n.map(a=>{\ntry{\n  return JSON.parse(a)\n}catch{\n  return {a};\n}\n})"
+            }
+        },
+        {
+            "id": "n-json-1768922833118",
+            "type": "json",
+            "position": {
+                "x": 3064,
+                "y": 1720,
+                "width": 528,
+                "height": 296
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-toFunction-1768922790694",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-json-1768922949646",
+            "type": "json",
+            "position": {
+                "x": 2600,
+                "y": 2056,
+                "width": 528,
+                "height": 296
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "T extends Record<string, unknown>",
+                    "source": {
+                        "nodeId": "n-string-1768921896513",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "T"
+                }
+            ]
+        },
+        {
+            "id": "n-string-1768967697393",
+            "type": "string",
+            "position": {
+                "x": -552,
+                "y": -1600,
+                "width": 392,
+                "height": 528
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workflow-inputs (singleton)\n\n- hidden inputs"
+            }
+        },
+        {
+            "id": "n-string-1768967705602",
+            "type": "string",
+            "position": {
+                "x": 456,
+                "y": -1600,
+                "width": 392,
+                "height": 528
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workflow-outputs (singleton)\n\n- hidden outputs"
+            }
+        },
+        {
+            "id": "n-string-1768967715955",
+            "type": "string",
+            "position": {
+                "x": -24,
+                "y": -1600,
+                "width": 392,
+                "height": 528
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workflow-ui (singleton)\n\nhas a bottom handle that can be drug to attach to the instance handle on any node.\n\nthat will instantly cause a clone node to be hosted on this "
+            }
+        },
+        {
+            "id": "n-string-1768967931419",
+            "type": "string",
+            "position": {
+                "x": 1232,
+                "y": -1704,
+                "width": 712,
+                "height": 1144
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workflow-instance\n\n- @localstorage/wf-key\n  - will use localstorage persistance\n\n- @file-server-name/path.json\n  - will use the file-server system (which can run anywhere like root and will register the file-server-name)\n\n\n---\n\nmode: unified\n\nthis workflow-instance node will add the document nodes into the main workflow, but mark them with:\n\n- hidden (no component)\n- temporary (not saved)\n\nduring load, it will find the internal workflow input and output nodes and add edges to itself to connect it's hidden internal handles.\n\nduring execute it will route changes to its internal and outer inputs cross over and send to the correct outputs\n\nexternal inputs => internal outputs => wf input node\nwf output node => internal inputs => external outputs\n\n---\n\nmode: isolated\n\nthis workflow-instance node will create it's own instance of the workflow store and engine and hook up to the runtimeStates of the wf input and output nodes\n\nexternal inputs => wf input node runtime state + data trigger\nwf output node => runtimeState wfCallback => this runtime state + data trigger \n\nthe engine run state and speed can be modified independently (or they can just read from a global observable)\n\n---\n\nwinner: isolated"
+            }
+        },
+        {
+            "id": "n-string-1768970351477",
+            "type": "string",
+            "position": {
+                "x": 1972,
+                "y": -1328,
+                "width": 416,
+                "height": 256
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "load event\n\nadd nodeType.load function, which takes only the runtimeState object.\n\nThis allows a node to initialize runtimeState before any execution (this will be called immediately when the node is first created, but it should be sync and lightweight)"
+            }
+        },
+        {
+            "id": "n-string-1768972195866",
+            "type": "string",
+            "position": {
+                "x": 2328,
+                "y": -1632,
+                "width": 416,
+                "height": 256
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "clone node\n\ncopy any node, just attach any output to this nodes input and it will clone it's component ui (re-render it as another component instance)\n"
+            }
+        },
+        {
+            "id": "n-clone-1768975696201",
+            "type": "clone",
+            "position": {
+                "x": 4464,
+                "y": 616,
+                "width": 304,
+                "height": 360
+            },
+            "inputs": [
+                {
+                    "name": "clone",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-zenLlmRequest-1768869877943",
+                        "name": "chunk"
+                    }
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "id": "n-clone-1768975703827",
+            "type": "clone",
+            "position": {
+                "x": 4904,
+                "y": 456,
+                "width": 248,
+                "height": 168
+            },
+            "inputs": [
+                {
+                    "name": "clone",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-valueGate-1768864343048",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "id": "n-clone-1768976053402",
+            "type": "clone",
+            "position": {
+                "x": 0,
+                "y": -1384,
+                "width": 272,
+                "height": 200
+            },
+            "inputs": [
+                {
+                    "name": "clone",
+                    "type": "unknown",
+                    "source": {
+                        "nodeId": "n-string-1768972195866",
+                        "name": "value"
+                    }
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "id": "n-string-1768976192735",
+            "type": "string",
+            "position": {
+                "x": 5312,
+                "y": 416,
+                "width": 816,
+                "height": 992
+            },
+            "inputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ],
+            "data": {
+                "value": "workflow-panel"
             }
         }
     ]

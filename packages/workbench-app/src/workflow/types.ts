@@ -142,6 +142,7 @@ type PartialNull<T> = {
 
 export type WorkflowComponentPropsBase = WorkflowReactFlowStore['nodes'][number] & {
   selected: boolean;
+  hideHandles?: boolean;
 };
 export type WorkflowComponentProps<
   TData extends WorkflowJsonObject = WorkflowJsonObject,
