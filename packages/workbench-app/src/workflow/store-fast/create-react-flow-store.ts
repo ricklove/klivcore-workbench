@@ -1,8 +1,7 @@
-import { observable, ObservableHint, type Observable, type ObserveEvent } from '@legendapp/state';
+import {  type Observable, type ObserveEvent } from '@legendapp/state';
 import {
   WorkflowBrandedTypes,
   type WorkflowEdgeId,
-  type WorkflowJsonObject,
   type WorkflowNodeId,
   type WorkflowReactFlowStore,
   type WorkflowRuntimeEdge,
@@ -21,6 +20,7 @@ import {
 } from '@xyflow/react';
 import { useEffect, useState } from 'react';
 import { observeBatched, type BatchedTriggerKind } from './observe-batched';
+import { getReactFlowNodeDataProp } from './react-flow-node-data-prop';
 
 export const useReactFlowStore = (
   store$: Observable<WorkflowRuntimeStore>,
@@ -203,38 +203,7 @@ export const useReactFlowStore = (
             height: node$.position.height.peek(),
             parentId: node$.parentId.get(),
             extent: node$.parentId.get() ? 'parent' : undefined,
-            data: {
-              node$,
-              store$,
-              getValues: () => {
-                const result = {
-                  inputs$: observable(
-                    ObservableHint.plain(
-                      Object.fromEntries(
-                        node$.inputs.map((input$) => [
-                          input$.name.get(),
-                          input$.value.get().getObservableBox(),
-                        ]),
-                      ),
-                    ),
-                  ),
-                  outputs$: observable(
-                    ObservableHint.plain(
-                      Object.fromEntries(
-                        node$.outputs.map((output$) => [
-                          output$.name.get(),
-                          output$.value.get().getObservableBox(),
-                        ]),
-                      ),
-                    ),
-                  ),
-                  data$: node$.data.get().getObservableBox() as Observable<WorkflowJsonObject>,
-                };
-
-                console.log(`[useReactFlowStore:getValues] node '${nodeId}' values`, { result });
-                return result;
-              },
-            },
+            data: getReactFlowNodeDataProp(store$, node$),
           };
 
           console.log(

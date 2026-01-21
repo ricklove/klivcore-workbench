@@ -370,7 +370,7 @@ export const createLlmRequestNodeType = (
                   chunk: rawChunk,
                   thought: cumulativeThought,
                   response: cumulativeResponse,
-                  done: parsedChunk.done ?? false,
+                  done: parsedChunk.done ?? undefined,
                   error: parsedChunk.error,
                   status: currentStatus,
                 });
@@ -393,7 +393,10 @@ export const createLlmRequestNodeType = (
               processLine(line);
             }
 
-            const isDone = (doneChunk || doneStream) && !buffer;
+            if( doneChunk ) {
+              console.log('[llm-generic] buffer after lines processed', { buffer, doneStream });
+            }
+            const isDone = ( doneStream) && !buffer;
             if (isDone) {
               // If thought was never closed, copy everything to response
               if (!thoughtClosed) {
