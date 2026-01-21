@@ -1,4 +1,4 @@
-import { beginBatch, endBatch, type Observable } from '@legendapp/state';
+import { beginBatch, endBatch, ObservableHint, type Observable } from '@legendapp/state';
 import {
   type WorkflowRuntimeEngine,
   type WorkflowRuntimeNode,
@@ -461,18 +461,28 @@ export const createWorkflowEngine = (
         continue;
       }
 
+      if (node.executionState?.status === `running`) {
+        // do not rerun a node already running
+        continue;
+      }
+
+      const executionState$ = store$.nodes[nodeId]!.executionState;
+      if (!executionState$.peek()) {
+        executionState$.set({
+          ...createEmptyExecutionState(),
+        });
+      }
+      if (!executionState$.runState.peek()) {
+        executionState$.runState.set({});
+      }
+
       const promise = (async () => {
-        if (node.executionState?.status === `running`) {
-          // do not rerun a node already running
-          return;
-        }
+        executionState$.runState.promiseStartTime.set(WorkflowBrandedTypes.now());
 
         // if (node.executionState?.status !== `running`) {
         engineState.executionEmitters.get(nodeId)?.unsubscribe();
         engineState.executionEmitters.delete(nodeId);
         // }
-
-        const executionState$ = store$.nodes[nodeId]!.executionState;
 
         const executionState = await executeNode({
           onExecutionStateChange: (executionState) => {
@@ -544,10 +554,13 @@ export const createWorkflowEngine = (
           flushBatch();
         }
 
+        executionState$.runState.promiseInstance.set(undefined);
+        executionState$.runState.promiseEndTime.set(WorkflowBrandedTypes.now());
         engineState.nodeIdsExecuting.delete(nodeId);
         return { nodeId, executionState };
       })();
 
+      executionState$.runState.promiseInstance.set( ObservableHint.opaque({promise}));
       promises.push(promise);
     }
 
@@ -641,6 +654,7 @@ export const createWorkflowEngine = (
   };
 
   const engine: WorkflowRuntimeEngine = {
+    ...{__engineState: engineState} as unknown as Record<string,never>,
     get running() {
       return engineState.running;
     },
@@ -859,5 +873,6 @@ export const createWorkflowEngine = (
     },
   };
 
+  store$.engine.set(engine);
   return engine;
 };

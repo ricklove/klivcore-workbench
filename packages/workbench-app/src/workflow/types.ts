@@ -274,6 +274,7 @@ export interface WorkflowRuntimeStore {
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
   edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;
   actions: PlainObject<WorkflowRuntimeStoreActions>;
+  engine?: WorkflowRuntimeEngine;
 }
 
 /** helpers to simplify some actions */
@@ -358,6 +359,9 @@ export type WorkflowExecutionResult =
 export interface WorkflowRuntimeExecutionState {
   status: `initial` | `running` | `success` | `error` | `aborted`;
   runState: {
+    promiseInstance?: { promise: Promise<unknown> };
+    promiseStartTime?: WorkflowTimestamp;
+    promiseEndTime?: WorkflowTimestamp;
     startTimestamp?: WorkflowTimestamp;
     endTimestamp?: WorkflowTimestamp;
     asyncExecutionTime?: number;
