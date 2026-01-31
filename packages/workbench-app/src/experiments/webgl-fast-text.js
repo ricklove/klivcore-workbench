@@ -323,10 +323,10 @@ export class Sketch {
     }
   }
   setCaretPosition(elemId, caretPos) {
-    var elem = document.getElementById(elemId);
+    const elem = document.getElementById(elemId);
     if (elem != null) {
       if (elem.createTextRange) {
-        var range = elem.createTextRange();
+        const range = elem.createTextRange();
         range.move('character', caretPos);
         range.select();
       } else {
@@ -386,8 +386,9 @@ function parseColorLayers(text, defaultColor = '#ffffff') {
   const layers = {};
 
   // Initialize builders
-  uniqueColors.forEach((c) => (layers[c] = ''));
-
+  uniqueColors.forEach((c) => {
+    layers[c] = '';
+  });
   charMap.forEach((item) => {
     uniqueColors.forEach((colorKey) => {
       if (item.char === '\n') {

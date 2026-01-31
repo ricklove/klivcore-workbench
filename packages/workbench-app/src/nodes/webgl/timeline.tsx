@@ -312,6 +312,7 @@ const BooleanToggle = ({
   label?: string;
 }) => (
   <button
+    type="button"
     className={clsx(
       'flex items-center justify-center px-2 py-0.5 rounded text-xs border border-transparent transition-colors w-full',
       disabled
@@ -509,6 +510,7 @@ export const TimelineControlComponent = (
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
+                <title>Pause</title>
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
               </svg>
@@ -519,6 +521,7 @@ export const TimelineControlComponent = (
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
+                <title>Play</title>
                 <path d="M5 3l14 9-14 9V3z" />
               </svg>
             )}

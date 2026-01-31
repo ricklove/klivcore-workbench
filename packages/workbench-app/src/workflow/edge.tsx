@@ -125,6 +125,7 @@ const CustomEdgeInner = memo(
         {!(props.isMultiSelect && props.selected) && (
           <EdgeLabelRenderer>
             <button
+              type="button"
               className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
               style={{
                 position: 'absolute',
@@ -141,6 +142,7 @@ const CustomEdgeInner = memo(
               ></div>
             </button>
             <button
+              type="button"
               className="nowheel nodrag nopan pointer-events-auto cursor-pointer z-50"
               style={{
                 position: 'absolute',
@@ -164,6 +166,9 @@ const CustomEdgeInner = memo(
               }}
             >
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Expand edge information"
                 className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white opacity-10 hover:opacity-100 bg-black`}
                 onMouseEnter={() => setExpandInfoQuick(true)}
                 onMouseLeave={() => setExpandInfoQuick(false)}
@@ -184,6 +189,11 @@ const CustomEdgeInner = memo(
                     <div className="flex flex-row items-center justify-between gap-1 p-0.5">
                       <div>{id}</div>
                       <div
+                        role="button"
+                        tabIndex={0}
+                        aria-label={
+                          expandInfo ? 'Collapse edge' : 'Expand edge'
+                        }
                         className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center ${
                           `` //`rounded border border-white p-1 text-white`
                         } ${

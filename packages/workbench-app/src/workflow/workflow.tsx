@@ -470,6 +470,7 @@ const WorkflowViewInner = () => {
         <Panel position="top-left">
           <div className="flex flex-row items-center gap-1">
             <button
+              type="button"
               className={`px-2 py-1 rounded bg-blue-600 hover:bg-blue-700`}
               onClick={() => {
                 demo_observeBatched();

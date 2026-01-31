@@ -255,6 +255,7 @@ const Button = ({
 
   return (
     <button
+      type="button"
       className={`${baseClasses} ${variantClasses[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       onClick={onClick}
       disabled={disabled}
@@ -432,6 +433,7 @@ export const KeyframeControllerComponent = (
         {/* Frame Control */}
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={togglePlayPause}
             className={`w-8 h-8 rounded flex items-center justify-center transition-colors shrink-0 ${
               isPlaying
@@ -447,6 +449,7 @@ export const KeyframeControllerComponent = (
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
+                <title>Pause animation</title>
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
               </svg>
@@ -457,6 +460,7 @@ export const KeyframeControllerComponent = (
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
+                <title>Play animation</title>
                 <path d="M5 3l14 9-14 9V3z" />
               </svg>
             )}

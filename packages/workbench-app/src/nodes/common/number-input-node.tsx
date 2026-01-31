@@ -189,6 +189,7 @@ export const NumberScrubber = ({
         <div
           role="button"
           tabIndex={readonly ? -1 : 0}
+          aria-label="Number input"
           className={`w-full flex items-center bg-neutral-900 border rounded overflow-hidden select-none ${
             readonly
               ? 'cursor-default border-neutral-600'

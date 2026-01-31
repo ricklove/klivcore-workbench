@@ -84,6 +84,8 @@ export const NodeSelectionMenu: React.FC<NodeSelectionMenuProps> = ({
 
   return (
     <div
+      role="menu"
+      aria-label="Node selection menu"
       ref={menuRef}
       className="absolute z-50 flex flex-col rounded border border-gray-600 bg-slate-700 text-white shadow-lg"
       style={{ top: position.y, left: position.x }}
