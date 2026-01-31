@@ -1,10 +1,7 @@
 import { type Observable, observable } from '@legendapp/state';
 import { useValue } from '@legendapp/state/react';
 import React from 'react';
-import {
-  NodeStandardContainer,
-  NodeTypeWrapComponent,
-} from '../workflow/node-types-wrapper';
+import { NodeStandardContainer } from '../workflow/node-types-wrapper';
 import { StringNodeComponent } from '../workflow/nodes';
 import {
   WorkflowBrandedTypes,
@@ -20,7 +17,7 @@ export const codeBuiltinNodeTypes: Record<
   toFunction: {
     type: WorkflowBrandedTypes.typeName(`toFunction`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(StringNodeComponent),
+      Component: NodeStandardContainer(StringNodeComponent),
     }),
     inputs: [
       {
@@ -118,7 +115,7 @@ export const codeBuiltinNodeTypes: Record<
   toComponentTypeNode: {
     type: WorkflowBrandedTypes.typeName(`toComponentTypeNode`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(StringNodeComponent),
+      Component: NodeStandardContainer(StringNodeComponent),
     }),
     inputs: [
       {
@@ -228,7 +225,7 @@ export const codeBuiltinNodeTypes: Record<
   detectMissingClasses: {
     type: WorkflowBrandedTypes.typeName(`detectMissingClasses`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(StringNodeComponent),
+      Component: NodeStandardContainer(StringNodeComponent),
     }),
     inputs: [
       {
@@ -274,7 +271,7 @@ export const codeBuiltinNodeTypes: Record<
   transformTypescript: {
     type: WorkflowBrandedTypes.typeName(`transformTypescript`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(StringNodeComponent),
+      Component: NodeStandardContainer(StringNodeComponent),
     }),
     inputs: [
       {

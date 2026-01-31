@@ -3,7 +3,6 @@ import {
   ObservableHint,
   type ObservablePrimitive,
   observable,
-  observe,
 } from '@legendapp/state';
 import type {
   WorkflowComponentSimplePropsBase,

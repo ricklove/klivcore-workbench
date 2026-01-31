@@ -60,7 +60,7 @@ export const builtinNodeTypes: Record<
   string: {
     type: WorkflowBrandedTypes.typeName(`string`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(StringNodeComponent),
+      Component: NodeStandardContainer(StringNodeComponent),
     }),
     inputs: [
       {
@@ -96,7 +96,7 @@ export const builtinNodeTypes: Record<
   json: {
     type: WorkflowBrandedTypes.typeName(`json`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(JsonNodeComponent),
+      Component: NodeStandardContainer(JsonNodeComponent),
     }),
     inputs: [
       {

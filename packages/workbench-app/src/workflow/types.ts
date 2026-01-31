@@ -1,5 +1,4 @@
 import type {
-  ImmutableObservableBase,
   Observable,
   ObservablePrimitive,
   OpaqueObject,
