@@ -3,12 +3,11 @@
 import { useValue } from '@legendapp/state/react';
 import { useEffect, useState } from 'react';
 import { clsx } from '../../utils/clsx';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
-  type WorkflowComponentProps_Obs,
-  type WorkflowComponentPropsAny_Ops,
+  type WorkflowComponentSimplePropsBase,
+  type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 
@@ -138,12 +137,12 @@ const InputField = ({
 
 export const createLlmRequestNodeType = (
   config: LlmConfig,
-  ConfiguredComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
+  ConfiguredComponent: React.ComponentType<WorkflowComponentSimplePropsBase>,
 ): WorkflowRuntimeNodeTypeDefinition => {
   return {
     type: WorkflowBrandedTypes.typeName(`${config.typeSuffix}LlmRequest`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponentWithNodeWrapper(ConfiguredComponent),
+      Component: NodeStandardContainer(ConfiguredComponent),
     }),
     inputs: [
       {
@@ -511,11 +510,12 @@ export const createLlmRequestNodeType = (
 };
 
 export const LlmRequestComponent = (
-  props: WorkflowComponentProps_Obs<LlmData, LlmInputs, LlmOutputs> & {
+  props: WorkflowComponentSimplePropsTyped<LlmData, LlmInputs, LlmOutputs> & {
     config: LlmConfig;
   },
 ) => {
-  const { node$, data$ } = props.data;
+  const { node$, data } = props.data;
+  const data$ = data.asObservable();
 
   const urlData = useValue(() => data$.url.get() ?? props.config.defaultUrl);
   const modelData = useValue(
@@ -535,15 +535,15 @@ export const LlmRequestComponent = (
   const isApiKeyReadonly = apiKeySlot.isConnected || settingsSlot.isConnected;
 
   const currentStatus = useValue(
-    () => props.data.outputs$.status.get() ?? 'idle',
+    () => props.data.outputs.status.asObservable().get() ?? 'idle',
   );
   const currentThought = useValue(
-    () => props.data.outputs$.thought.get() ?? '',
+    () => props.data.outputs.thought.asObservable() ?? '',
   );
   const currentResponse = useValue(
-    () => props.data.outputs$.response.get() ?? '',
+    () => props.data.outputs.response.asObservable() ?? '',
   );
-  const currentError = useValue(() => props.data.outputs$.error.get());
+  const currentError = useValue(() => props.data.outputs.error.asObservable());
 
   const [localUrl, setLocalUrl] = useState(urlData);
   const [localModel, setLocalModel] = useState(modelData);
@@ -597,104 +597,99 @@ export const LlmRequestComponent = (
   };
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-          <div className="text-xs font-bold text-white">
-            {props.config.name} LLM Request
-          </div>
+    <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+        <div className="text-xs font-bold text-white">
+          {props.config.name} LLM Request
+        </div>
+        <div
+          className={clsx('text-xs font-medium', getStatusColor(currentStatus))}
+        >
+          {getStatusText(currentStatus)}
+        </div>
+      </div>
+
+      {/* Configuration */}
+      <div className="flex flex-col gap-2">
+        <InputField
+          id={`${props.config.name}-url`}
+          label={`${props.config.name} URL`}
+          value={localUrl}
+          onChange={setLocalUrl}
+          readonly={isUrlReadonly}
+          placeholder={props.config.defaultUrl}
+          type="url"
+        />
+
+        <InputField
+          id="model"
+          label="Model"
+          value={localModel}
+          onChange={setLocalModel}
+          readonly={isModelReadonly}
+          placeholder={props.config.defaultModel}
+        />
+
+        {props.config.authKind && (
+          <InputField
+            id="api-key"
+            label="API Key"
+            value={localApiKey}
+            onChange={setLocalApiKey}
+            readonly={isApiKeyReadonly}
+            placeholder="Enter API key"
+            type="password"
+          />
+        )}
+      </div>
+
+      {/* Content Sections */}
+      <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden">
+        {/* Thought Preview */}
+        {currentThought && (
           <div
-            className={clsx(
-              'text-xs font-medium',
-              getStatusColor(currentStatus),
-            )}
+            className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}
           >
-            {getStatusText(currentStatus)}
-          </div>
-        </div>
-
-        {/* Configuration */}
-        <div className="flex flex-col gap-2">
-          <InputField
-            id={`${props.config.name}-url`}
-            label={`${props.config.name} URL`}
-            value={localUrl}
-            onChange={setLocalUrl}
-            readonly={isUrlReadonly}
-            placeholder={props.config.defaultUrl}
-            type="url"
-          />
-
-          <InputField
-            id="model"
-            label="Model"
-            value={localModel}
-            onChange={setLocalModel}
-            readonly={isModelReadonly}
-            placeholder={props.config.defaultModel}
-          />
-
-          {props.config.authKind && (
-            <InputField
-              id="api-key"
-              label="API Key"
-              value={localApiKey}
-              onChange={setLocalApiKey}
-              readonly={isApiKeyReadonly}
-              placeholder="Enter API key"
-              type="password"
-            />
-          )}
-        </div>
-
-        {/* Content Sections */}
-        <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden">
-          {/* Thought Preview */}
-          {currentThought && (
-            <div
-              className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}
+            <button
+              type="button"
+              onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
+              className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
             >
-              <button
-                type="button"
-                onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
-                className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
-              >
-                <span>Thought Process</span>
-                <span className="text-purple-400">
-                  {thoughtCollapsed ? '▶' : '▼'}
-                </span>
-              </button>
-              {!thoughtCollapsed && (
-                <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto">
-                  <div className="text-purple-400 text-xs font-mono whitespace-pre-wrap">
-                    {currentThought}
-                  </div>
+              <span>Thought Process</span>
+              <span className="text-purple-400">
+                {thoughtCollapsed ? '▶' : '▼'}
+              </span>
+            </button>
+            {!thoughtCollapsed && (
+              <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto">
+                <div className="text-purple-400 text-xs font-mono whitespace-pre-wrap">
+                  {currentThought}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
 
-          {/* Response Preview */}
-          <div className="flex flex-col gap-1 flex-1 min-h-0">
-            <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-              Response Preview
-            </div>
-            <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto">
-              {currentError ? (
-                <div className="text-red-500 text-xs whitespace-pre-wrap">
-                  {currentError}
-                </div>
-              ) : (
-                <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
-                  {currentResponse || 'No response yet...'}
-                </div>
-              )}
-            </div>
+        {/* Response Preview */}
+        <div className="flex flex-col gap-1 flex-1 min-h-0">
+          <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+            Response Preview
+          </div>
+          <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto">
+            {currentError ? (
+              <div className="text-red-500 text-xs whitespace-pre-wrap">
+                {currentError}
+              </div>
+            ) : (
+              <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
+                {currentResponse || 'No response yet...'}
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </WorkflowNodeWrapperSimple>
+    </div>
   );
 };
 
@@ -703,7 +698,16 @@ export const LlmRequestComponent = (
 export const createLlmNodes = (config: LlmConfig) => {
   return [
     createLlmRequestNodeType(config, (props) => (
-      <LlmRequestComponent {...props} config={config} />
+      <LlmRequestComponent
+        {...(props as WorkflowComponentSimplePropsTyped<
+          LlmData,
+          LlmInputs,
+          LlmOutputs
+        > & {
+          config: LlmConfig;
+        })}
+        config={config}
+      />
     )),
   ];
 };

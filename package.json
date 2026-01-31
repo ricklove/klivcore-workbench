@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "lint": "biome check . --write",
+    "build": "cd packages/workbench-app && tsc -b",
     "setup:config": "klivcore-standards --version v1"
   },
   "dependencies": {
