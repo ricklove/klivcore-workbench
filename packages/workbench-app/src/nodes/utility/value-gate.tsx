@@ -111,6 +111,7 @@ export const ValueGateComponent = (
           {/* Send Button (only when auto-send is off) */}
           {!autoSend && (
             <button
+              type="button"
               onClick={handleSend}
               disabled={sendOnce}
               className={clsx(

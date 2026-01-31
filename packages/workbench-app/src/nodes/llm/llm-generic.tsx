@@ -88,6 +88,7 @@ interface LlmOutputs {
 
 interface InputFieldProps {
   label: string;
+  id: string;
   value: string;
   onChange: (value: string) => void;
   readonly: boolean;
@@ -97,6 +98,7 @@ interface InputFieldProps {
 
 const InputField = ({
   label,
+  id,
   value,
   onChange,
   readonly,
@@ -104,10 +106,14 @@ const InputField = ({
   type = 'text',
 }: InputFieldProps) => (
   <div className="flex flex-col gap-1">
-    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+    <label
+      htmlFor={id}
+      className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider"
+    >
       {label}
     </label>
     <input
+      id={id}
       type={type}
       className={clsx(
         'w-full bg-black/25 text-white text-xs px-2 py-1 rounded outline-none border border-transparent transition-colors',
@@ -611,6 +617,7 @@ export const LlmRequestComponent = (
         {/* Configuration */}
         <div className="flex flex-col gap-2">
           <InputField
+            id={`${props.config.name}-url`}
             label={`${props.config.name} URL`}
             value={localUrl}
             onChange={setLocalUrl}
@@ -620,6 +627,7 @@ export const LlmRequestComponent = (
           />
 
           <InputField
+            id="model"
             label="Model"
             value={localModel}
             onChange={setLocalModel}
@@ -629,6 +637,7 @@ export const LlmRequestComponent = (
 
           {props.config.authKind && (
             <InputField
+              id="api-key"
               label="API Key"
               value={localApiKey}
               onChange={setLocalApiKey}
@@ -647,6 +656,7 @@ export const LlmRequestComponent = (
               className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}
             >
               <button
+                type="button"
                 onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
                 className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
               >

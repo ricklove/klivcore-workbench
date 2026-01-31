@@ -80,7 +80,9 @@ export function detectMissingClassesInCode(
   const missingInThisPass: string[] = [];
   let match: RegExpExecArray | null;
 
-  while ((match = pattern.exec(tsCode)) !== null) {
+  while (true) {
+    match = pattern.exec(tsCode);
+    if (match === null) break;
     const content = match[2];
     if (!content) continue;
 
@@ -192,7 +194,9 @@ function extractClassesFromRules(rules: CSSRuleList) {
 function extractClassesFromSelector(selectorText: string) {
   const classRegex = /\.([a-zA-Z0-9\-_\\:[\]!/]+)/g;
   let match: RegExpExecArray | null;
-  while ((match = classRegex.exec(selectorText)) !== null) {
+  while (true) {
+    match = classRegex.exec(selectorText);
+    if (match === null) break;
     const capturedGroup = match[1];
     if (!capturedGroup) continue;
     const cleanClass = capturedGroup.replace(/\\/g, '');

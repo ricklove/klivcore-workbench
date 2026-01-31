@@ -187,6 +187,8 @@ export const NumberScrubber = ({
         />
       ) : (
         <div
+          role="button"
+          tabIndex={readonly ? -1 : 0}
           className={`w-full flex items-center bg-neutral-900 border rounded overflow-hidden select-none ${
             readonly
               ? 'cursor-default border-neutral-600'
@@ -194,6 +196,24 @@ export const NumberScrubber = ({
           }`}
           onPointerDown={handlePointerDown}
           onClick={handleClick}
+          onKeyDown={
+            readonly
+              ? undefined
+              : (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    // Trigger the click behavior directly without the event
+                    if (e.detail === 2) {
+                      setIsEditing(true);
+                      setTimeout(() => {
+                        if (inputRef.current) {
+                          inputRef.current.select();
+                        }
+                      }, 0);
+                    }
+                  }
+                }
+          }
         >
           {label && (
             <div

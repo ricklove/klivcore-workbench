@@ -359,14 +359,20 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
 
           // 1. Zero out Ping/Pong
-          quad.material = rs.zeroMat!;
+          if (!rs.zeroMat) {
+            throw new Error('zeroMat is not initialized');
+          }
+          quad.material = rs.zeroMat;
           r.setRenderTarget(rs.ping);
           r.render(rs.quadScene, rs.quadCamera);
           r.setRenderTarget(rs.pong);
           r.render(rs.quadScene, rs.quadCamera);
 
           // 2. Initialize Output (Initial + 0)
-          quad.material = rs.combineMat!;
+          if (!rs.combineMat) {
+            throw new Error('combineMat is not initialized');
+          }
+          quad.material = rs.combineMat;
           const combineU = rs.combineMat
             ?.uniforms as unknown as CombineUniforms;
           combineU.tInitial.value = depthTexture;
@@ -383,11 +389,17 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
         // B. SOLVER LOOP
         if (rs.enabled) {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
-          quad.material = rs.solverMat!;
+          if (!rs.solverMat) {
+            throw new Error('solverMat is not initialized');
+          }
+          quad.material = rs.solverMat;
           const u = rs.solverMat?.uniforms as unknown as SolverUniforms;
 
-          let read = rs.ping!;
-          let write = rs.pong!;
+          if (!rs.ping || !rs.pong) {
+            throw new Error('ping or pong render targets are not initialized');
+          }
+          let read = rs.ping;
+          let write = rs.pong;
 
           rs.runIndex = (rs.runIndex || 0) + 1;
           const iterationMod =
@@ -414,7 +426,10 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
           }
 
           // C. COMBINE & OUTPUT
-          quad.material = rs.combineMat!;
+          if (!rs.combineMat) {
+            throw new Error('combineMat is not initialized');
+          }
+          quad.material = rs.combineMat;
           const combineU = rs.combineMat
             ?.uniforms as unknown as CombineUniforms;
           combineU.tInitial.value = depthTexture;

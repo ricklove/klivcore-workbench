@@ -183,7 +183,7 @@ export const ImageUrlPreviewComponent = (
         {url ? (
           <img
             src={url}
-            alt="Image Preview"
+            alt="Preview"
             className="max-w-full max-h-full object-contain mx-auto my-auto"
           />
         ) : (

@@ -74,7 +74,10 @@ export const threeSceneView: WorkflowRuntimeNodeTypeDefinition = {
     });
 
     function animate() {
-      renderer.render(scene!, camera!);
+      if (!scene || !camera) {
+        return;
+      }
+      renderer.render(scene, camera);
     }
     renderer.setAnimationLoop(animate);
 
