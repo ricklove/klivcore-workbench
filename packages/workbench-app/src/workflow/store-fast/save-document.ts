@@ -35,7 +35,7 @@ export const persistStoreToDocument = (
       nodes: Object.values(store$.nodes)
         .map((node$: Observable<WorkflowRuntimeNode>) => {
           if (!node$.id.peek() || node$.isDeleted.get()) {
-            return;
+            return undefined;
           }
 
           return {
@@ -74,7 +74,7 @@ export const persistStoreToDocument = (
             mode: node$.mode.get(),
           };
         })
-        .filter((n) => !!n),
+        .filter((n): n is NonNullable<typeof n> => n !== undefined),
     };
 
     document$.set(document);

@@ -149,7 +149,8 @@ const executeNode = async ({
       node.inputs.map((input) => [input.name, input.value.getDirectValue()]),
     ),
     data: node.data.getDirectValue<WorkflowJsonObject>() ?? undefined,
-    runtimeState: node.runtimeState.getDirectValue<Record<string, unknown>>()!,
+    runtimeState:
+      node.runtimeState.getDirectValue<Record<string, unknown>>() ?? {},
     node,
     store,
     controller,
@@ -240,9 +241,14 @@ const executeNode = async ({
   stats.successCount += executionState.status === `success` ? 1 : 0;
   stats.errorCount += executionState.status === `error` ? 1 : 0;
   stats.abortedCount += executionState.status === `aborted` ? 1 : 0;
-  stats.totalExecutionTime +=
-    executionState.runState.endTimestamp! -
-    executionState.runState.startTimestamp!;
+  if (
+    executionState.runState.endTimestamp &&
+    executionState.runState.startTimestamp
+  ) {
+    stats.totalExecutionTime +=
+      executionState.runState.endTimestamp -
+      executionState.runState.startTimestamp;
+  }
   stats.totalAsyncExecutionTime +=
     executionState.runState.asyncExecutionTime ?? 0;
   stats.totalAsyncMicrotaskLagTime +=
@@ -551,8 +557,11 @@ export const createWorkflowEngine = (
                 },
               );
 
-              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-              const executionState$ = store$.nodes[nodeId]?.executionState!;
+              const node$ = store$.nodes[nodeId];
+              if (!node$?.executionState) {
+                return;
+              }
+              const executionState$ = node$.executionState;
               if (!executionState$.peek()) {
                 executionState$.set({
                   ...createEmptyExecutionState(),
@@ -601,9 +610,11 @@ export const createWorkflowEngine = (
         });
 
         if (executionState) {
-          const node$ = store$.nodes[nodeId]!;
-          node$.executionState.assign(executionState);
-          flushBatch();
+          const node$ = store$.nodes[nodeId];
+          if (node$) {
+            node$.executionState.assign(executionState);
+            flushBatch();
+          }
         }
 
         executionState$.runState.promiseInstance.set(undefined);
@@ -912,7 +923,9 @@ export const createWorkflowEngine = (
         );
 
         return () => {
-          unsubs.forEach((u) => u());
+          unsubs.forEach((u) => {
+            u();
+          });
         };
       }, `requestAnimationFrame`);
 

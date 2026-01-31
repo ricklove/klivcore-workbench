@@ -263,7 +263,10 @@ const loadWorkflowStoreFromDocument = (
         input.name,
       );
       const sourceNode = storeObj.nodes[input.source.nodeId];
-      const targetNode = storeObj.nodes[n.id]!;
+      const targetNode = storeObj.nodes[n.id];
+      if (!targetNode) {
+        continue;
+      }
       const edge: WorkflowRuntimeEdge = {
         id: edgeId,
         source: {
@@ -475,13 +478,17 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       console.log(`[deleteNode] deleting edges ${nodeId}`, { store$ });
 
       node$.inputs.forEach((input$) => {
-        const edgeId = input$.edgeId.peek()!;
-        store$.actions.deleteEdge(edgeId);
+        const edgeId = input$.edgeId.peek();
+        if (edgeId) {
+          store$.actions.deleteEdge(edgeId);
+        }
       });
       node$.outputs.forEach((output$) => {
         output$.edgeIds?.forEach((edgeId$) => {
-          const edgeId = edgeId$.peek()!;
-          store$.actions.deleteEdge(edgeId);
+          const edgeId = edgeId$.peek();
+          if (edgeId) {
+            store$.actions.deleteEdge(edgeId);
+          }
         });
       });
 

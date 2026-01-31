@@ -367,8 +367,12 @@ export const useReactFlowStore = (
               ];
             }
             const newEdges = [...s];
+            const existingEdge = newEdges[index];
+            if (!existingEdge) {
+              return newEdges;
+            }
             newEdges[index] = {
-              ...newEdges[index]!,
+              ...existingEdge,
               id: edge$.id.get(),
               source: edge$.source.nodeId.get(),
               sourceHandle: edge$.source.outputName.get(),
@@ -395,7 +399,9 @@ export const useReactFlowStore = (
       }, trigger),
     );
     return () => {
-      unsubs.forEach((x) => x());
+      unsubs.forEach((x) => {
+        x();
+      });
     };
   }, [store$]);
 
@@ -578,14 +584,22 @@ export const useReactFlowStore = (
       }
 
       console.log(`[useReactFlowStore:onConnect] Add edge`, { params });
+      if (!params.sourceHandle || !params.targetHandle) {
+        console.error(
+          '[useReactFlowStore:onConnect] Missing source or target handle',
+          { params },
+        );
+        return;
+      }
+
       store$.actions.createEdge({
         source: {
           nodeId: WorkflowBrandedTypes.nodeId(params.source),
-          outputName: WorkflowBrandedTypes.outputName(params.sourceHandle!),
+          outputName: WorkflowBrandedTypes.outputName(params.sourceHandle),
         },
         target: {
           nodeId: WorkflowBrandedTypes.nodeId(params.target),
-          inputName: WorkflowBrandedTypes.inputName(params.targetHandle!),
+          inputName: WorkflowBrandedTypes.inputName(params.targetHandle),
         },
       });
 
