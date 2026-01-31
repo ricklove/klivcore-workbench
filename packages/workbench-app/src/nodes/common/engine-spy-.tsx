@@ -1,6 +1,6 @@
 import {
   EmptyNodeComponent,
-  NodeTypeWrapComponentWithNodeWrapper,
+  NodeStandardContainer,
 } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
@@ -10,7 +10,7 @@ import {
 export const engineSpyNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`engineSpy`),
   getComponent: () => ({
-    Component: NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent),
+    Component: NodeStandardContainer(EmptyNodeComponent),
   }),
   inputs: [
     {

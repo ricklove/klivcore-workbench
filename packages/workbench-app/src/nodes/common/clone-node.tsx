@@ -2,7 +2,7 @@ import { useValue } from '@legendapp/state/react';
 import { useMemo } from 'react';
 import {
   EmptyNodeComponent,
-  NodeTypeWrapComponentWithNodeWrapper,
+  NodeStandardContainer,
 } from '../../workflow/node-types-wrapper';
 import { WrapperHandles } from '../../workflow/node-wrapper';
 import { getReactFlowNodeDataProp } from '../../workflow/store-fast/react-flow-node-data-prop';
@@ -53,8 +53,7 @@ const CloneComponent = (props: WorkflowComponentProps) => {
   );
 
   if (!nodeId || !targetNode || !TargetComponent) {
-    const DefaultComponent =
-      NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent);
+    const DefaultComponent = NodeStandardContainer(EmptyNodeComponent);
     return <DefaultComponent {...props} />;
   }
 
