@@ -192,11 +192,11 @@ export type WorkflowComponentPropsAny_Ops = Omit<
   data: {
     node$: Observable<WorkflowRuntimeNode>;
     store$: Observable<WorkflowRuntimeStore>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: required for component type asserting
     inputs$: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: required for component type asserting
     outputs$: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: required for component type asserting
     data$: any;
   };
 };
