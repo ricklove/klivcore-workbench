@@ -1,5 +1,8 @@
 import { TempWrapper } from './node-temp-wrapper';
-import { NodeTypeWrapComponent } from './node-types-wrapper';
+import {
+  NodeStandardContainer,
+  NodeTypeWrapComponent,
+} from './node-types-wrapper';
 import { WorkflowNodeDefault } from './node-wrapper';
 import {
   JsonNodeComponent,
@@ -18,7 +21,7 @@ export const builtinNodeTypes: Record<
   default: {
     type: WorkflowBrandedTypes.typeName(`default`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(WorkflowNodeDefault),
+      Component: NodeStandardContainer(WorkflowNodeDefault),
     }),
     inputs: [],
     outputs: [],
@@ -29,7 +32,7 @@ export const builtinNodeTypes: Record<
   reroute: {
     type: WorkflowBrandedTypes.typeName(`reroute`),
     getComponent: () => ({
-      Component: NodeTypeWrapComponent(RerouteComponent),
+      Component: NodeStandardContainer(RerouteComponent),
     }),
     defaultSize: { width: 16, height: 24 },
     inputs: [

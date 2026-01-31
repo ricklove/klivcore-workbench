@@ -2,7 +2,10 @@ import { linked } from '@legendapp/state';
 import { useObservable, useValue } from '@legendapp/state/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { WorkflowNodeWrapperSimple, WrapperHandles } from './node-wrapper';
-import type { WorkflowComponentProps_Obs } from './types';
+import type {
+  WorkflowComponentProps_Obs,
+  WorkflowComponentSimplePropsTyped,
+} from './types';
 
 export const StringNodeComponent = (
   props: WorkflowComponentProps_Obs<
@@ -128,7 +131,7 @@ export const JsonNodeComponent = (
 };
 
 export const RerouteComponent = (
-  props: WorkflowComponentProps_Obs<
+  props: WorkflowComponentSimplePropsTyped<
     { value: string },
     { value: Record<string, unknown> }
   >,

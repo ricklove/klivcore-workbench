@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/a11y/noStaticElementInteractions: <this is a visual editor> */
+/** biome-ignore-all lint/a11y/useKeyWithClickEvents: <this is a visual editor> */
 import { type Observable, observable } from '@legendapp/state';
 import { Computed, Memo, useValue } from '@legendapp/state/react';
 import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
@@ -5,12 +7,12 @@ import React, { memo, useCallback, useState } from 'react';
 import { optimizationStore } from './optimization-store';
 import {
   WorkflowBrandedTypes,
-  type WorkflowComponentPropsAny_Ops as WorkflowComponentPropsAny,
+  type WorkflowComponentPropsOnlyNode,
   type WorkflowNodeId,
   type WorkflowRuntimeNode,
 } from './types';
 
-export const WorkflowNodeDefault = (props: WorkflowComponentPropsAny) => {
+export const WorkflowNodeDefault = (props: WorkflowComponentPropsOnlyNode) => {
   return (
     <WorkflowNodeWrapperSimple {...props}>
       <div className="text-white">Node {props.id}</div>
@@ -19,7 +21,7 @@ export const WorkflowNodeDefault = (props: WorkflowComponentPropsAny) => {
 };
 
 export const WorkflowNodeWrapperSimple = (
-  props: WorkflowComponentPropsAny & {
+  props: WorkflowComponentPropsOnlyNode & {
     children: React.ReactNode;
   },
 ) => {
@@ -34,7 +36,7 @@ const WorkflowNodeWrapper = ({
   selected,
   hideHandles,
   data: dataReactFlow,
-}: WorkflowComponentPropsAny & {
+}: WorkflowComponentPropsOnlyNode & {
   children: React.ReactNode;
 }) => {
   const isMultiSelect = useValue(() =>
@@ -67,7 +69,7 @@ const WrapperHeader = memo(
     id: nodeIdRaw,
     selected,
     data: dataReactFlow,
-  }: Pick<WorkflowComponentPropsAny, 'id' | 'data' | `selected`>) => {
+  }: Pick<WorkflowComponentPropsOnlyNode, 'id' | 'data' | `selected`>) => {
     // console.log(`[NodeWrapper] rendering node ${nodeIdRaw}`, { dataReactFlow });
     const { deleteElements } = useReactFlow();
 
@@ -162,9 +164,9 @@ const WrapperHeader = memo(
                             ? {
                                 // id: node$.id.get(),
                                 // newIdUntilReload: node$.newIdUntilReload.get(),
-                                inputs: dataReactFlow.inputs$.get(),
-                                data: dataReactFlow.data$.get(),
-                                outputs: dataReactFlow.outputs$.get(),
+                                inputs: dataReactFlow.node$.inputs.get(),
+                                data: dataReactFlow.node$.data.get(),
+                                outputs: dataReactFlow.node$.outputs.get(),
                                 // node: {
                                 //   inputs: node$.inputs.get(),
                                 //   data: node$.data.get(),

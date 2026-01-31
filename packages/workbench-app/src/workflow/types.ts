@@ -129,6 +129,10 @@ export type WorkflowComponentPropsDataAccess<
     outputs$: TOutputs;
     data$: Observable<undefined | null | Partial<TData>>;
   };
+  getStandardNodeDataProp: () => Pick<
+    WorkflowComponentSimplePropsBase[`data`],
+    `data` | `inputs` | `outputs`
+  >;
   // inputs$: Observable<PartialNull<TInputs>>;
   // outputs$: Observable<PartialNull<TOutputs>>;
   // getData: () => Observable<undefined | null | Partial<TData>>;
@@ -155,6 +159,16 @@ export type WorkflowComponentPropsBase =
     selected: boolean;
     hideHandles?: boolean;
   };
+export type WorkflowComponentPropsOnlyNode = Omit<
+  WorkflowComponentPropsBase,
+  'data'
+> & {
+  data: {
+    store$: Observable<WorkflowRuntimeStore>;
+    node$: Observable<WorkflowRuntimeNode>;
+  };
+};
+
 export type WorkflowComponentProps<
   TData extends WorkflowJsonObject = WorkflowJsonObject,
   TInputs = TData,
@@ -187,24 +201,65 @@ export type WorkflowComponentPropsAny_Ops = Omit<
   };
 };
 
-export type WorkflowComponentSimpleProps = Omit<
+export type WorkflowComponentSimplePropsTyped<
+  TData extends WorkflowJsonObject = WorkflowJsonObject,
+  TInputs = TData,
+  TOutputs = TData,
+> = Omit<WorkflowComponentSimplePropsBase, 'data'> & {
+  data: {
+    node$: Observable<WorkflowRuntimeNode>;
+    store$: Observable<WorkflowRuntimeStore>;
+    inputs: {
+      [K in keyof TInputs]: {
+        asObservable: () => Observable<TInputs[K]>;
+        subscribe: (cb: (value: TInputs[K]) => void) => void;
+        get: () => TInputs[K];
+      };
+    };
+    outputs: {
+      [K in keyof TOutputs]: {
+        asObservable: () => Observable<TOutputs[K]>;
+        subscribe: (cb: (value: TOutputs[K]) => void) => void;
+        get: () => TOutputs[K];
+      };
+    };
+    data: {
+      asObservable: () => Observable<TData>;
+      subscribe: (cb: (value: TData) => void) => void;
+      get: () => TData;
+      set: (value: TData) => void;
+    };
+  };
+};
+
+export type WorkflowComponentSimplePropsBase = Omit<
   WorkflowComponentPropsBase,
   'data'
 > & {
   data: {
     node$: Observable<WorkflowRuntimeNode>;
     store$: Observable<WorkflowRuntimeStore>;
-    inputs: {
-      asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
-      subscribe: <T>() => T;
-    };
-    outputs: {
-      asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
-      subscribe: <T>() => T;
-    };
+    inputs: Record<
+      string,
+      {
+        asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
+        subscribe: <T>(cb: (value: T) => void) => void;
+        get: <T>() => T;
+      }
+    >;
+    outputs: Record<
+      string,
+      {
+        asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
+        subscribe: <T>(cb: (value: T) => void) => void;
+        get: <T>() => T;
+      }
+    >;
     data: {
       asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
-      subscribe: <T>() => T;
+      subscribe: <T extends WorkflowJsonObject>(cb: (value: T) => void) => void;
+      get: <T extends WorkflowJsonObject>() => T;
+      set: <T extends WorkflowJsonObject>(value: T) => void;
     };
   };
 };

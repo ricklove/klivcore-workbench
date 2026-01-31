@@ -5,7 +5,10 @@ import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import type {
   WorkflowComponentProps,
   WorkflowComponentPropsAny_Ops,
+  WorkflowComponentSimplePropsBase,
+  WorkflowJsonObject,
 } from './types';
+import { observe, type Observable } from '@legendapp/state';
 
 export const EmptyNodeComponent = () => (
   <>
@@ -71,7 +74,18 @@ export const NodeTypeWrapComponentWithNodeWrapper = (
 };
 
 export const NodeStandardContainer = (
-  InnerComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
+  InnerComponent: React.ComponentType<
+    Omit<WorkflowComponentSimplePropsBase, 'data'> & {
+      data: WorkflowComponentSimplePropsBase[`data`] & {
+        // biome-ignore lint/suspicious/noExplicitAny: <this is required to allow the component to assert its own types>
+        inputs: any;
+        // biome-ignore lint/suspicious/noExplicitAny: <this is required to allow the component to assert its own types>
+        outputs: any;
+        // biome-ignore lint/suspicious/noExplicitAny: <this is required to allow the component to assert its own types>
+        data: any;
+      };
+    }
+  >,
 ): React.ComponentType<WorkflowComponentProps> => {
   return memo((props) => {
     const node = useValue(props.data.node$.id.get());
@@ -83,10 +97,10 @@ export const NodeStandardContainer = (
       );
     }
 
-    const data = {
+    const data: WorkflowComponentSimplePropsBase[`data`] = {
       node$: props.data.node$,
       store$: props.data.store$,
-      ...props.data.getValues(),
+      ...props.data.getStandardNodeDataProp(),
     };
 
     return (
