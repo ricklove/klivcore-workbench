@@ -56,8 +56,7 @@ export const codeBuiltinNodeTypes: Record<
       const dataTyped = data as undefined | { value: undefined };
 
       const rs = runtimeState as {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-        fun?: Function; //& ((x: unknown, y: unknown, z: unknown) => Promise<unknown>);
+        fun?: (...args: unknown[]) => unknown;
         formattedCode?: string;
       };
 
@@ -86,12 +85,21 @@ export const codeBuiltinNodeTypes: Record<
         rs.fun = undefined;
       }
 
-      const fun = rs.fun ?? (rs.fun = new Function(...argNames, formattedCode));
+      let fun = rs.fun;
+      if (!fun) {
+        fun = new Function(...argNames, formattedCode) as (
+          ...args: unknown[]
+        ) => unknown;
+        rs.fun = fun;
+      }
       controller.setProgress({
         progressRatio: 0.5,
         message: 'Function creation complete',
       });
       console.log('[toFunction] Created function:', fun);
+      if (!fun) {
+        throw new Error('Function was not created');
+      }
       const funResult = await fun(
         inputsTyped?.x,
         inputsTyped?.y,
@@ -163,10 +171,14 @@ export const codeBuiltinNodeTypes: Record<
       console.log('[toFunction] Created Component:', Component);
 
       const typeName = WorkflowBrandedTypes.typeName(`d:${node.id}`);
-      const holder$ = (runtimeStateTyped.holder$ ??= observable({
-        Component,
-        instanceId: `${Date.now()}-${Math.random()}`,
-      }));
+      let holder$ = runtimeStateTyped.holder$;
+      if (!holder$) {
+        holder$ = observable({
+          Component,
+          instanceId: `${Date.now()}-${Math.random()}`,
+        });
+        runtimeStateTyped.holder$ = holder$;
+      }
       holder$.Component.set(Component);
       holder$.instanceId.set(`${Date.now()}-${Math.random()}`);
 

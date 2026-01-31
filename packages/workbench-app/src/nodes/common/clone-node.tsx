@@ -25,8 +25,7 @@ export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   outputs: [],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  execute: async ({ node }) => {
+  execute: async () => {
     // const inputSlot = node.inputs[0]?.getEdge()?.source.getNode();
 
     // const inputValue = inputSlot.isConnected ? inputSlot.getValue() : undefined;
@@ -41,8 +40,6 @@ export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
 const CloneComponent = (props: WorkflowComponentProps) => {
   const { nodeId, targetNode, targetNodeType } = useValue(() => {
     const nodeId = props.data.node$.id.get();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _edgeId = props.data.node$.inputs[0]?.edgeId.get();
     const targetNode = props.data.node$.inputs[0]?.getEdge()?.source.getNode();
     const targetNodeType = !targetNode
       ? undefined
@@ -66,16 +63,20 @@ const CloneComponent = (props: WorkflowComponentProps) => {
       <TargetComponent.Component
         {...props}
         hideHandles={true}
-        data={
-          getReactFlowNodeDataProp(
+        data={(() => {
+          const nodeObservable = props.data.store$.nodes[targetNode.id];
+          if (!nodeObservable) {
+            throw new Error(`Node with id ${targetNode.id} not found`);
+          }
+          return getReactFlowNodeDataProp(
             props.data.store$,
-            props.data.store$.nodes[targetNode.id]!,
+            nodeObservable,
           ) as unknown as WorkflowComponentProps<
             WorkflowJsonObject,
             WorkflowJsonObject,
             WorkflowJsonObject
-          >['data']
-        }
+          >['data'];
+        })()}
       />
       <WrapperHandles
         selected={props.selected}

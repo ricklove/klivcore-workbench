@@ -511,6 +511,9 @@ export const createWorkflowEngine = (
       }
 
       const executionState$ = store$.nodes[nodeId]?.executionState;
+      if (!executionState$) {
+        throw new Error(`Execution state not found for node ${nodeId}`);
+      }
       if (!executionState$.peek()) {
         executionState$.set({
           ...createEmptyExecutionState(),

@@ -15,8 +15,7 @@ export const persistStoreToDocument = (
 
   const SYNC_TIMEOUT = 3000;
   observeBatched(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _edges = Object.values(store$.edges).map((edge$) => {
+    Object.values(store$.edges).forEach((edge$) => {
       edge$.id.get();
       edge$.isDeleted?.get();
     });
@@ -49,8 +48,6 @@ export const persistStoreToDocument = (
               height: node$.position.height.get(),
             },
             inputs: node$.inputs.map((input$) => {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const _edgeId = input$.edgeId.get();
               const edge = input$.getEdge();
               //   const edge = Object.values(store.edges).find(
               //     (e) => e.target.nodeId === node.id && e.target.inputName === input.name,

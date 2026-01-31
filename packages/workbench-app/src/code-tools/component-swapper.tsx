@@ -5,8 +5,7 @@ import type React from 'react';
 export const ComponentSwapper = (
   holder$: Observable<{ Component: React.ComponentType; instanceId: string }>,
 ) => {
-  return (props: Record<string, unknown>) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+  const ComponentSwapperInner = (props: Record<string, unknown>) => {
     const holder = useValue(() => ({
       Component: holder$.get().Component,
       instanceId: holder$.instanceId.get(),
@@ -21,4 +20,6 @@ export const ComponentSwapper = (
       />
     );
   };
+
+  return ComponentSwapperInner;
 };

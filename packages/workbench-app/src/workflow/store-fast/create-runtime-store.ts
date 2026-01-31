@@ -643,6 +643,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
     nodes: {} as Record<WorkflowNodeId, WorkflowRuntimeNode>,
     edges: {} as Record<WorkflowEdgeId, WorkflowRuntimeEdge>,
     actions: ObservableHint.plain(actions),
+    engine: undefined as WorkflowRuntimeStore['engine'],
   });
   return store$;
 };

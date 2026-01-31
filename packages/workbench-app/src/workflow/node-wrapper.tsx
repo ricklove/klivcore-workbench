@@ -341,8 +341,6 @@ export const WrapperHandles = memo(
         {Object.values(inputs).map((input, index) => {
           const key = input.name;
 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const _edgeId = input.edgeId;
           const edge = input.edge;
           return (
             <React.Fragment key={key}>
@@ -400,8 +398,7 @@ export const WrapperHandles = memo(
         })}
         {Object.values(outputs).map((output, index) => {
           const key = output.name;
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const _edgeIds = output.edgeIds;
+
           const edges = output.edges;
           return (
             <React.Fragment key={key}>

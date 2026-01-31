@@ -373,7 +373,7 @@ export interface WorkflowRuntimeStore {
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
   edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;
   actions: PlainObject<WorkflowRuntimeStoreActions>;
-  engine?: WorkflowRuntimeEngine;
+  engine: undefined | WorkflowRuntimeEngine;
 }
 
 /** helpers to simplify some actions */
