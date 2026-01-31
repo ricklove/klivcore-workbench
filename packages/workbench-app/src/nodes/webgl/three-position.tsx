@@ -2,7 +2,7 @@ import { useObservable, useValue } from '@legendapp/state/react';
 import { useCallback } from 'react';
 import * as THREE from 'three';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
@@ -219,7 +219,7 @@ export const ThreePositionControllerComponent = (
   );
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
+    <>
       <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
         <NumberScrubber
           label="X"
@@ -260,6 +260,6 @@ export const ThreePositionControllerComponent = (
           onChange={(v) => updateRotationIndex(2, v)}
         />
       </div>
-    </WorkflowNodeWrapperSimple>
+    </>
   );
 };

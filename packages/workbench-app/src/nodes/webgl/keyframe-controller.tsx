@@ -1,7 +1,6 @@
 import { useValue } from '@legendapp/state/react';
 import React, { useCallback, useRef, useState } from 'react';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
@@ -428,133 +427,121 @@ export const KeyframeControllerComponent = (
     .sort((a, b) => a - b);
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div className="w-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
-        {/* Frame Control */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={togglePlayPause}
-            className={`w-8 h-8 rounded flex items-center justify-center transition-colors shrink-0 ${
-              isPlaying
-                ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
-                : 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
-            }`}
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? (
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <title>Pause animation</title>
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            ) : (
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <title>Play animation</title>
-                <path d="M5 3l14 9-14 9V3z" />
-              </svg>
-            )}
-          </button>
+    <div className="w-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
+      {/* Frame Control */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={togglePlayPause}
+          className={`w-8 h-8 rounded flex items-center justify-center transition-colors shrink-0 ${
+            isPlaying
+              ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
+              : 'bg-green-500/20 text-green-500 hover:bg-green-500/30'
+          }`}
+          title={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <title>Pause animation</title>
+              <rect x="6" y="4" width="4" height="16" />
+              <rect x="14" y="4" width="4" height="16" />
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <title>Play animation</title>
+              <path d="M5 3l14 9-14 9V3z" />
+            </svg>
+          )}
+        </button>
 
-          <div className="flex-1 min-w-0">
-            <NumberScrubber
-              value={currentFrame}
-              onChange={handleFrameChange}
-              label="FRAME"
-              step={1}
-            />
-          </div>
+        <div className="flex-1 min-w-0">
+          <NumberScrubber
+            value={currentFrame}
+            onChange={handleFrameChange}
+            label="FRAME"
+            step={1}
+          />
         </div>
-
-        {/* Keyframe Actions */}
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            onClick={saveKeyframe}
-            disabled={!inputDataset}
-            variant="primary"
-            title={
-              hasKeyframeAtCurrentFrame
-                ? 'Overwrite existing keyframe'
-                : 'Save current data as keyframe'
-            }
-          >
-            {hasKeyframeAtCurrentFrame ? 'UPDATE' : 'SAVE'}
-          </Button>
-
-          <Button
-            onClick={deleteKeyframe}
-            disabled={!hasKeyframeAtCurrentFrame}
-            variant="danger"
-            title="Delete keyframe at current frame"
-          >
-            DELETE
-          </Button>
-
-          <Button
-            onClick={toggleInterpolation}
-            variant={interpolationEnabled ? 'primary' : 'secondary'}
-            title={
-              interpolationEnabled
-                ? 'Disable interpolation'
-                : 'Enable interpolation'
-            }
-          >
-            {interpolationEnabled ? 'INTERP' : 'NO INTERP'}
-          </Button>
-        </div>
-
-        {/* Status */}
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-neutral-400">Keyframes:</span>
-            <span className="text-neutral-200 font-mono">{keyframeCount}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${hasKeyframeAtCurrentFrame ? 'bg-green-500' : 'bg-neutral-600'}`}
-            />
-            <span className="text-neutral-400 text-[10px]">
-              {hasKeyframeAtCurrentFrame ? 'HAS KEYFRAME' : 'NO KEYFRAME'}
-            </span>
-          </div>
-        </div>
-
-        {/* Keyframe Timeline */}
-        {keyframeCount > 0 && (
-          <div className="bg-neutral-900 rounded p-2">
-            <div className="text-[10px] text-neutral-500 mb-1 uppercase tracking-wider">
-              Timeline
-            </div>
-            <div className="flex items-center gap-1 overflow-x-auto">
-              {keyframeFrames.map((frame) => (
-                <div
-                  key={frame}
-                  className={`w-6 h-6 rounded flex items-center justify-center text-[8px] font-mono cursor-pointer transition-colors ${
-                    Math.floor(currentFrame) === frame
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
-                  }`}
-                  onClick={() => handleFrameChange(frame)}
-                  title={`Go to frame ${frame}`}
-                >
-                  {frame}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-    </WorkflowNodeWrapperSimple>
+
+      {/* Keyframe Actions */}
+      <div className="grid grid-cols-3 gap-2">
+        <Button
+          onClick={saveKeyframe}
+          disabled={!inputDataset}
+          variant="primary"
+          title={
+            hasKeyframeAtCurrentFrame
+              ? 'Overwrite existing keyframe'
+              : 'Save current data as keyframe'
+          }
+        >
+          {hasKeyframeAtCurrentFrame ? 'UPDATE' : 'SAVE'}
+        </Button>
+
+        <Button
+          onClick={deleteKeyframe}
+          disabled={!hasKeyframeAtCurrentFrame}
+          variant="danger"
+          title="Delete keyframe at current frame"
+        >
+          DELETE
+        </Button>
+
+        <Button
+          onClick={toggleInterpolation}
+          variant={interpolationEnabled ? 'primary' : 'secondary'}
+          title={
+            interpolationEnabled
+              ? 'Disable interpolation'
+              : 'Enable interpolation'
+          }
+        >
+          {interpolationEnabled ? 'INTERP' : 'NO INTERP'}
+        </Button>
+      </div>
+
+      {/* Status */}
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-neutral-400">Keyframes:</span>
+          <span className="text-neutral-200 font-mono">{keyframeCount}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span
+            className={`w-2 h-2 rounded-full ${hasKeyframeAtCurrentFrame ? 'bg-green-500' : 'bg-neutral-600'}`}
+          />
+          <span className="text-neutral-400 text-[10px]">
+            {hasKeyframeAtCurrentFrame ? 'HAS KEYFRAME' : 'NO KEYFRAME'}
+          </span>
+        </div>
+      </div>
+
+      {/* Keyframe Timeline */}
+      {keyframeCount > 0 && (
+        <div className="bg-neutral-900 rounded p-2">
+          <div className="text-[10px] text-neutral-500 mb-1 uppercase tracking-wider">
+            Timeline
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {keyframeFrames.map((frame) => (
+              <div
+                key={frame}
+                className={`w-6 h-6 rounded flex items-center justify-center text-[8px] font-mono cursor-pointer transition-colors ${
+                  Math.floor(currentFrame) === frame
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+                }`}
+                onClick={() => handleFrameChange(frame)}
+                title={`Go to frame ${frame}`}
+              >
+                {frame}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

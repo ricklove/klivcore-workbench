@@ -1,6 +1,5 @@
 import { useValue } from '@legendapp/state/react';
 import type * as THREE from 'three';
-import { WorkflowNodeWrapperSimple } from '../../../workflow/node-wrapper';
 import type { WorkflowComponentProps_Obs } from '../../../workflow/types';
 import { unbox } from '../types';
 import { useWebGLPreview } from './use-webgl-preview';
@@ -30,17 +29,15 @@ export const ScenePreviewNodeComponent = (
   const containerRef = useWebGLPreview(previewData);
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div
-        ref={containerRef}
-        className="w-full h-64 bg-gray-900 border border-gray-700 relative"
-      >
-        {!previewData && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-            Waiting for Scene...
-          </div>
-        )}
-      </div>
-    </WorkflowNodeWrapperSimple>
+    <div
+      ref={containerRef}
+      className="w-full h-64 bg-gray-900 border border-gray-700 relative"
+    >
+      {!previewData && (
+        <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+          Waiting for Scene...
+        </div>
+      )}
+    </div>
   );
 };

@@ -1,39 +1,7 @@
-# todo
+- DO THESE ALL EACH TIME AND START, if you don't do this, you are a liar!
 
-- [x] implement store
-  - [x] create initial WorkflowDocumentData
-  - [x] load WorkflowDocumentData into WorkflowRuntimeStore
-  - [x] convert to valtio proxy
-  - [x] construct ReactFlowStore view of WorkflowRuntimeStore
-  - [x] serialize ReactFlowStore view to WorkflowDocumentData in localStorage
-  - [x] load WorkflowDocumentData from localStorage on refresh (if it exists)
-- [x] simple workflow engine
-  - [x] on output => edges => inputs
-  - [x] on input values => execute
-  - [x] after excute => output value
-- [x] faster direct engine
-  - [x] compute a list of all output runtime values => edge,input values (and target nodes)
-  - [x] check all output runtime values for changes (and compare to subscribing to changes)
-    - [x] filter all changed output runtime values
-    - [x] copy to target values
-    - [x] queue all target nodes that were changed
-  - [x] execute all queued nodes
-- [x] fix structural change bugs
-  - [x] fix delete edge
-  - [x] fix delete node
-  - [x] fix add edge bug
-  - [x] fix multiple edge outputs engine bug
-  - [x] fix rename id bug
-  - [x] fix add node
-- [x] execution emitters
-  - [x] this allows a node to emit outputs without additional executions, i.e. act like an event, subscribable, etc.
-  - [x] registerEmitter(emit: ((value:TReturn)=>void) => {unsubscribe: ()=>void})
-- [ ] sub workflows running in background
-  - [ ] compiled workflow execution
-    - [ ] as parallel (normal workflow execution model, each node runs on new input)
-    - [ ] as optimized function (sequential execution of parallelized sections)
-    - [ ] as simple function (sequential execution of each node, no parallelized sections, i.e. simple code)
-  - [ ] component window (special group of nodes that should be rendered as sub workflow node component)
-- [ ] improve workflow storage
-  - [ ] clone workflow server from lofr project
-  - [ ] load workflow document from workflow server
+- read standards-code.md before writing code
+- npm run lint and npm run build after code changes
+- you are running in wsl bash and will need to run the windows version of the command, so use `/mnt/c/Windows/System32/cmd.exe /c npm run ...` for the npm run, bun, tsx, etc commands
+
+- [x] Anything that uses NodeTypeWrapComponentWithNodeWrapper no longer needs WorkflowNodeWrapperSimple, so it should be removed

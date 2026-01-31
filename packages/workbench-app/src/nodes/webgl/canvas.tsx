@@ -2,7 +2,6 @@ import { useValue } from '@legendapp/state/react';
 import { useLayoutEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
@@ -184,11 +183,9 @@ export const CanvasThreeRendererNodeComponent = (
 
   const containerRef = useRef<HTMLDivElement>(null);
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div
-        className="bg-black w-full h-full nowheel nodrag nopan"
-        ref={containerRef}
-      />
-    </WorkflowNodeWrapperSimple>
+    <div
+      className="bg-black w-full h-full nowheel nodrag nopan"
+      ref={containerRef}
+    />
   );
 };
