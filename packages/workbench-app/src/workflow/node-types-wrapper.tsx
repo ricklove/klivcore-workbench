@@ -14,34 +14,6 @@ export const EmptyNodeComponent = () => (
   </>
 );
 
-export const NodeTypeWrapComponent = (
-  InnerComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
-): React.ComponentType<WorkflowComponentProps> => {
-  return memo((props) => {
-    const node = useValue(props.data.node$.id.get());
-    if (!node) {
-      return (
-        <div className="w-full h-full p-1 whitespace-pre-wrap bg-red-400 text-white rounded">
-          {`Error: Node not found`}
-        </div>
-      );
-    }
-
-    return (
-      <ErrorBoundary message={`Error rendering Component`}>
-        <InnerComponent
-          {...props}
-          data={{
-            node$: props.data.node$,
-            store$: props.data.store$,
-            ...props.data.getValues(),
-          }}
-        />
-      </ErrorBoundary>
-    );
-  });
-};
-
 export const NodeTypeWrapComponentWithNodeWrapper = (
   InnerComponent: React.ComponentType<WorkflowComponentPropsAny_Ops>,
 ): React.ComponentType<WorkflowComponentProps> => {

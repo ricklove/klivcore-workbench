@@ -1,8 +1,4 @@
-import { TempWrapper } from './node-temp-wrapper';
-import {
-  NodeStandardContainer,
-  NodeTypeWrapComponent,
-} from './node-types-wrapper';
+import { NodeStandardContainer } from './node-types-wrapper';
 import { WorkflowNodeDefault } from './node-wrapper';
 import {
   JsonNodeComponent,
@@ -138,16 +134,6 @@ export const builtinNodeTypes: Record<
       return {
         outputs: { value: obj },
       };
-    },
-  },
-
-  tempWrapper: {
-    type: WorkflowBrandedTypes.typeName(`tempWrapper`),
-    getComponent: () => ({ Component: NodeTypeWrapComponent(TempWrapper) }),
-    inputs: [],
-    outputs: [],
-    execute: async () => {
-      throw new Error('Not implemented');
     },
   },
 };

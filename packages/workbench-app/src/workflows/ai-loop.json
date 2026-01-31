@@ -406,7 +406,7 @@
       "position": {
         "x": 272,
         "y": 8,
-        "width": 16,
+        "width": 24,
         "height": 24
       },
       "inputs": [
@@ -432,7 +432,7 @@
       "position": {
         "x": -112,
         "y": 8,
-        "width": 16,
+        "width": 24,
         "height": 24
       },
       "inputs": [
@@ -1458,7 +1458,7 @@
       "position": {
         "x": -512,
         "y": 2064,
-        "width": 16,
+        "width": 24,
         "height": 24
       },
       "inputs": [
@@ -2625,7 +2625,7 @@
       "position": {
         "x": 688,
         "y": 2104,
-        "width": 16,
+        "width": 24,
         "height": 24
       },
       "inputs": [
@@ -3077,6 +3077,244 @@
       "data": {
         "value": "workflow-panel"
       }
+    },
+    {
+      "id": "n-string-1769002757733",
+      "type": "string",
+      "position": {
+        "x": -1448,
+        "y": 480,
+        "width": 528,
+        "height": 200
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "an execute it taking too long, how can I visualize that?"
+      }
+    },
+    {
+      "id": "n-string-1769004484711",
+      "type": "string",
+      "position": {
+        "x": -2312,
+        "y": -1544,
+        "width": 32,
+        "height": 32
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1769004940879",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "go"
+      }
+    },
+    {
+      "id": "n-valueGate-1769004669759",
+      "type": "valueGate",
+      "position": {
+        "x": -2224,
+        "y": -1528,
+        "width": 136,
+        "height": 112
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "unknown",
+          "source": {
+            "nodeId": "n-string-1769004484711",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "unknown"
+        }
+      ],
+      "data": {
+        "sendOnce": false,
+        "autoSend": true
+      }
+    },
+    {
+      "id": "n-engineSpy-1769004714393",
+      "type": "engineSpy",
+      "position": {
+        "x": -2024,
+        "y": -1528,
+        "width": 80,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "trigger",
+          "type": "unknown",
+          "source": {
+            "nodeId": "n-valueGate-1769004669759",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "stats",
+          "type": "unknown"
+        }
+      ]
+    },
+    {
+      "id": "n-json-1769004722162",
+      "type": "json",
+      "position": {
+        "x": -1848,
+        "y": -1496,
+        "width": 624,
+        "height": 568
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "T extends Record<string, unknown>",
+          "source": {
+            "nodeId": "n-engineSpy-1769004714393",
+            "name": "stats"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "T"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1769004940879",
+      "type": "string",
+      "position": {
+        "x": -2320,
+        "y": -1512,
+        "width": 32,
+        "height": 32
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1769004484711",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1769008145324",
+      "type": "string",
+      "position": {
+        "x": -1864,
+        "y": -760,
+        "width": 424,
+        "height": 880
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "fix nodes:\n\n- no inputs$\n- no outputs$\n- new data$\n\nthese objects cannot use granular updates:\n- the engine must react to any input$ or data$ change\n- so when we try to turn it into a granular obs$, it requires the whole object to be changed\n\n- why were we trying to do this anyway?\n  - we wanted a way for components to have granular re-renders\n  - especially important for text inputs, which need a animationFrame speed new value to avoid glitching\n  - data$ is the only json friendly object which would allow for a deep observable to prevent renders\n  - input$ and output$ are not guaranteed to be deep observable safe, so they break without manual boxing\n  - QUESTION: what is causing legend state to walk the whole object?\n    - we need to set up a testing area to understand this\n\n- new node wrapper with fix to allow for iterative change\n- system tests workflow\n  - new debug workflow with nested test workflows\n  - isolated workflows with own engine (even own internal workflow/engine types!)\n  - each with a inputs-expected-outputs test cases\n    - data grid would be good for this\n  - performance timing\n  - instrumentation?\n  - global heat map!!!\n  - global test runner\n- new "
+      }
+    },
+    {
+      "id": "n-string-1769014532008",
+      "type": "string",
+      "position": {
+        "x": -2308,
+        "y": -568,
+        "width": 408,
+        "height": 128
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "  - QUESTION: what is causing legend state to walk the whole object?\n    - we need to set up a testing area to understand this"
+      }
+    },
+    {
+      "id": "n-reroute-1769875594041",
+      "type": "reroute",
+      "position": {
+        "x": -2472,
+        "y": -1280,
+        "width": 16,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "T",
+          "source": {
+            "nodeId": "n-string-1769004940879",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "T"
+        }
+      ]
     }
   ]
 }
