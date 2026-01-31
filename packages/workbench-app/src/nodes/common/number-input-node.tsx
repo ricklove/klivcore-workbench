@@ -1,11 +1,10 @@
 import { useValue } from '@legendapp/state/react';
 import type React from 'react';
 import { useRef, useState } from 'react';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
-  type WorkflowComponentProps_Obs,
+  type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 
@@ -14,7 +13,7 @@ import {
 export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`number-input`),
   getComponent: () => ({
-    Component: NodeTypeWrapComponentWithNodeWrapper(NumberInputComponent),
+    Component: NodeStandardContainer(NumberInputComponent),
   }),
   inputs: [
     {
@@ -42,18 +41,20 @@ export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
 };
 
 export const NumberInputComponent = (
-  props: WorkflowComponentProps_Obs<{ value: number }, { value: number }>,
+  props: WorkflowComponentSimplePropsTyped<
+    { value: number },
+    { value: number }
+  >,
 ) => {
-  const { data$, inputs$, node$ } = props.data;
+  const { data, inputs, node$ } = props.data;
+  const data$ = data.asObservable();
 
   const valueInputSlot = useValue(() => node$.getInputInfo<number>(`value`));
   const isReadonly = valueInputSlot.isConnected;
 
-  const currentValue = useValue(() => {
-    const inputValue = inputs$.value.get();
-    const dataValue = data$.value.get() ?? 0;
-    return inputValue ?? dataValue;
-  });
+  const inputValue = useValue(inputs.value.asObservable());
+  const dataValue = useValue(data$.value) ?? 0;
+  const currentValue = inputValue ?? dataValue;
 
   const updateValue = (newValue: number) => {
     if (isReadonly) return;
@@ -61,16 +62,14 @@ export const NumberInputComponent = (
   };
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div className="p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
-        <NumberScrubber
-          //   label="Value"
-          value={currentValue}
-          onChange={updateValue}
-          readonly={isReadonly}
-        />
-      </div>
-    </WorkflowNodeWrapperSimple>
+    <div className="p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
+      <NumberScrubber
+        //   label="Value"
+        value={currentValue}
+        onChange={updateValue}
+        readonly={isReadonly}
+      />
+    </div>
   );
 };
 

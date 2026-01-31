@@ -2,11 +2,10 @@ import { useObservable, useValue } from '@legendapp/state/react';
 import type React from 'react';
 import { useRef, useState } from 'react';
 import { clsx } from '../../utils/clsx';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
-  type WorkflowComponentProps_Obs,
+  type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 
@@ -64,7 +63,7 @@ const resolveParam = <T extends ParamValue>(
 export const timelineControlNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName('timelineControl'),
   getComponent: () => ({
-    Component: NodeTypeWrapComponentWithNodeWrapper(TimelineControlComponent),
+    Component: NodeStandardContainer(TimelineControlComponent),
   }),
   inputs: [
     {
@@ -397,18 +396,19 @@ const ParamRow = ({
 
 // 4. Main Timeline Component
 export const TimelineControlComponent = (
-  props: WorkflowComponentProps_Obs<
+  props: WorkflowComponentSimplePropsTyped<
     TimelineData,
     TimelineInputs,
     TimelineOutputs
   >,
 ) => {
-  const { data$, inputs$, outputs$ } = props.data;
+  const { data, inputs, outputs } = props.data;
+  const data$ = data.asObservable();
 
   // Data State
   const playing = useValue(data$.playing);
   const initialValueFromData = useValue(data$.initialValue) ?? 0;
-  const valueFromOutput = useValue(outputs$.value) ?? 0;
+  const valueFromOutput = useValue(outputs.value.asObservable()) ?? 0;
 
   const ignoreOutputValue$ = useObservable(initialValueFromData);
   const shouldUseOutputValue = useValue(
@@ -432,12 +432,11 @@ export const TimelineControlComponent = (
 
   // Reactive Inputs
   // We use useValue on the input observables. If the input is not connected, this returns undefined.
-  const inpMin = useValue(inputs$.min) ?? undefined;
-  const inpMax = useValue(inputs$.max) ?? undefined;
-  const inpTick = useValue(inputs$.tickTimeMs) ?? undefined;
-  const inpInc = useValue(inputs$.incrementValue) ?? undefined;
-  const inpLoop = useValue(inputs$.autoLoop) ?? undefined;
-
+  const inpMin = useValue(inputs.min.asObservable()) ?? undefined;
+  const inpMax = useValue(inputs.max.asObservable()) ?? undefined;
+  const inpTick = useValue(inputs.tickTimeMs.asObservable()) ?? undefined;
+  const inpInc = useValue(inputs.incrementValue.asObservable()) ?? undefined;
+  const inpLoop = useValue(inputs.autoLoop.asObservable()) ?? undefined;
   // Availability Checks
   const hasMin = inpMin !== undefined && inpMin !== null;
   const hasMax = inpMax !== undefined && inpMax !== null;
@@ -472,7 +471,7 @@ export const TimelineControlComponent = (
     range === 0 ? 0 : Math.min(Math.max((value - effMin) / range, 0), 1);
 
   const togglePlay = () => {
-    const currentOutput = outputs$.value.peek() ?? value;
+    const currentOutput = outputs.value.getDirectValue() ?? value;
     ignoreOutputValue$.set(currentOutput);
     data$.initialValue.set(currentOutput);
     data$.playing.set(!playing);
@@ -484,119 +483,107 @@ export const TimelineControlComponent = (
       effMin;
     const clamped = Math.max(effMin, Math.min(roundedToStep, effMax));
 
-    ignoreOutputValue$.set(outputs$.value.peek() ?? value);
+    ignoreOutputValue$.set(outputs.value.getDirectValue() ?? value);
     data$.initialValue.set(clamped);
   };
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div className="w-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
-        {/* --- Header: Playback & Scrubber --- */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={togglePlay}
-            className={clsx(
-              'w-8 h-8 rounded flex items-center justify-center transition-colors shrink-0',
-              playing
-                ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
-                : 'bg-green-500/20 text-green-500 hover:bg-green-500/30',
-            )}
-            title={playing ? 'Pause' : 'Play'}
-          >
-            {playing ? (
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <title>Pause</title>
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            ) : (
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <title>Play</title>
-                <path d="M5 3l14 9-14 9V3z" />
-              </svg>
-            )}
-          </button>
+    <div className="w-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
+      {/* --- Header: Playback & Scrubber --- */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={togglePlay}
+          className={clsx(
+            'w-8 h-8 rounded flex items-center justify-center transition-colors shrink-0',
+            playing
+              ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30'
+              : 'bg-green-500/20 text-green-500 hover:bg-green-500/30',
+          )}
+          title={playing ? 'Pause' : 'Play'}
+        >
+          {playing ? (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <title>Pause</title>
+              <rect x="6" y="4" width="4" height="16" />
+              <rect x="14" y="4" width="4" height="16" />
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <title>Play</title>
+              <path d="M5 3l14 9-14 9V3z" />
+            </svg>
+          )}
+        </button>
 
-          <div className="flex-1 min-w-0 flex flex-col gap-1">
-            <NumberScrubber
-              value={value}
-              onChange={handleMainScrub}
-              step={(effMax - effMin) / 100}
-              className="bg-neutral-900 border-neutral-700"
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <NumberScrubber
+            value={value}
+            onChange={handleMainScrub}
+            step={(effMax - effMin) / 100}
+            className="bg-neutral-900 border-neutral-700"
+          />
+          <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 transition-all duration-75 ease-out"
+              style={{ width: `${progress * 100}%` }}
             />
-            <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-500 transition-all duration-75 ease-out"
-                style={{ width: `${progress * 100}%` }}
-              />
-            </div>
           </div>
         </div>
-
-        {/* --- Settings Grid --- */}
-        <div className="flex flex-col gap-1 border-t border-neutral-800 pt-2">
-          <ParamRow
-            label="MIN"
-            hasInput={hasMin}
-            isOverridden={!!overrideMin}
-            inputValue={inpMin}
-            localValue={localMin ?? 0}
-            onToggleOverride={(v) => data$.overrideMin.set(v)}
-            onLocalChange={(v) => data$.localMin.set(v as number)}
-          />
-
-          <ParamRow
-            label="MAX"
-            hasInput={hasMax}
-            isOverridden={!!overrideMax}
-            inputValue={inpMax}
-            localValue={localMax ?? 100}
-            onToggleOverride={(v) => data$.overrideMax.set(v)}
-            onLocalChange={(v) => data$.localMax.set(v as number)}
-          />
-
-          <ParamRow
-            label="STEP"
-            hasInput={hasInc}
-            isOverridden={!!overrideInc}
-            inputValue={inpInc}
-            localValue={localInc ?? 1}
-            onToggleOverride={(v) => data$.overrideInc.set(v)}
-            onLocalChange={(v) => data$.localInc.set(v as number)}
-          />
-
-          <ParamRow
-            label="TICK (ms)"
-            hasInput={hasTick}
-            isOverridden={!!overrideTick}
-            inputValue={inpTick}
-            localValue={localTick ?? 1000}
-            onToggleOverride={(v) => data$.overrideTick.set(v)}
-            onLocalChange={(v) => data$.localTick.set(v as number)}
-          />
-
-          <ParamRow
-            label="LOOP"
-            type="boolean"
-            hasInput={hasLoop}
-            isOverridden={!!overrideLoop}
-            inputValue={inpLoop}
-            localValue={localLoop ?? true}
-            onToggleOverride={(v) => data$.overrideLoop.set(v)}
-            onLocalChange={(v) => data$.localLoop.set(v as boolean)}
-          />
-        </div>
       </div>
-    </WorkflowNodeWrapperSimple>
+
+      {/* --- Settings Grid --- */}
+      <div className="flex flex-col gap-1 border-t border-neutral-800 pt-2">
+        <ParamRow
+          label="MIN"
+          hasInput={hasMin}
+          isOverridden={!!overrideMin}
+          inputValue={inpMin}
+          localValue={localMin ?? 0}
+          onToggleOverride={(v) => data$.overrideMin.set(v)}
+          onLocalChange={(v) => data$.localMin.set(v as number)}
+        />
+
+        <ParamRow
+          label="MAX"
+          hasInput={hasMax}
+          isOverridden={!!overrideMax}
+          inputValue={inpMax}
+          localValue={localMax ?? 100}
+          onToggleOverride={(v) => data$.overrideMax.set(v)}
+          onLocalChange={(v) => data$.localMax.set(v as number)}
+        />
+
+        <ParamRow
+          label="STEP"
+          hasInput={hasInc}
+          isOverridden={!!overrideInc}
+          inputValue={inpInc}
+          localValue={localInc ?? 1}
+          onToggleOverride={(v) => data$.overrideInc.set(v)}
+          onLocalChange={(v) => data$.localInc.set(v as number)}
+        />
+
+        <ParamRow
+          label="TICK (ms)"
+          hasInput={hasTick}
+          isOverridden={!!overrideTick}
+          inputValue={inpTick}
+          localValue={localTick ?? 1000}
+          onToggleOverride={(v) => data$.overrideTick.set(v)}
+          onLocalChange={(v) => data$.localTick.set(v as number)}
+        />
+
+        <ParamRow
+          label="LOOP"
+          type="boolean"
+          hasInput={hasLoop}
+          isOverridden={!!overrideLoop}
+          inputValue={inpLoop}
+          localValue={localLoop ?? true}
+          onToggleOverride={(v) => data$.overrideLoop.set(v)}
+          onLocalChange={(v) => data$.localLoop.set(v as boolean)}
+        />
+      </div>
+    </div>
   );
 };

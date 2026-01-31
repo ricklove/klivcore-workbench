@@ -1,6 +1,7 @@
 import {
   type Observable,
   ObservableHint,
+  type ObservablePrimitive,
   observable,
   observe,
 } from '@legendapp/state';
@@ -56,18 +57,12 @@ export const getReactFlowNodeDataProp = (
         runtimeValue: WorkflowRuntimeValue,
       ) => {
         return {
-          asObservable: <T extends WorkflowJsonObject>() =>
+          asObservable: <T extends TBase>() =>
             runtimeValue.getObservableBox() as Observable<T>,
-          subscribe: <T extends TBase>(cb: (value: T) => void) => {
-            const obs$ = runtimeValue.getObservableBox() as Observable<TBase>;
-            return observe(() => {
-              cb(obs$ as unknown as T);
-            });
-          },
-          get: <T extends TBase>() => {
+          getDirectValue: <T extends TBase>() => {
             return runtimeValue.getDirectValue() as unknown as T;
           },
-          set: <T extends TBase>(value: T) => {
+          setValue: <T extends TBase>(value: T) => {
             runtimeValue.setValue(value);
           },
         };
@@ -78,13 +73,21 @@ export const getReactFlowNodeDataProp = (
         inputs: Object.fromEntries(
           node$.inputs.map((input$) => [
             input$.name.peek(),
-            createStandardAccess(input$.value.peek()),
+            createStandardAccess(input$.value.peek()) as {
+              asObservable: <T>() => ObservablePrimitive<T>;
+              getDirectValue: <T>() => T;
+              setValue: <T>(value: T) => void;
+            },
           ]),
         ),
         outputs: Object.fromEntries(
           node$.outputs.map((output$) => [
             output$.name.peek(),
-            createStandardAccess(output$.value.peek()),
+            createStandardAccess(output$.value.peek()) as {
+              asObservable: <T>() => ObservablePrimitive<T>;
+              getDirectValue: <T>() => T;
+              setValue: <T>(value: T) => void;
+            },
           ]),
         ),
       };

@@ -2,8 +2,8 @@ import { type Observable, observable } from '@legendapp/state';
 import { useValue } from '@legendapp/state/react';
 import React from 'react';
 import {
+  NodeStandardContainer,
   NodeTypeWrapComponent,
-  NodeTypeWrapComponentWithNodeWrapper,
 } from '../workflow/node-types-wrapper';
 import { StringNodeComponent } from '../workflow/nodes';
 import {
@@ -187,9 +187,7 @@ export const codeBuiltinNodeTypes: Record<
         store.actions.createNodeType({
           type: typeName,
           getComponent: () => ({
-            Component: NodeTypeWrapComponentWithNodeWrapper(
-              ComponentSwapper(holder$),
-            ),
+            Component: NodeStandardContainer(ComponentSwapper(holder$)),
           }),
           inputs: [
             {

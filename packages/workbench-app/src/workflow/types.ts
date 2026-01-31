@@ -1,4 +1,10 @@
-import type { Observable, OpaqueObject, PlainObject } from '@legendapp/state';
+import type {
+  ImmutableObservableBase,
+  Observable,
+  ObservablePrimitive,
+  OpaqueObject,
+  PlainObject,
+} from '@legendapp/state';
 
 // type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 // type JsonArray = JsonValue[];
@@ -211,23 +217,22 @@ export type WorkflowComponentSimplePropsTyped<
     store$: Observable<WorkflowRuntimeStore>;
     inputs: {
       [K in keyof TInputs]: {
-        asObservable: () => Observable<TInputs[K]>;
-        subscribe: (cb: (value: TInputs[K]) => void) => void;
-        get: () => TInputs[K];
+        asObservable: () => ObservablePrimitive<TInputs[K]>;
+        getDirectValue: () => TInputs[K];
+        setValue: (value: TInputs[K]) => void;
       };
     };
     outputs: {
       [K in keyof TOutputs]: {
-        asObservable: () => Observable<TOutputs[K]>;
-        subscribe: (cb: (value: TOutputs[K]) => void) => void;
-        get: () => TOutputs[K];
+        asObservable: () => ObservablePrimitive<TOutputs[K]>;
+        getDirectValue: () => TOutputs[K];
+        setValue: (value: TOutputs[K]) => void;
       };
     };
     data: {
       asObservable: () => Observable<TData>;
-      subscribe: (cb: (value: TData) => void) => void;
-      get: () => TData;
-      set: (value: TData) => void;
+      getDirectValue: () => TData;
+      setValue: (value: TData) => void;
     };
   };
 };
@@ -242,24 +247,23 @@ export type WorkflowComponentSimplePropsBase = Omit<
     inputs: Record<
       string,
       {
-        asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
-        subscribe: <T>(cb: (value: T) => void) => void;
-        get: <T>() => T;
+        asObservable: <T>() => ObservablePrimitive<T>;
+        getDirectValue: <T>() => T;
+        setValue: <T>(value: T) => void;
       }
     >;
     outputs: Record<
       string,
       {
-        asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
-        subscribe: <T>(cb: (value: T) => void) => void;
-        get: <T>() => T;
+        asObservable: <T>() => ObservablePrimitive<T>;
+        getDirectValue: <T>() => T;
+        setValue: <T>(value: T) => void;
       }
     >;
     data: {
       asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
-      subscribe: <T extends WorkflowJsonObject>(cb: (value: T) => void) => void;
-      get: <T extends WorkflowJsonObject>() => T;
-      set: <T extends WorkflowJsonObject>(value: T) => void;
+      getDirectValue: <T extends WorkflowJsonObject>() => T;
+      setValue: <T extends WorkflowJsonObject>(value: T) => void;
     };
   };
 };
