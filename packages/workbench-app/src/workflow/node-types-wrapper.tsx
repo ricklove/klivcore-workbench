@@ -6,9 +6,7 @@ import type {
   WorkflowComponentProps,
   WorkflowComponentPropsAny_Ops,
   WorkflowComponentSimplePropsBase,
-  WorkflowJsonObject,
 } from './types';
-import { observe, type Observable } from '@legendapp/state';
 
 export const EmptyNodeComponent = () => (
   <>
@@ -73,16 +71,17 @@ export const NodeTypeWrapComponentWithNodeWrapper = (
   });
 };
 
-export const NodeStandardContainer = (
+export const NodeStandardContainer = <
+  TInputs extends Record<string, unknown>,
+  TOutputs extends Record<string, unknown>,
+  TData extends Record<string, unknown>,
+>(
   InnerComponent: React.ComponentType<
     Omit<WorkflowComponentSimplePropsBase, 'data'> & {
       data: WorkflowComponentSimplePropsBase[`data`] & {
-        // biome-ignore lint/suspicious/noExplicitAny: <this is required to allow the component to assert its own types>
-        inputs: any;
-        // biome-ignore lint/suspicious/noExplicitAny: <this is required to allow the component to assert its own types>
-        outputs: any;
-        // biome-ignore lint/suspicious/noExplicitAny: <this is required to allow the component to assert its own types>
-        data: any;
+        inputs: TInputs;
+        outputs: TOutputs;
+        data: TData;
       };
     }
   >,
@@ -106,7 +105,16 @@ export const NodeStandardContainer = (
     return (
       <WorkflowNodeWrapperSimple {...props} data={data}>
         <ErrorBoundary message={`Error rendering Component`}>
-          <InnerComponent {...props} data={data} />
+          <InnerComponent
+            {...props}
+            data={
+              data as WorkflowComponentSimplePropsBase[`data`] & {
+                inputs: TInputs;
+                outputs: TOutputs;
+                data: TData;
+              }
+            }
+          />
         </ErrorBoundary>
       </WorkflowNodeWrapperSimple>
     );

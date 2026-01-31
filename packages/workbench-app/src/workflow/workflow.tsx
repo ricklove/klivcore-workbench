@@ -148,7 +148,7 @@ const WorkflowViewInner = () => {
   const { nodeTypes, nodes, edges, onNodesChange, onEdgesChange, onConnect } =
     store;
 
-  const { setCenter, setViewport } = useReactFlow();
+  const { setCenter } = useReactFlow();
   const handleMiniMapNodeClick = useCallback(
     (_e: React.MouseEvent, node: Node) => {
       console.log(`MiniMap node clicked:`, { node });
