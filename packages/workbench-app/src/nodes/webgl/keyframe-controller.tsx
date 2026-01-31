@@ -1,12 +1,12 @@
 import { useValue } from '@legendapp/state/react';
 import React, { useCallback, useRef, useState } from 'react';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
   type WorkflowJsonObject,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
+import { NodeTypeWrapComponentWithNodeWrapper } from './_deps.tsx';
 
 // --- TYPES ---
 

@@ -1,9 +1,4 @@
-import {
-  type Observable,
-  ObservableHint,
-  type ObservablePrimitive,
-  observable,
-} from '@legendapp/state';
+import type { Observable, ObservablePrimitive } from '@legendapp/state';
 import type {
   WorkflowComponentSimplePropsBase,
   WorkflowJsonObject,

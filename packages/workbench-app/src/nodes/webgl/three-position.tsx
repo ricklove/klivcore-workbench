@@ -1,14 +1,13 @@
 import { useObservable, useValue } from '@legendapp/state/react';
 import { useCallback } from 'react';
 import * as THREE from 'three';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 import { NumberScrubber } from '../common/number-input-node';
+import { NodeTypeWrapComponentWithNodeWrapper } from './_deps.tsx';
 import { type Box, box, unbox } from './types';
 
 type Vector3Array = [number, number, number];

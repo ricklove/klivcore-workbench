@@ -1,12 +1,12 @@
 import { useValue } from '@legendapp/state/react';
 import { useLayoutEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
+import { NodeTypeWrapComponentWithNodeWrapper } from './_deps.tsx';
 import { type Box, box, unbox } from './types';
 
 // eslint-disable-next-line react-refresh/only-export-components

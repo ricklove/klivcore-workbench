@@ -1,13 +1,11 @@
 import { ObservableHint } from '@legendapp/state';
 import * as THREE from 'three';
-import {
-  EmptyNodeComponent,
-  NodeTypeWrapComponentWithNodeWrapper,
-} from '../../workflow/node-types-wrapper';
+import { EmptyNodeComponent } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
+import { NodeTypeWrapComponentWithNodeWrapper } from './_deps.tsx';
 import { type Box, box, unbox } from './types';
 
 // ---------------------------------------------------------------------------

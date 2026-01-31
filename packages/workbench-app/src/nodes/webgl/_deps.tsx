@@ -1,3 +1,4 @@
+import { type Observable, ObservableHint, observable } from '@legendapp/state';
 import { useValue } from '@legendapp/state/react';
 import { memo } from 'react';
 import { ErrorBoundary } from '../../workflow/error-boundary';
@@ -7,7 +8,6 @@ import type {
   WorkflowComponentPropsAny_Ops,
   WorkflowJsonObject,
 } from '../../workflow/types';
-import { observable, ObservableHint, type Observable } from '@legendapp/state';
 
 const getValues = (data: WorkflowComponentProps[`data`]) => {
   const { node$ } = data;

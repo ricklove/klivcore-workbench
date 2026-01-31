@@ -1,13 +1,11 @@
 import { ObservableHint } from '@legendapp/state';
 import * as THREE from 'three';
-import {
-  EmptyNodeComponent,
-  NodeTypeWrapComponentWithNodeWrapper,
-} from '../../workflow/node-types-wrapper.tsx';
+import { EmptyNodeComponent } from '../../workflow/node-types-wrapper.tsx';
 import {
   WorkflowBrandedTypes,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types.ts';
+import { NodeTypeWrapComponentWithNodeWrapper } from './_deps.tsx';
 import { threeSceneView } from './canvas.tsx';
 import { threeDepthRefinement } from './depth-solver.tsx';
 import { imageNodeTypes } from './image.tsx';
