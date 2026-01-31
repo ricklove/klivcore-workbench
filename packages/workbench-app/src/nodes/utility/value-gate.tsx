@@ -2,11 +2,10 @@
 
 import { useValue } from '@legendapp/state/react';
 import { clsx } from '../../utils/clsx';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
-  type WorkflowComponentProps_Obs,
+  type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 
@@ -30,7 +29,7 @@ interface ValueGateOutputs {
 export const valueGateNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName('valueGate'),
   getComponent: () => ({
-    Component: NodeTypeWrapComponentWithNodeWrapper(ValueGateComponent),
+    Component: NodeStandardContainer(ValueGateComponent),
   }),
   inputs: [
     {
@@ -73,16 +72,17 @@ export const valueGateNodeType: WorkflowRuntimeNodeTypeDefinition = {
 // --- COMPONENTS ---
 
 export const ValueGateComponent = (
-  props: WorkflowComponentProps_Obs<
+  props: WorkflowComponentSimplePropsTyped<
     ValueGateData,
     ValueGateInputs,
     ValueGateOutputs
   >,
 ) => {
-  const { data$ } = props.data;
+  const { data } = props.data;
+  const data$ = data.asObservable();
 
-  const autoSend = useValue(() => data$.autoSend.get() ?? false);
-  const sendOnce = useValue(() => data$.sendOnce.get() ?? false);
+  const autoSend = useValue(data$.autoSend);
+  const sendOnce = useValue(data$.sendOnce);
 
   const handleAutoSendToggle = () => {
     data$.autoSend.set(!autoSend);
@@ -93,50 +93,44 @@ export const ValueGateComponent = (
   };
 
   return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
-        {/* Controls */}
-        <div className="flex flex-col gap-3">
-          {/* Auto Send Checkbox */}
-          <label className="flex items-center gap-2 text-xs text-neutral-300 cursor-pointer hover:text-white transition-colors">
-            <input
-              type="checkbox"
-              checked={autoSend}
-              onChange={handleAutoSendToggle}
-              className="rounded border-neutral-600 bg-neutral-800"
-            />
-            Auto send
-          </label>
+    <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
+      {/* Controls */}
+      <div className="flex flex-col gap-3">
+        {/* Auto Send Checkbox */}
+        <label className="flex items-center gap-2 text-xs text-neutral-300 cursor-pointer hover:text-white transition-colors">
+          <input
+            type="checkbox"
+            checked={autoSend}
+            onChange={handleAutoSendToggle}
+            className="rounded border-neutral-600 bg-neutral-800"
+          />
+          Auto send
+        </label>
 
-          {/* Send Button (only when auto-send is off) */}
-          {!autoSend && (
-            <button
-              type="button"
-              onClick={handleSend}
-              disabled={sendOnce}
-              className={clsx(
-                'w-full py-2 px-3 rounded text-xs font-medium transition-colors',
-                sendOnce
-                  ? 'bg-neutral-700 text-neutral-500 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-800',
-              )}
-            >
-              {sendOnce ? 'Sent ✓' : 'Send'}
-            </button>
-          )}
+        {/* Send Button (only when auto-send is off) */}
+        {!autoSend && (
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={sendOnce}
+            className={clsx(
+              'w-full py-2 px-3 rounded text-xs font-medium transition-colors',
+              sendOnce
+                ? 'bg-neutral-700 text-neutral-500 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-800',
+            )}
+          >
+            {sendOnce ? 'Sent ✓' : 'Send'}
+          </button>
+        )}
 
-          {/* Status Display */}
-          <div className="text-[10px] text-neutral-400 text-center">
-            Status:{' '}
-            {autoSend
-              ? 'Auto-sending'
-              : sendOnce
-                ? 'Sent once'
-                : 'Ready to send'}
-          </div>
+        {/* Status Display */}
+        <div className="text-[10px] text-neutral-400 text-center">
+          Status:{' '}
+          {autoSend ? 'Auto-sending' : sendOnce ? 'Sent once' : 'Ready to send'}
         </div>
       </div>
-    </WorkflowNodeWrapperSimple>
+    </div>
   );
 };
 
