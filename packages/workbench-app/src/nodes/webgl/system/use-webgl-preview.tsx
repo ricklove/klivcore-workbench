@@ -1,11 +1,13 @@
-import { useLayoutEffect, useRef, useId } from 'react';
+import { useId, useLayoutEffect, useRef } from 'react';
 import {
-  webglPreviewStore$,
-  type TexturePreviewData,
   type ScenePreviewData,
+  type TexturePreviewData,
+  webglPreviewStore$,
 } from './webgl-preview-store';
 
-export const useWebGLPreview = (data: TexturePreviewData | ScenePreviewData | null | undefined) => {
+export const useWebGLPreview = (
+  data: TexturePreviewData | ScenePreviewData | null | undefined,
+) => {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 

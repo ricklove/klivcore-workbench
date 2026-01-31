@@ -1,4 +1,10 @@
+import { useValue } from '@legendapp/state/react';
 import { useMemo } from 'react';
+import {
+  EmptyNodeComponent,
+  NodeTypeWrapComponentWithNodeWrapper,
+} from '../../workflow/node-types-wrapper';
+import { WrapperHandles } from '../../workflow/node-wrapper';
 import { getReactFlowNodeDataProp } from '../../workflow/store-fast/react-flow-node-data-prop';
 import {
   WorkflowBrandedTypes,
@@ -6,12 +12,6 @@ import {
   type WorkflowJsonObject,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
-import {
-  EmptyNodeComponent,
-  NodeTypeWrapComponentWithNodeWrapper,
-} from '../../workflow/node-types-wrapper';
-import { WrapperHandles } from '../../workflow/node-wrapper';
 
 export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`clone`),
@@ -50,10 +50,14 @@ const CloneComponent = (props: WorkflowComponentProps) => {
     return { nodeId, targetNode, targetNodeType };
   });
 
-  const TargetComponent = useMemo(() => targetNodeType?.getComponent?.(), [targetNodeType]);
+  const TargetComponent = useMemo(
+    () => targetNodeType?.getComponent?.(),
+    [targetNodeType],
+  );
 
   if (!nodeId || !targetNode || !TargetComponent) {
-    const DefaultComponent = NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent);
+    const DefaultComponent =
+      NodeTypeWrapComponentWithNodeWrapper(EmptyNodeComponent);
     return <DefaultComponent {...props} />;
   }
 
@@ -73,7 +77,10 @@ const CloneComponent = (props: WorkflowComponentProps) => {
           >['data']
         }
       />
-      <WrapperHandles selected={props.selected} data={{ node$: props.data.node$ }} />
+      <WrapperHandles
+        selected={props.selected}
+        data={{ node$: props.data.node$ }}
+      />
     </>
   );
 };

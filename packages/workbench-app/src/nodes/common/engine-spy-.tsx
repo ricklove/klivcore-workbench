@@ -1,8 +1,11 @@
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
 import {
   EmptyNodeComponent,
   NodeTypeWrapComponentWithNodeWrapper,
 } from '../../workflow/node-types-wrapper';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types';
 
 export const engineSpyNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`engineSpy`),

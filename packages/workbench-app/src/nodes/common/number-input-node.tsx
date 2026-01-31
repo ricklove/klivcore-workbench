@@ -1,4 +1,6 @@
-import React, { useRef, useState } from 'react';
+import { useValue } from '@legendapp/state/react';
+import type React from 'react';
+import { useRef, useState } from 'react';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
@@ -6,7 +8,6 @@ import {
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
 
 // --- LOGIC: Node Definition ---
 // eslint-disable-next-line react-refresh/only-export-components
@@ -117,11 +118,12 @@ export const NumberScrubber = ({
       if (moveEvent.altKey) multiplier = 0.001;
       if (!isIntegerMode) {
         // Normalize Y position relative to startY: 0 at startY, 1 at top, -1 at bottom
-        const normalizedY = (startY - moveEvent.clientY) / (window.innerHeight / 2);
+        const normalizedY =
+          (startY - moveEvent.clientY) / (window.innerHeight / 2);
         // Clamp to ensure it's within -1 to 1
         const clampedY = Math.max(-1, Math.min(1, normalizedY));
         // Exponent ranges from -3 (bottom, 0.001x) to 3 (top, 1000x), with 0 at startY (1x)
-        const s = Math.pow(10, clampedY * 3);
+        const s = 10 ** (clampedY * 3);
         multiplier *= s;
       }
       const newValue = startValue + deltaX * multiplier;
@@ -166,7 +168,11 @@ export const NumberScrubber = ({
   return (
     <div
       className="flex flex-col items-start gap-0.5 flex-1 min-w-0 group"
-      title={readonly ? 'Value is set by input' : 'Drag to change, Double-click to type'}
+      title={
+        readonly
+          ? 'Value is set by input'
+          : 'Drag to change, Double-click to type'
+      }
     >
       {isEditing ? (
         <input

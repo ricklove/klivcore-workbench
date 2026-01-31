@@ -14,6 +14,11 @@ export const ComponentSwapper = (
 
     // console.log('ComponentSwapper rendering with holder$', { holder });
 
-    return <holder.Component key={holder.instanceId} {...(props as Record<string, unknown>)} />;
+    return (
+      <holder.Component
+        key={holder.instanceId}
+        {...(props as Record<string, unknown>)}
+      />
+    );
   };
 };

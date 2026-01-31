@@ -1,11 +1,14 @@
+import { ObservableHint } from '@legendapp/state';
+import * as THREE from 'three';
 import {
   EmptyNodeComponent,
   NodeTypeWrapComponentWithNodeWrapper,
 } from '../../workflow/node-types-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
-import * as THREE from 'three';
-import { ObservableHint } from '@legendapp/state';
-import { unbox, box, type Box } from './types';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types';
+import { type Box, box, unbox } from './types';
 
 // ---------------------------------------------------------------------------
 // Shaders (GLSL 3.0)
@@ -175,11 +178,15 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
   inputs: [
     {
       name: WorkflowBrandedTypes.inputName(`colorTexture`),
-      type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      type: WorkflowBrandedTypes.valueType(
+        `Box<THREE.Texture<HTMLImageElement>>`,
+      ),
     },
     {
       name: WorkflowBrandedTypes.inputName(`depthTexture`),
-      type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      type: WorkflowBrandedTypes.valueType(
+        `Box<THREE.Texture<HTMLImageElement>>`,
+      ),
     },
     {
       name: WorkflowBrandedTypes.inputName(`enabled`),
@@ -217,8 +224,12 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   execute: async ({ inputs, runtimeState }) => {
-    const colorTexture = unbox(inputs.colorTexture as Box<THREE.Texture<HTMLImageElement>>);
-    const depthTexture = unbox(inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>);
+    const colorTexture = unbox(
+      inputs.colorTexture as Box<THREE.Texture<HTMLImageElement>>,
+    );
+    const depthTexture = unbox(
+      inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>,
+    );
 
     const enabled = (inputs.enabled as boolean) ?? false;
     const iterations = (inputs.iterations as number) ?? 1;
@@ -312,14 +323,23 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
     if (!rs.runner) {
       const geometry = new THREE.BufferGeometry();
-      const material = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
+      const material = new THREE.MeshBasicMaterial({
+        colorWrite: false,
+        depthWrite: false,
+      });
 
       rs.runner = new THREE.Mesh(geometry, material);
       rs.runner.frustumCulled = false;
       rs.runner.renderOrder = -Infinity;
 
       rs.runner.onBeforeRender = (renderer) => {
-        if (!rs.quadScene || !rs.quadCamera || !rs.solverMat || !rs.combineMat || !rs.zeroMat)
+        if (
+          !rs.quadScene ||
+          !rs.quadCamera ||
+          !rs.solverMat ||
+          !rs.combineMat ||
+          !rs.zeroMat
+        )
           return;
         if (!rs.ping || !rs.pong || !rs.output) return;
 
@@ -331,7 +351,11 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
         // A. INITIALIZATION
         // Reset Ping/Pong to Zero (0 Offset)
         // Populate Output with Initial + 0
-        if (!rs.initialized || rs.shouldReset || rs.currentTexture !== depthTexture) {
+        if (
+          !rs.initialized ||
+          rs.shouldReset ||
+          rs.currentTexture !== depthTexture
+        ) {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
 
           // 1. Zero out Ping/Pong
@@ -343,7 +367,8 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
           // 2. Initialize Output (Initial + 0)
           quad.material = rs.combineMat!;
-          const combineU = rs.combineMat!.uniforms as unknown as CombineUniforms;
+          const combineU = rs.combineMat!
+            .uniforms as unknown as CombineUniforms;
           combineU.tInitial.value = depthTexture;
           combineU.tOffset.value = rs.ping.texture; // Ping is zero
 
@@ -365,7 +390,8 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
           let write = rs.pong!;
 
           rs.runIndex = (rs.runIndex || 0) + 1;
-          const iterationMod = (rs.iterations < 1 ? Math.ceil(1 / rs.iterations) : 1) || 0;
+          const iterationMod =
+            (rs.iterations < 1 ? Math.ceil(1 / rs.iterations) : 1) || 0;
 
           if (rs.runIndex % iterationMod === 0) {
             console.log(`[threeDepthRefinement] Running solver`, {
@@ -389,7 +415,8 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
           // C. COMBINE & OUTPUT
           quad.material = rs.combineMat!;
-          const combineU = rs.combineMat!.uniforms as unknown as CombineUniforms;
+          const combineU = rs.combineMat!
+            .uniforms as unknown as CombineUniforms;
           combineU.tInitial.value = depthTexture;
           combineU.tOffset.value = read.texture; // The calculated offset
 

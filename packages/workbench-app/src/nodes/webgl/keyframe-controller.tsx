@@ -1,13 +1,13 @@
-import React, { useState, useRef, useCallback } from 'react';
+import { useValue } from '@legendapp/state/react';
+import React, { useCallback, useRef, useState } from 'react';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentProps_Obs,
-  type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowJsonObject,
+  type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
 
 // --- TYPES ---
 
@@ -43,9 +43,16 @@ const interpolateValue = (start: unknown, end: unknown, t: number): unknown => {
   }
 
   // Handle objects
-  if (typeof start === 'object' && start !== null && typeof end === 'object' && end !== null) {
+  if (
+    typeof start === 'object' &&
+    start !== null &&
+    typeof end === 'object' &&
+    end !== null
+  ) {
     const result: Record<string, unknown> = {};
-    const keys = Array.from(new Set([...Object.keys(start), ...Object.keys(end)]));
+    const keys = Array.from(
+      new Set([...Object.keys(start), ...Object.keys(end)]),
+    );
 
     for (const key of keys) {
       const startVal = (start as Record<string, unknown>)[key];
@@ -71,7 +78,10 @@ const interpolateKeyframes = (
   keyframes: Record<number, WorkflowJsonObject>,
   frame: number,
 ): WorkflowJsonObject | null => {
-  console.log('[keyframeController:interpolateKeyframes] START', { keyframes, frame });
+  console.log('[keyframeController:interpolateKeyframes] START', {
+    keyframes,
+    frame,
+  });
 
   if (Object.keys(keyframes).length === 0) return null;
 
@@ -134,7 +144,9 @@ const interpolateKeyframes = (
 export const keyframeControllerNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName('keyframeController'),
   getComponent: () => ({
-    Component: NodeTypeWrapComponentWithNodeWrapper(KeyframeControllerComponent),
+    Component: NodeTypeWrapComponentWithNodeWrapper(
+      KeyframeControllerComponent,
+    ),
   }),
   inputs: [
     {
@@ -153,7 +165,11 @@ export const keyframeControllerNodeType: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   execute: async ({ inputs, data, runtimeState }) => {
-    console.log('[keyframeController:execute] START', { inputs, data, runtimeState });
+    console.log('[keyframeController:execute] START', {
+      inputs,
+      data,
+      runtimeState,
+    });
 
     const safeData = (data as unknown as KeyframeData) || {
       keyframes: {},
@@ -168,7 +184,9 @@ export const keyframeControllerNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     const keyframes = safeData.keyframes || {};
     const currentFrame =
-      typeof inputs.frameIndex === 'number' ? inputs.frameIndex : safeData.currentFrame || 0;
+      typeof inputs.frameIndex === 'number'
+        ? inputs.frameIndex
+        : safeData.currentFrame || 0;
 
     const rs = runtimeState as {
       lastFrame?: number;
@@ -191,7 +209,10 @@ export const keyframeControllerNodeType: WorkflowRuntimeNodeTypeDefinition = {
       return;
     }
 
-    if (rs.lastOutput && JSON.stringify(rs.lastOutput) === JSON.stringify(targetData)) {
+    if (
+      rs.lastOutput &&
+      JSON.stringify(rs.lastOutput) === JSON.stringify(targetData)
+    ) {
       return;
     }
 
@@ -215,12 +236,21 @@ interface ButtonProps {
   title?: string;
 }
 
-const Button = ({ onClick, disabled, variant = 'secondary', children, title }: ButtonProps) => {
+const Button = ({
+  onClick,
+  disabled,
+  variant = 'secondary',
+  children,
+  title,
+}: ButtonProps) => {
   const baseClasses = 'px-2 py-1 rounded text-xs font-medium transition-colors';
   const variantClasses = {
-    primary: 'bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 border border-blue-500/50',
-    secondary: 'bg-neutral-700/50 text-neutral-300 hover:bg-neutral-700 border border-neutral-600',
-    danger: 'bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/50',
+    primary:
+      'bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 border border-blue-500/50',
+    secondary:
+      'bg-neutral-700/50 text-neutral-300 hover:bg-neutral-700 border border-neutral-600',
+    danger:
+      'bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/50',
   };
 
   return (
@@ -248,7 +278,8 @@ const NumberScrubber = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const displayValue = typeof value === 'number' && !isNaN(value) ? Math.round(value) : '0';
+  const displayValue =
+    typeof value === 'number' && !isNaN(value) ? Math.round(value) : '0';
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isEditing) return;
@@ -325,7 +356,11 @@ const NumberScrubber = ({
 // --- MAIN COMPONENT ---
 
 export const KeyframeControllerComponent = (
-  props: WorkflowComponentProps_Obs<KeyframeData, KeyframeInputs, KeyframeOutputs>,
+  props: WorkflowComponentProps_Obs<
+    KeyframeData,
+    KeyframeInputs,
+    KeyframeOutputs
+  >,
 ) => {
   const { data$, inputs$ } = props.data;
 
@@ -333,7 +368,9 @@ export const KeyframeControllerComponent = (
   const keyframes = useValue(() => data$.keyframes.get() || {});
   const currentFrame = useValue(() => data$.currentFrame.get() || 0);
   const isPlaying = useValue(() => data$.isPlaying.get() || false);
-  const interpolationEnabled = useValue(() => data$.interpolationEnabled.get() !== false);
+  const interpolationEnabled = useValue(
+    () => data$.interpolationEnabled.get() !== false,
+  );
 
   // Inputs
   const inputFrameIndex = useValue(inputs$.frameIndex);
@@ -383,7 +420,8 @@ export const KeyframeControllerComponent = (
     [data$],
   );
 
-  const hasKeyframeAtCurrentFrame = keyframes[Math.floor(currentFrame)] !== undefined;
+  const hasKeyframeAtCurrentFrame =
+    keyframes[Math.floor(currentFrame)] !== undefined;
   const keyframeCount = Object.keys(keyframes).length;
   const keyframeFrames = Object.keys(keyframes)
     .map(Number)
@@ -404,12 +442,22 @@ export const KeyframeControllerComponent = (
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
               </svg>
             ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M5 3l14 9-14 9V3z" />
               </svg>
             )}
@@ -452,7 +500,11 @@ export const KeyframeControllerComponent = (
           <Button
             onClick={toggleInterpolation}
             variant={interpolationEnabled ? 'primary' : 'secondary'}
-            title={interpolationEnabled ? 'Disable interpolation' : 'Enable interpolation'}
+            title={
+              interpolationEnabled
+                ? 'Disable interpolation'
+                : 'Enable interpolation'
+            }
           >
             {interpolationEnabled ? 'INTERP' : 'NO INTERP'}
           </Button>

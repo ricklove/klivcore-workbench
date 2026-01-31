@@ -18,7 +18,9 @@ export const ollamaNodes = createLlmNodes({
         : {
             inputTokens: chunkResult.prompt_eval_count ?? 0,
             outputTokens: chunkResult.eval_count ?? 0,
-            totalTokens: (chunkResult.prompt_eval_count ?? 0) + (chunkResult.eval_count ?? 0),
+            totalTokens:
+              (chunkResult.prompt_eval_count ?? 0) +
+              (chunkResult.eval_count ?? 0),
           },
     };
   },

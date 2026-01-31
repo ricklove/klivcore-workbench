@@ -1,1242 +1,1242 @@
 {
-    "nodes": [
+  "nodes": [
+    {
+      "id": "n-string-1768450022694",
+      "type": "string",
+      "position": {
+        "x": -248,
+        "y": -48,
+        "width": 160,
+        "height": 24
+      },
+      "inputs": [
         {
-            "id": "n-string-1768450022694",
-            "type": "string",
-            "position": {
-                "x": -248,
-                "y": -48,
-                "width": 160,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "Code Node Design"
-            }
-        },
-        {
-            "id": "n-string-1768450044976",
-            "type": "string",
-            "position": {
-                "x": -248,
-                "y": 32,
-                "width": 296,
-                "height": 296
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "code-node\n\ncode: string\n---\n\n"
-            }
-        },
-        {
-            "id": "n-string-1768450068294",
-            "type": "string",
-            "position": {
-                "x": -248,
-                "y": 376,
-                "width": 304,
-                "height": 192
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "dyn-code-execution\nbottom output: a handle to runtime instances, which will create a runtime node type:\n- inputs: each token referenced\n- outputs: the declared values (i.e. the const name becomes an output value)\n"
-            }
-        },
-        {
-            "id": "n-string-1768450424637",
-            "type": "string",
-            "position": {
-                "x": 376,
-                "y": 376,
-                "width": 280,
-                "height": 168
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "dyn-code-execution\nagain, this is for executing the code and will have inputs and outputs based on the code tokens."
-            }
-        },
-        {
-            "id": "n-string-1768450513492",
-            "type": "string",
-            "position": {
-                "x": 328,
-                "y": 40,
-                "width": 328,
-                "height": 296
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "code-node (span)\n\nthis represents an editable selection of code\n\nit is possible to overscroll to see the original content here, but the focus is on the span.\n\nOnly the span contents is writable, and it will send signal back to the original node onChange"
-            }
-        },
-        {
-            "id": "n-string-1768450824982",
-            "type": "string",
-            "position": {
-                "x": 32,
-                "y": 456,
-                "width": 216,
-                "height": 112
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "placed outputs: internal values can be captured as an output value, to be used to execute code spans"
-            }
-        },
-        {
-            "id": "n-string-1768450898927",
-            "type": "string",
-            "position": {
-                "x": 24,
-                "y": 152,
-                "width": 208,
-                "height": 104
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "placed outputs: are handles inside the text, representing an ast selection (like a declaration statement)"
-            }
-        },
-        {
-            "id": "n-string-1768451061022",
-            "type": "string",
-            "position": {
-                "x": 720,
-                "y": 48,
-                "width": 344,
-                "height": 288
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "code-node (span 2)"
-            }
-        },
-        {
-            "id": "n-string-1768451076289",
-            "type": "string",
-            "position": {
-                "x": 792,
-                "y": 376,
-                "width": 256,
-                "height": 160
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "dyn-code-execution\nit might make sense to chain these together side to side for dependent code spans"
-            }
-        },
-        {
-            "id": "n-string-1768451121724",
-            "type": "string",
-            "position": {
-                "x": 312,
-                "y": 424,
-                "width": 48,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768450824982",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451134662",
-            "type": "string",
-            "position": {
-                "x": 720,
-                "y": 408,
-                "width": 48,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768450424637",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451193526",
-            "type": "string",
-            "position": {
-                "x": 264,
-                "y": 72,
-                "width": 48,
-                "height": 32
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768450898927",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451216820",
-            "type": "string",
-            "position": {
-                "x": -112,
-                "y": 336,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768450044976",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451227994",
-            "type": "string",
-            "position": {
-                "x": 472,
-                "y": 336,
-                "width": 24,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768450513492",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451249087",
-            "type": "string",
-            "position": {
-                "x": 904,
-                "y": 344,
-                "width": 24,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451061022",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451280134",
-            "type": "string",
-            "position": {
-                "x": -696,
-                "y": 384,
-                "width": 312,
-                "height": 304
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "data-grid\nExperimental inputs\n\nThis is a typed data grid (spreadsheet) of input values that can be used to select an execution input set to run the whole\n\n- Each column represents a named output value\n- The row represents an output set\n- Selecting a row sets the output\n- Can filter rows by any column"
-            }
-        },
-        {
-            "id": "n-string-1768451338623",
-            "type": "string",
-            "position": {
-                "x": -320,
-                "y": 416,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451280134",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451351115",
-            "type": "string",
-            "position": {
-                "x": -320,
-                "y": 456,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451280134",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451360996",
-            "type": "string",
-            "position": {
-                "x": -320,
-                "y": 496,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451280134",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451695310",
-            "type": "string",
-            "position": {
-                "x": -768,
-                "y": 440,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451732468",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451702494",
-            "type": "string",
-            "position": {
-                "x": -768,
-                "y": 480,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451732468",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451713652",
-            "type": "string",
-            "position": {
-                "x": -768,
-                "y": 520,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451732468",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451732468",
-            "type": "string",
-            "position": {
-                "x": -1128,
-                "y": 472,
-                "width": 256,
-                "height": 168
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "inputs to data-grid will be recorded so they can be replayed\n\nthey also become active (unless the data-grid is sticky)"
-            }
-        },
-        {
-            "id": "n-string-1768451850797",
-            "type": "string",
-            "position": {
-                "x": -696,
-                "y": 720,
-                "width": 160,
-                "height": 136
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "preview\n\njust attach a preview node to visualize the current selection"
-            }
-        },
-        {
-            "id": "n-string-1768451884399",
-            "type": "string",
-            "position": {
-                "x": -768,
-                "y": 744,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451360996",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451961233",
-            "type": "string",
-            "position": {
-                "x": -776,
-                "y": 584,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451970531",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768451970531",
-            "type": "string",
-            "position": {
-                "x": -1064,
-                "y": 712,
-                "width": 256,
-                "height": 200
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "preview-components\n\na map of output: preview-component can be provided to customize the data-grid cell view\n\nthis would allow viewing or editing a cell value that is not text"
-            }
-        },
-        {
-            "id": "n-string-1768452446796",
-            "type": "string",
-            "position": {
-                "x": 1200,
-                "y": 56,
-                "width": 424,
-                "height": 264
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "code-node (subspan)\n\nit is of course possible to further drill down"
-            }
-        },
-        {
-            "id": "n-string-1768452478958",
-            "type": "string",
-            "position": {
-                "x": 1048,
-                "y": 160,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768452485390",
-            "type": "string",
-            "position": {
-                "x": 1144,
-                "y": 96,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768452478958",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768452500091",
-            "type": "string",
-            "position": {
-                "x": 1152,
-                "y": 376,
-                "width": 104,
-                "height": 160
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "data-grid\n\nand record and replay any output set"
-            }
-        },
-        {
-            "id": "n-string-1768452540703",
-            "type": "string",
-            "position": {
-                "x": 1288,
-                "y": 400,
-                "width": 48,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768452500091",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768452553263",
-            "type": "string",
-            "position": {
-                "x": 1336,
-                "y": 328,
-                "width": 48,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768452564359",
-            "type": "string",
-            "position": {
-                "x": 1360,
-                "y": 368,
-                "width": 264,
-                "height": 168
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "dyn-code-execution\n\nin this way, you can drill down, while producing suitable inputs for the inner code"
-            }
-        },
-        {
-            "id": "n-string-1768452635432",
-            "type": "string",
-            "position": {
-                "x": 1464,
-                "y": -40,
-                "width": 376,
-                "height": 136
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "save?\n\nthe code span object has a callback that allows sending a signal to save the code back to the original document (unless it is marked readonly)"
-            }
-        },
-        {
-            "id": "n-string-1768452708514",
-            "type": "string",
-            "position": {
-                "x": 1576,
-                "y": 112,
-                "width": 264,
-                "height": 88
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "output edits: or you can just output the edited code without saving"
-            }
-        },
-        {
-            "id": "n-string-1768452801128",
-            "type": "string",
-            "position": {
-                "x": -768,
-                "y": 624,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768452808288",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768452808288",
-            "type": "string",
-            "position": {
-                "x": -1016,
-                "y": 968,
-                "width": 288,
-                "height": 312
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "serializer\n\nyou might need to provide a custom serializer to allow saving non-json values \n\nthis is just an async method that can serializer enough data to be able to call anything to recreate the full object when needed\n\nfor example, it could load a video from a url"
-            }
-        },
-        {
-            "id": "n-string-1768453095341",
-            "type": "string",
-            "position": {
-                "x": -240,
-                "y": 600,
-                "width": 288,
-                "height": 216
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "this of course could support any language, the execution node type would do whatever logic is needed to execute the code (and instrument the code to grab internal values)\n\nit could run the code on a server for example"
-            }
-        },
-        {
-            "id": "n-string-1768453668311",
-            "type": "string",
-            "position": {
-                "x": -1672,
-                "y": 640,
-                "width": 320,
-                "height": 376
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "recursion\n\nby sending recursive calls back through the data-grid, it is possible to record all levels in a recursive call structure and replay any point, etc.\n\nit would be possible to add a call-tree context label so the call-tree can be reconstructed later\n\na call-tree node could be used to visualize and explorer everything (or select a value for replay)"
-            }
-        },
-        {
-            "id": "n-string-1768453841562",
-            "type": "string",
-            "position": {
-                "x": -536,
-                "y": 1016,
-                "width": 40,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768451280134",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768453854566",
-            "type": "string",
-            "position": {
-                "x": -464,
-                "y": 992,
-                "width": 224,
-                "height": 272
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "data-array\n\nit would be possible to output the serialized contents of the whole data-grid.\n\nThis might be useful to send to a call-tree visualizer node for example"
-            }
-        },
-        {
-            "id": "n-string-1768454162985",
-            "type": "string",
-            "position": {
-                "x": 2208,
-                "y": -72,
-                "width": 352,
-                "height": 480
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "code-node (constructed)"
-            }
-        },
-        {
-            "id": "n-string-1768454174835",
-            "type": "string",
-            "position": {
-                "x": 2144,
-                "y": 24,
-                "width": 376,
-                "height": 304
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "placed inputs:\n\nyou can construct code also, by dragging code output into a code-node to copy it into that document as a section\n\nthis is probably more useful when rewriting code as a new implementation instead of editing it in place (i.e. the source code is readonly, but you can edit and experiment with the code and then save it into a new document"
-            }
-        },
-        {
-            "id": "n-string-1768454469214",
-            "type": "string",
-            "position": {
-                "x": 2088,
-                "y": 48,
-                "width": 32,
-                "height": 24
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string",
-                    "source": {
-                        "nodeId": "n-string-1768452708514",
-                        "name": "value"
-                    }
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "id": "n-string-1768454524688",
-            "type": "string",
-            "position": {
-                "x": 2408,
-                "y": -200,
-                "width": 264,
-                "height": 176
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "save\n\nsaving here would send signals back to the placed inputs so they can apply changes back into their context, and rerun executions, etc."
-            }
-        },
-        {
-            "id": "n-string-1768454646152",
-            "type": "string",
-            "position": {
-                "x": 2176,
-                "y": -408,
-                "width": 480,
-                "height": 128
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "filepath\n\nit seems good to allow the code-node to set a file name and use the workflow-server in context to load/save documents (unless they are a code span)"
-            }
-        },
-        {
-            "id": "n-string-1768454892113",
-            "type": "string",
-            "position": {
-                "x": -1680,
-                "y": 1136,
-                "width": 456,
-                "height": 352
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "types\n\n- runtime values can help infer types (especially the data-grid)\n- type information can also be obtained from the original document context (by chasing down all the dependencies and searching for any type information, etc.)\n- or from the new context of course\n- but when everything is constantly running, type information is less important\n\n- once type is established, it is also possible to generate runtime type checking early returns or asserts"
-            }
-        },
-        {
-            "id": "n-string-1768536412486",
-            "type": "string",
-            "position": {
-                "x": 688,
-                "y": -176,
-                "width": 384,
-                "height": 200
-            },
-            "inputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "value",
-                    "type": "string"
-                }
-            ],
-            "data": {
-                "value": "substitution:\n\nit is possible to substitute (or override) a code-span.\n\nThis is important for debugging the top of a heavy process, or mocking a resource call, etc."
-            }
+          "name": "value",
+          "type": "string"
         }
-    ]
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "Code Node Design"
+      }
+    },
+    {
+      "id": "n-string-1768450044976",
+      "type": "string",
+      "position": {
+        "x": -248,
+        "y": 32,
+        "width": 296,
+        "height": 296
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "code-node\n\ncode: string\n---\n\n"
+      }
+    },
+    {
+      "id": "n-string-1768450068294",
+      "type": "string",
+      "position": {
+        "x": -248,
+        "y": 376,
+        "width": 304,
+        "height": 192
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "dyn-code-execution\nbottom output: a handle to runtime instances, which will create a runtime node type:\n- inputs: each token referenced\n- outputs: the declared values (i.e. the const name becomes an output value)\n"
+      }
+    },
+    {
+      "id": "n-string-1768450424637",
+      "type": "string",
+      "position": {
+        "x": 376,
+        "y": 376,
+        "width": 280,
+        "height": 168
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "dyn-code-execution\nagain, this is for executing the code and will have inputs and outputs based on the code tokens."
+      }
+    },
+    {
+      "id": "n-string-1768450513492",
+      "type": "string",
+      "position": {
+        "x": 328,
+        "y": 40,
+        "width": 328,
+        "height": 296
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "code-node (span)\n\nthis represents an editable selection of code\n\nit is possible to overscroll to see the original content here, but the focus is on the span.\n\nOnly the span contents is writable, and it will send signal back to the original node onChange"
+      }
+    },
+    {
+      "id": "n-string-1768450824982",
+      "type": "string",
+      "position": {
+        "x": 32,
+        "y": 456,
+        "width": 216,
+        "height": 112
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "placed outputs: internal values can be captured as an output value, to be used to execute code spans"
+      }
+    },
+    {
+      "id": "n-string-1768450898927",
+      "type": "string",
+      "position": {
+        "x": 24,
+        "y": 152,
+        "width": 208,
+        "height": 104
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "placed outputs: are handles inside the text, representing an ast selection (like a declaration statement)"
+      }
+    },
+    {
+      "id": "n-string-1768451061022",
+      "type": "string",
+      "position": {
+        "x": 720,
+        "y": 48,
+        "width": 344,
+        "height": 288
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "code-node (span 2)"
+      }
+    },
+    {
+      "id": "n-string-1768451076289",
+      "type": "string",
+      "position": {
+        "x": 792,
+        "y": 376,
+        "width": 256,
+        "height": 160
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "dyn-code-execution\nit might make sense to chain these together side to side for dependent code spans"
+      }
+    },
+    {
+      "id": "n-string-1768451121724",
+      "type": "string",
+      "position": {
+        "x": 312,
+        "y": 424,
+        "width": 48,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768450824982",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451134662",
+      "type": "string",
+      "position": {
+        "x": 720,
+        "y": 408,
+        "width": 48,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768450424637",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451193526",
+      "type": "string",
+      "position": {
+        "x": 264,
+        "y": 72,
+        "width": 48,
+        "height": 32
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768450898927",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451216820",
+      "type": "string",
+      "position": {
+        "x": -112,
+        "y": 336,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768450044976",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451227994",
+      "type": "string",
+      "position": {
+        "x": 472,
+        "y": 336,
+        "width": 24,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768450513492",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451249087",
+      "type": "string",
+      "position": {
+        "x": 904,
+        "y": 344,
+        "width": 24,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451061022",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451280134",
+      "type": "string",
+      "position": {
+        "x": -696,
+        "y": 384,
+        "width": 312,
+        "height": 304
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "data-grid\nExperimental inputs\n\nThis is a typed data grid (spreadsheet) of input values that can be used to select an execution input set to run the whole\n\n- Each column represents a named output value\n- The row represents an output set\n- Selecting a row sets the output\n- Can filter rows by any column"
+      }
+    },
+    {
+      "id": "n-string-1768451338623",
+      "type": "string",
+      "position": {
+        "x": -320,
+        "y": 416,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451280134",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451351115",
+      "type": "string",
+      "position": {
+        "x": -320,
+        "y": 456,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451280134",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451360996",
+      "type": "string",
+      "position": {
+        "x": -320,
+        "y": 496,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451280134",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451695310",
+      "type": "string",
+      "position": {
+        "x": -768,
+        "y": 440,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451732468",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451702494",
+      "type": "string",
+      "position": {
+        "x": -768,
+        "y": 480,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451732468",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451713652",
+      "type": "string",
+      "position": {
+        "x": -768,
+        "y": 520,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451732468",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451732468",
+      "type": "string",
+      "position": {
+        "x": -1128,
+        "y": 472,
+        "width": 256,
+        "height": 168
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "inputs to data-grid will be recorded so they can be replayed\n\nthey also become active (unless the data-grid is sticky)"
+      }
+    },
+    {
+      "id": "n-string-1768451850797",
+      "type": "string",
+      "position": {
+        "x": -696,
+        "y": 720,
+        "width": 160,
+        "height": 136
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "preview\n\njust attach a preview node to visualize the current selection"
+      }
+    },
+    {
+      "id": "n-string-1768451884399",
+      "type": "string",
+      "position": {
+        "x": -768,
+        "y": 744,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451360996",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451961233",
+      "type": "string",
+      "position": {
+        "x": -776,
+        "y": 584,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451970531",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768451970531",
+      "type": "string",
+      "position": {
+        "x": -1064,
+        "y": 712,
+        "width": 256,
+        "height": 200
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "preview-components\n\na map of output: preview-component can be provided to customize the data-grid cell view\n\nthis would allow viewing or editing a cell value that is not text"
+      }
+    },
+    {
+      "id": "n-string-1768452446796",
+      "type": "string",
+      "position": {
+        "x": 1200,
+        "y": 56,
+        "width": 424,
+        "height": 264
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "code-node (subspan)\n\nit is of course possible to further drill down"
+      }
+    },
+    {
+      "id": "n-string-1768452478958",
+      "type": "string",
+      "position": {
+        "x": 1048,
+        "y": 160,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768452485390",
+      "type": "string",
+      "position": {
+        "x": 1144,
+        "y": 96,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768452478958",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768452500091",
+      "type": "string",
+      "position": {
+        "x": 1152,
+        "y": 376,
+        "width": 104,
+        "height": 160
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "data-grid\n\nand record and replay any output set"
+      }
+    },
+    {
+      "id": "n-string-1768452540703",
+      "type": "string",
+      "position": {
+        "x": 1288,
+        "y": 400,
+        "width": 48,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768452500091",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768452553263",
+      "type": "string",
+      "position": {
+        "x": 1336,
+        "y": 328,
+        "width": 48,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768452564359",
+      "type": "string",
+      "position": {
+        "x": 1360,
+        "y": 368,
+        "width": 264,
+        "height": 168
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "dyn-code-execution\n\nin this way, you can drill down, while producing suitable inputs for the inner code"
+      }
+    },
+    {
+      "id": "n-string-1768452635432",
+      "type": "string",
+      "position": {
+        "x": 1464,
+        "y": -40,
+        "width": 376,
+        "height": 136
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "save?\n\nthe code span object has a callback that allows sending a signal to save the code back to the original document (unless it is marked readonly)"
+      }
+    },
+    {
+      "id": "n-string-1768452708514",
+      "type": "string",
+      "position": {
+        "x": 1576,
+        "y": 112,
+        "width": 264,
+        "height": 88
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "output edits: or you can just output the edited code without saving"
+      }
+    },
+    {
+      "id": "n-string-1768452801128",
+      "type": "string",
+      "position": {
+        "x": -768,
+        "y": 624,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768452808288",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768452808288",
+      "type": "string",
+      "position": {
+        "x": -1016,
+        "y": 968,
+        "width": 288,
+        "height": 312
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "serializer\n\nyou might need to provide a custom serializer to allow saving non-json values \n\nthis is just an async method that can serializer enough data to be able to call anything to recreate the full object when needed\n\nfor example, it could load a video from a url"
+      }
+    },
+    {
+      "id": "n-string-1768453095341",
+      "type": "string",
+      "position": {
+        "x": -240,
+        "y": 600,
+        "width": 288,
+        "height": 216
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "this of course could support any language, the execution node type would do whatever logic is needed to execute the code (and instrument the code to grab internal values)\n\nit could run the code on a server for example"
+      }
+    },
+    {
+      "id": "n-string-1768453668311",
+      "type": "string",
+      "position": {
+        "x": -1672,
+        "y": 640,
+        "width": 320,
+        "height": 376
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "recursion\n\nby sending recursive calls back through the data-grid, it is possible to record all levels in a recursive call structure and replay any point, etc.\n\nit would be possible to add a call-tree context label so the call-tree can be reconstructed later\n\na call-tree node could be used to visualize and explorer everything (or select a value for replay)"
+      }
+    },
+    {
+      "id": "n-string-1768453841562",
+      "type": "string",
+      "position": {
+        "x": -536,
+        "y": 1016,
+        "width": 40,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768451280134",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768453854566",
+      "type": "string",
+      "position": {
+        "x": -464,
+        "y": 992,
+        "width": 224,
+        "height": 272
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "data-array\n\nit would be possible to output the serialized contents of the whole data-grid.\n\nThis might be useful to send to a call-tree visualizer node for example"
+      }
+    },
+    {
+      "id": "n-string-1768454162985",
+      "type": "string",
+      "position": {
+        "x": 2208,
+        "y": -72,
+        "width": 352,
+        "height": 480
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "code-node (constructed)"
+      }
+    },
+    {
+      "id": "n-string-1768454174835",
+      "type": "string",
+      "position": {
+        "x": 2144,
+        "y": 24,
+        "width": 376,
+        "height": 304
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "placed inputs:\n\nyou can construct code also, by dragging code output into a code-node to copy it into that document as a section\n\nthis is probably more useful when rewriting code as a new implementation instead of editing it in place (i.e. the source code is readonly, but you can edit and experiment with the code and then save it into a new document"
+      }
+    },
+    {
+      "id": "n-string-1768454469214",
+      "type": "string",
+      "position": {
+        "x": 2088,
+        "y": 48,
+        "width": 32,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1768452708514",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "n-string-1768454524688",
+      "type": "string",
+      "position": {
+        "x": 2408,
+        "y": -200,
+        "width": 264,
+        "height": 176
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "save\n\nsaving here would send signals back to the placed inputs so they can apply changes back into their context, and rerun executions, etc."
+      }
+    },
+    {
+      "id": "n-string-1768454646152",
+      "type": "string",
+      "position": {
+        "x": 2176,
+        "y": -408,
+        "width": 480,
+        "height": 128
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "filepath\n\nit seems good to allow the code-node to set a file name and use the workflow-server in context to load/save documents (unless they are a code span)"
+      }
+    },
+    {
+      "id": "n-string-1768454892113",
+      "type": "string",
+      "position": {
+        "x": -1680,
+        "y": 1136,
+        "width": 456,
+        "height": 352
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "types\n\n- runtime values can help infer types (especially the data-grid)\n- type information can also be obtained from the original document context (by chasing down all the dependencies and searching for any type information, etc.)\n- or from the new context of course\n- but when everything is constantly running, type information is less important\n\n- once type is established, it is also possible to generate runtime type checking early returns or asserts"
+      }
+    },
+    {
+      "id": "n-string-1768536412486",
+      "type": "string",
+      "position": {
+        "x": 688,
+        "y": -176,
+        "width": 384,
+        "height": 200
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "substitution:\n\nit is possible to substitute (or override) a code-span.\n\nThis is important for debugging the top of a heavy process, or mocking a resource call, etc."
+      }
+    }
+  ]
 }

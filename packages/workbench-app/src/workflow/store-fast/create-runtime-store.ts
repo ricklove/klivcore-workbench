@@ -1,3 +1,10 @@
+import { type Observable, ObservableHint, observable } from '@legendapp/state';
+import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
+import { commonNodeTypes } from '../../nodes/common/_common-nodes';
+import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
+import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
+import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
+import { builtinNodeTypes } from '../node-types';
 import {
   WorkflowBrandedTypes,
   type WorkflowDocumentData,
@@ -12,14 +19,7 @@ import {
   type WorkflowRuntimeStore,
   type WorkflowRuntimeStoreActions,
 } from '../types';
-import { builtinNodeTypes } from '../node-types';
-import { observable, ObservableHint, type Observable } from '@legendapp/state';
 import { createRuntimeValue } from './runtime-value';
-import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
-import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
-import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
-import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
-import { commonNodeTypes } from '../../nodes/common/_common-nodes';
 
 const getters = {
   node: {
@@ -125,15 +125,28 @@ const getters = {
         .getNode()
         ?.inputs.find((i) => i.name === x.target.inputName);
 
-      if (!missingSourceNode && !missingTargetNode && !missingSourceOutput && !missingTargetInput) {
+      if (
+        !missingSourceNode &&
+        !missingTargetNode &&
+        !missingSourceOutput &&
+        !missingTargetInput
+      ) {
         return undefined;
       }
 
       return [
-        ...(missingSourceNode ? [{ kind: `missing-source-node` as const }] : []),
-        ...(missingTargetNode ? [{ kind: `missing-target-node` as const }] : []),
-        ...(missingSourceOutput ? [{ kind: `missing-source-output` as const }] : []),
-        ...(missingTargetInput ? [{ kind: `missing-target-input` as const }] : []),
+        ...(missingSourceNode
+          ? [{ kind: `missing-source-node` as const }]
+          : []),
+        ...(missingTargetNode
+          ? [{ kind: `missing-target-node` as const }]
+          : []),
+        ...(missingSourceOutput
+          ? [{ kind: `missing-source-output` as const }]
+          : []),
+        ...(missingTargetInput
+          ? [{ kind: `missing-target-input` as const }]
+          : []),
       ];
     },
   },
@@ -282,7 +295,9 @@ const loadWorkflowStoreFromDocument = (
         targetInput.value.setValue(null);
       }
 
-      const sourceOutput = sourceNode?.outputs.find((o) => o.name === input.source!.name);
+      const sourceOutput = sourceNode?.outputs.find(
+        (o) => o.name === input.source!.name,
+      );
       if (sourceOutput) {
         sourceOutput.edgeIds = sourceOutput.edgeIds || [];
         sourceOutput.edgeIds.push(edge.id);
@@ -292,7 +307,10 @@ const loadWorkflowStoreFromDocument = (
   return store$;
 };
 
-const populateNodeType = (store: WorkflowRuntimeStore, node: WorkflowRuntimeNode) => {
+const populateNodeType = (
+  store: WorkflowRuntimeStore,
+  node: WorkflowRuntimeNode,
+) => {
   const typeDef = store.nodeTypes[node.type];
   if (!typeDef) {
     console.error(
@@ -486,19 +504,26 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
     },
     createEdge: (args) => {
       const targetNode = store$.nodes[args.target.nodeId]?.get();
-      const targetInput = targetNode?.inputs.find((i) => i.name === args.target.inputName);
+      const targetInput = targetNode?.inputs.find(
+        (i) => i.name === args.target.inputName,
+      );
 
       const sourceNode = store$.nodes[args.source.nodeId]?.get();
-      const sourceOutput = sourceNode?.outputs.find((o) => o.name === args.source.outputName);
+      const sourceOutput = sourceNode?.outputs.find(
+        (o) => o.name === args.source.outputName,
+      );
 
       if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
-        console.warn(`[createEdge] Cannot create edge, missing source or target`, {
-          args,
-          targetNode,
-          targetInput,
-          sourceNode,
-          sourceOutput,
-        });
+        console.warn(
+          `[createEdge] Cannot create edge, missing source or target`,
+          {
+            args,
+            targetNode,
+            targetInput,
+            sourceNode,
+            sourceOutput,
+          },
+        );
         return;
       }
 
@@ -519,19 +544,28 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           nodeId: args.source.nodeId,
           outputName: args.source.outputName,
           getNode() {
-            return getters.edge.source.getNode(store$.get(), this as WorkflowRuntimeEdge['source']);
+            return getters.edge.source.getNode(
+              store$.get(),
+              this as WorkflowRuntimeEdge['source'],
+            );
           },
         },
         target: {
           nodeId: args.target.nodeId,
           inputName: args.target.inputName,
           getNode() {
-            return getters.edge.target.getNode(store$.get(), this as WorkflowRuntimeEdge['target']);
+            return getters.edge.target.getNode(
+              store$.get(),
+              this as WorkflowRuntimeEdge['target'],
+            );
           },
         },
         value: createRuntimeValue({ data: undefined }),
         getGraphErrors() {
-          return getters.edge.getGraphErrors(store$.get(), this as WorkflowRuntimeEdge);
+          return getters.edge.getGraphErrors(
+            store$.get(),
+            this as WorkflowRuntimeEdge,
+          );
         },
       });
 
@@ -566,10 +600,14 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
 
       // remove edge from nodes
       const targetNode = store$.nodes[edge.target.nodeId]?.get();
-      const targetInput = targetNode?.inputs.find((i) => i.name === edge.target.inputName);
+      const targetInput = targetNode?.inputs.find(
+        (i) => i.name === edge.target.inputName,
+      );
 
       const sourceNode = store$.nodes[edge.source.nodeId]?.get();
-      const sourceOutput = sourceNode?.outputs.find((o) => o.name === edge.source.outputName);
+      const sourceOutput = sourceNode?.outputs.find(
+        (o) => o.name === edge.source.outputName,
+      );
 
       // if (!targetNode || !targetInput || !sourceNode || !sourceOutput) {
       //   console.warn(`[createEdge] Cannot remove edge, missing source or target`, {
@@ -598,7 +636,10 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
   };
 
   const store$: Observable<WorkflowRuntimeStore> = observable({
-    nodeTypes: {} as Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>,
+    nodeTypes: {} as Record<
+      WorkflowNodeTypeName,
+      WorkflowRuntimeNodeTypeDefinition
+    >,
     nodes: {} as Record<WorkflowNodeId, WorkflowRuntimeNode>,
     edges: {} as Record<WorkflowEdgeId, WorkflowRuntimeEdge>,
     actions: ObservableHint.plain(actions),

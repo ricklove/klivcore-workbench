@@ -1,5 +1,5 @@
-import { type WorkflowRuntimeValue } from '../types';
-import { observable, ObservableHint, observe } from '@legendapp/state';
+import { ObservableHint, observable, observe } from '@legendapp/state';
+import type { WorkflowRuntimeValue } from '../types';
 
 export const createRuntimeValue = <TBase = unknown>({
   data,
@@ -84,7 +84,9 @@ export const createRuntimeValue = <TBase = unknown>({
       changeCount++;
       triggerSlowUpdate();
       updateDirectSubscribers();
-      uiObservableBox$.content.inner.set(inner as undefined | null | Record<string, unknown>);
+      uiObservableBox$.content.inner.set(
+        inner as undefined | null | Record<string, unknown>,
+      );
     },
     clearValue: () => {
       if (inner === undefined) {

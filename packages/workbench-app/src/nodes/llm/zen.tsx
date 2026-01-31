@@ -35,7 +35,10 @@ export const zenNodes = createLlmNodes({
         };
 
     if (usage) {
-      console.log('[zenNodes:parseStreamChunk] zen stream chunk usage', { chunk, usage });
+      console.log('[zenNodes:parseStreamChunk] zen stream chunk usage', {
+        chunk,
+        usage,
+      });
     }
 
     const choice = chunk.choices[0];
@@ -117,7 +120,11 @@ interface OpenAIStreamChunk {
 export const parseOpenAIStreamChunk = (
   chunk: string,
 ):
-  | { data: OpenAIStreamChunk; done: undefined; usage?: OpenAIStreamChunk['usage'] }
+  | {
+      data: OpenAIStreamChunk;
+      done: undefined;
+      usage?: OpenAIStreamChunk['usage'];
+    }
   | { done: true } => {
   // data: {"id":"202601201012272d050670fdfb4755","created":1768875147,"object":"chat.completion.chunk","model":"glm-4.6","choices":[{"index":0,"delta":{"role":"assistant","reasoning_content":".\""}}]}
   // data: [DONE]
@@ -142,7 +149,10 @@ export const parseOpenAIStreamChunk = (
     }
     return { data: parsed, done: undefined };
   } catch (err) {
-    console.error('[parseOpenAIStreamChunk] error parsing chunk', { chunk, err });
+    console.error('[parseOpenAIStreamChunk] error parsing chunk', {
+      chunk,
+      err,
+    });
     throw err;
   }
 };

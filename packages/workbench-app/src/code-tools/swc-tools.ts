@@ -1,4 +1,4 @@
-import initSwc, { transformSync, parseSync } from '@swc/wasm-web';
+import initSwc, { parseSync, transformSync } from '@swc/wasm-web';
 
 async function setupSwc() {
   const wasmUrl = '/wasm/wasm_bg.wasm';
@@ -7,7 +7,9 @@ async function setupSwc() {
   const response = await fetch(wasmUrl);
 
   if (!response.ok) {
-    throw new Error(`Failed to load WASM file from ${wasmUrl} - Status: ${response.status}`);
+    throw new Error(
+      `Failed to load WASM file from ${wasmUrl} - Status: ${response.status}`,
+    );
   }
 
   // 2. Turn it into a binary buffer

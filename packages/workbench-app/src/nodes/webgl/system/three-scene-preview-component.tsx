@@ -1,9 +1,9 @@
-import { WorkflowNodeWrapperSimple } from '../../../workflow/node-wrapper';
-import { type WorkflowComponentProps_Obs } from '../../../workflow/types';
 import { useValue } from '@legendapp/state/react';
+import type * as THREE from 'three';
+import { WorkflowNodeWrapperSimple } from '../../../workflow/node-wrapper';
+import type { WorkflowComponentProps_Obs } from '../../../workflow/types';
 import { unbox } from '../types';
 import { useWebGLPreview } from './use-webgl-preview';
-import * as THREE from 'three';
 
 export const ScenePreviewNodeComponent = (
   props: WorkflowComponentProps_Obs<
@@ -23,14 +23,18 @@ export const ScenePreviewNodeComponent = (
   const camera = cameraBox ? (unbox(cameraBox) as THREE.Camera) : undefined;
 
   // 2. Prepare Data Object
-  const previewData = scene && camera ? { type: 'scene' as const, scene, camera } : null;
+  const previewData =
+    scene && camera ? { type: 'scene' as const, scene, camera } : null;
 
   // 3. Register with Global Renderer
   const containerRef = useWebGLPreview(previewData);
 
   return (
     <WorkflowNodeWrapperSimple {...props}>
-      <div ref={containerRef} className="w-full h-64 bg-gray-900 border border-gray-700 relative">
+      <div
+        ref={containerRef}
+        className="w-full h-64 bg-gray-900 border border-gray-700 relative"
+      >
         {!previewData && (
           <div className="absolute inset-0 flex items-center justify-center text-gray-500">
             Waiting for Scene...

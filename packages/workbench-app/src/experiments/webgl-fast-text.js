@@ -1,10 +1,15 @@
 import './style.css';
 
-import * as THREE from 'three';
-import { OrbitControls, GLTFLoader, FBXLoader, RGBELoader } from 'three-stdlib';
-import Stats from 'stats.js';
 import GUI from 'lil-gui';
-import { Text, BatchedText, getCaretAtPoint, preloadFont } from 'troika-three-text';
+import Stats from 'stats.js';
+import * as THREE from 'three';
+import { FBXLoader, GLTFLoader, OrbitControls, RGBELoader } from 'three-stdlib';
+import {
+  BatchedText,
+  getCaretAtPoint,
+  preloadFont,
+  Text,
+} from 'troika-three-text';
 
 // const FONT_URL =
 //   'https://cdn.jsdelivr.net/npm/@fontsource/roboto-mono@4.5.8/files/roboto-mono-latin-400-normal.woff';
@@ -40,7 +45,11 @@ export class Sketch {
       this.raycaster.setFromCamera(mouse.clone(), this.camera);
       var objects = this.raycaster.intersectObjects(this.scene.children);
       if (objects.length === 0) return;
-      const clickedPtInTextMesh = new THREE.Vector3(objects[0].point.x, objects[0].point.y, 0);
+      const clickedPtInTextMesh = new THREE.Vector3(
+        objects[0].point.x,
+        objects[0].point.y,
+        0,
+      );
       this.myText.worldToLocal(clickedPtInTextMesh);
       const caretPos = getCaretAtPoint(
         this.myText._textRenderInfo,
@@ -293,7 +302,8 @@ export class Sketch {
     this.myText.sync(() => {
       const { caretPositions } = this.myText._textRenderInfo;
       this.cursorMesh.position.x =
-        caretPositions[this.caretIndex * 4] ?? caretPositions[caretPositions.length - 3]; // 这里的减三是来自于troika three text 中的textRenderInfo设定
+        caretPositions[this.caretIndex * 4] ??
+        caretPositions[caretPositions.length - 3]; // 这里的减三是来自于troika three text 中的textRenderInfo设定
     });
   }
   mousemove = (e) => {
@@ -302,10 +312,12 @@ export class Sketch {
   };
 
   updateCursorOpacity() {
-    let roundPulse = (t) =>
-      Math.sign(Math.sin(t * Math.PI)) * Math.pow(Math.sin((t % 1) * 3.14), 0.2);
+    const roundPulse = (t) =>
+      Math.sign(Math.sin(t * Math.PI)) * Math.sin((t % 1) * 3.14) ** 0.2;
     if (document.hasFocus() && document.activeElement === this.textInputEl) {
-      this.cursorMesh.material.opacity = roundPulse(2 * this.clock.getElapsedTime());
+      this.cursorMesh.material.opacity = roundPulse(
+        2 * this.clock.getElapsedTime(),
+      );
     } else {
       this.cursorMesh.material.opacity = 0;
     }
@@ -488,12 +500,17 @@ function generateRandomDoc(wordCount, maxLineChars = 80) {
     // +1 accounts for the space we add before the word (if not start of line)
     const padding = currentLineLen === 0 ? 0 : 1;
 
-    if (currentLineLen + padding + word.length > maxLineChars || Math.random() < 0.1) {
+    if (
+      currentLineLen + padding + word.length > maxLineChars ||
+      Math.random() < 0.1
+    ) {
       output += '\n';
       currentLineLen = 0;
 
       // random tabs
-      const tabs = [...new Array(Math.floor(Math.random() * 5))].map((x) => [`    `]).join();
+      const tabs = [...new Array(Math.floor(Math.random() * 5))]
+        .map((x) => [`    `])
+        .join();
       output += tabs;
       currentLineLen = tabs.length;
     } else if (i > 0) {

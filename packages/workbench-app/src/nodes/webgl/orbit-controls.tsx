@@ -1,12 +1,15 @@
 import { ObservableHint } from '@legendapp/state';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import {
   EmptyNodeComponent,
   NodeTypeWrapComponentWithNodeWrapper,
 } from '../../workflow/node-types-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
-import { box, unbox, type Box } from './types';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types';
+import { type Box, box, unbox } from './types';
 
 export const orbitControlsNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
   {
@@ -34,10 +37,13 @@ export const orbitControlsNodeTypes: WorkflowRuntimeNodeTypeDefinition[] = [
       const camera = unbox(inputs.camera as Box<THREE.Camera>);
       const renderer = unbox(inputs.renderer as Box<THREE.WebGLRenderer>);
       if (!renderer || !camera) {
-        console.log('[threeOrbitControls] handleResize missing camera or renderer', {
-          camera,
-          renderer,
-        });
+        console.log(
+          '[threeOrbitControls] handleResize missing camera or renderer',
+          {
+            camera,
+            renderer,
+          },
+        );
         return;
       }
 

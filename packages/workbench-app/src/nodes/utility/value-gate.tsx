@@ -1,4 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
+
+import { useValue } from '@legendapp/state/react';
+import { clsx } from '../../utils/clsx';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
@@ -6,8 +9,6 @@ import {
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
-import { clsx } from '../../utils/clsx';
 
 // --- TYPE DEFINITIONS ---
 
@@ -72,7 +73,11 @@ export const valueGateNodeType: WorkflowRuntimeNodeTypeDefinition = {
 // --- COMPONENTS ---
 
 export const ValueGateComponent = (
-  props: WorkflowComponentProps_Obs<ValueGateData, ValueGateInputs, ValueGateOutputs>,
+  props: WorkflowComponentProps_Obs<
+    ValueGateData,
+    ValueGateInputs,
+    ValueGateOutputs
+  >,
 ) => {
   const { data$ } = props.data;
 
@@ -121,7 +126,12 @@ export const ValueGateComponent = (
 
           {/* Status Display */}
           <div className="text-[10px] text-neutral-400 text-center">
-            Status: {autoSend ? 'Auto-sending' : sendOnce ? 'Sent once' : 'Ready to send'}
+            Status:{' '}
+            {autoSend
+              ? 'Auto-sending'
+              : sendOnce
+                ? 'Sent once'
+                : 'Ready to send'}
           </div>
         </div>
       </div>

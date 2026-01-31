@@ -1,14 +1,4 @@
-import {  type Observable, type ObserveEvent } from '@legendapp/state';
-import {
-  WorkflowBrandedTypes,
-  type WorkflowEdgeId,
-  type WorkflowNodeId,
-  type WorkflowReactFlowStore,
-  type WorkflowRuntimeEdge,
-  type WorkflowRuntimeNode,
-  type WorkflowRuntimeNodeTypeDefinition,
-  type WorkflowRuntimeStore,
-} from '../types';
+import type { Observable, ObserveEvent } from '@legendapp/state';
 import {
   applyEdgeChanges,
   applyNodeChanges,
@@ -19,7 +9,17 @@ import {
   type NodeChange,
 } from '@xyflow/react';
 import { useEffect, useState } from 'react';
-import { observeBatched, type BatchedTriggerKind } from './observe-batched';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowEdgeId,
+  type WorkflowNodeId,
+  type WorkflowReactFlowStore,
+  type WorkflowRuntimeEdge,
+  type WorkflowRuntimeNode,
+  type WorkflowRuntimeNodeTypeDefinition,
+  type WorkflowRuntimeStore,
+} from '../types';
+import { type BatchedTriggerKind, observeBatched } from './observe-batched';
 import { getReactFlowNodeDataProp } from './react-flow-node-data-prop';
 
 export const useReactFlowStore = (
@@ -29,9 +29,15 @@ export const useReactFlowStore = (
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (params: Connection) => void;
 } => {
-  const [nodeTypes, setNodeTypes] = useState(() => ({}) as WorkflowReactFlowStore[`nodeTypes`]);
-  const [nodes, setNodes] = useState(() => [] as WorkflowReactFlowStore[`nodes`]);
-  const [edges, setEdges] = useState(() => [] as WorkflowReactFlowStore[`edges`]);
+  const [nodeTypes, setNodeTypes] = useState(
+    () => ({}) as WorkflowReactFlowStore[`nodeTypes`],
+  );
+  const [nodes, setNodes] = useState(
+    () => [] as WorkflowReactFlowStore[`nodes`],
+  );
+  const [edges, setEdges] = useState(
+    () => [] as WorkflowReactFlowStore[`edges`],
+  );
 
   useEffect(() => {
     const unsubs = [] as (() => void)[];
@@ -71,7 +77,10 @@ export const useReactFlowStore = (
 
     // node changes
     const nodesByOldId = new Map<WorkflowNodeId, WorkflowRuntimeNode>();
-    const handleNodeMissing = (oldNodeId: WorkflowNodeId, e: ObserveEvent<unknown>) => {
+    const handleNodeMissing = (
+      oldNodeId: WorkflowNodeId,
+      e: ObserveEvent<unknown>,
+    ) => {
       const oldNodeById = nodesByOldId.get(oldNodeId);
       const newNodeId = oldNodeById?.id;
       if (newNodeId && newNodeId !== oldNodeId) {
@@ -85,7 +94,9 @@ export const useReactFlowStore = (
           },
         );
 
-        setNodes((s) => s.map((x) => (x.id === oldNodeId ? { ...x, id: newNodeId } : x)));
+        setNodes((s) =>
+          s.map((x) => (x.id === oldNodeId ? { ...x, id: newNodeId } : x)),
+        );
         return;
       }
 
@@ -102,7 +113,10 @@ export const useReactFlowStore = (
       setNodes((s) => s.filter((n) => n.id !== oldNodeId));
     };
 
-    const subscribeNode = (nodeId: WorkflowNodeId, e: ObserveEvent<unknown>) => {
+    const subscribeNode = (
+      nodeId: WorkflowNodeId,
+      e: ObserveEvent<unknown>,
+    ) => {
       const node$ = store$.nodes[nodeId];
       if (!node$?.id.get()) {
         handleNodeMissing(nodeId, e);
@@ -198,7 +212,10 @@ export const useReactFlowStore = (
             // id: nodeId,
             id: node$.id.get(),
             type: node$.type.get(),
-            position: { x: node$.position.x.peek(), y: node$.position.y.peek() },
+            position: {
+              x: node$.position.x.peek(),
+              y: node$.position.y.peek(),
+            },
             width: node$.position.width.peek(),
             height: node$.position.height.peek(),
             parentId: node$.parentId.get(),
@@ -247,7 +264,10 @@ export const useReactFlowStore = (
     // edge changes
     const edgesByOldId = new Map<WorkflowEdgeId, WorkflowRuntimeEdge>();
 
-    const handleEdgeMissing = (edgeId: WorkflowEdgeId, e: ObserveEvent<unknown>) => {
+    const handleEdgeMissing = (
+      edgeId: WorkflowEdgeId,
+      e: ObserveEvent<unknown>,
+    ) => {
       console.log(
         `[useReactFlowStore:handleEdgeMissing] edge '${edgeId}' not found - deleting from react flow store`,
         {
@@ -260,7 +280,10 @@ export const useReactFlowStore = (
       setEdges((s) => s.filter((e) => e.id !== edgeId));
     };
 
-    const subscribeEdge = (edgeId: WorkflowEdgeId, e: ObserveEvent<unknown>) => {
+    const subscribeEdge = (
+      edgeId: WorkflowEdgeId,
+      e: ObserveEvent<unknown>,
+    ) => {
       const edge$ = store$.edges[edgeId];
       if (!edge$?.id.get()) {
         handleEdgeMissing(edgeId, e);
@@ -361,7 +384,10 @@ export const useReactFlowStore = (
     unsubs.push(
       observeBatched((e) => {
         const edgeKeys = Object.keys(store$.edges);
-        console.log(`[useReactFlowStore:edges] edge keys changed `, { e, edgeKeys });
+        console.log(`[useReactFlowStore:edges] edge keys changed `, {
+          e,
+          edgeKeys,
+        });
 
         edgeKeys.forEach((edgeIdRaw) => {
           subscribeEdge(WorkflowBrandedTypes.edgeIdFormString(edgeIdRaw), e);
@@ -419,7 +445,10 @@ export const useReactFlowStore = (
       setNodes((s) => {
         // const filteredChanges = changes.filter((change) => change.type !== 'remove');
         const filteredChanges = changes;
-        const result = applyNodeChanges(filteredChanges, s as unknown as Node[]) as typeof nodes;
+        const result = applyNodeChanges(
+          filteredChanges,
+          s as unknown as Node[],
+        ) as typeof nodes;
 
         console.log(`[useReactFlowStore:onNodesChange] applied changes`, {
           changes,
@@ -439,14 +468,19 @@ export const useReactFlowStore = (
 
         const nodeId = WorkflowBrandedTypes.nodeId(change.id);
         if (change.type === `remove`) {
-          console.log(`[useReactFlowStore] Deleting node '${nodeId}' from store`, { change });
+          console.log(
+            `[useReactFlowStore] Deleting node '${nodeId}' from store`,
+            { change },
+          );
           store$.actions.deleteNode(nodeId);
           continue;
         }
 
         const node = store$.nodes[WorkflowBrandedTypes.nodeId(change.id)];
         if (!node?.id.get()) {
-          console.log(`[useReactFlowStore] Node not found for change`, { change });
+          console.log(`[useReactFlowStore] Node not found for change`, {
+            change,
+          });
           continue;
         }
 
@@ -459,8 +493,12 @@ export const useReactFlowStore = (
         const SNAP_DIM_SIZE = 8;
 
         if (change.type === 'position' && change.position) {
-          node.position.x.set(Math.round(change.position.x / SNAP_POS_SIZE) * SNAP_POS_SIZE);
-          node.position.y.set(Math.round(change.position.y / SNAP_POS_SIZE) * SNAP_POS_SIZE);
+          node.position.x.set(
+            Math.round(change.position.x / SNAP_POS_SIZE) * SNAP_POS_SIZE,
+          );
+          node.position.y.set(
+            Math.round(change.position.y / SNAP_POS_SIZE) * SNAP_POS_SIZE,
+          );
           continue;
         }
 
@@ -469,16 +507,23 @@ export const useReactFlowStore = (
             Math.round(change.dimensions.width / SNAP_DIM_SIZE) * SNAP_DIM_SIZE,
           );
           node.position.height.set(
-            Math.round(change.dimensions.height / SNAP_DIM_SIZE) * SNAP_DIM_SIZE,
+            Math.round(change.dimensions.height / SNAP_DIM_SIZE) *
+              SNAP_DIM_SIZE,
           );
           continue;
         }
 
-        console.log(`[useReactFlowStore] Unhandled node change: `, { change, node });
+        console.log(`[useReactFlowStore] Unhandled node change: `, {
+          change,
+          node,
+        });
       }
     },
     onEdgesChange: (changes: EdgeChange[]) => {
-      setEdges((s) => applyEdgeChanges(changes, s as unknown as Edge[]) as typeof edges);
+      setEdges(
+        (s) =>
+          applyEdgeChanges(changes, s as unknown as Edge[]) as typeof edges,
+      );
 
       for (const change of changes) {
         if (change.type === 'add') {
@@ -495,7 +540,9 @@ export const useReactFlowStore = (
 
         const edge = store$.edges[edgeId];
         if (!edge?.id.get()) {
-          console.log(`[useReactFlowStore] Edge not found for change`, { change });
+          console.log(`[useReactFlowStore] Edge not found for change`, {
+            change,
+          });
           continue;
         }
 
@@ -504,16 +551,24 @@ export const useReactFlowStore = (
           continue;
         }
 
-        console.log(`[useReactFlowStore:onEdgesChange] Unhandled edge change: `, { change, edge });
+        console.log(
+          `[useReactFlowStore:onEdgesChange] Unhandled edge change: `,
+          { change, edge },
+        );
       }
     },
     onConnect: (params: Connection) => {
-      const targetNode = store$.nodes[WorkflowBrandedTypes.nodeId(params.target)];
+      const targetNode =
+        store$.nodes[WorkflowBrandedTypes.nodeId(params.target)];
       if (!targetNode?.id.get()) {
-        console.warn(`[useReactFlowStore:onConnect] Target node not found`, { params });
+        console.warn(`[useReactFlowStore:onConnect] Target node not found`, {
+          params,
+        });
         return;
       }
-      const targetInput = targetNode.inputs.find((x) => x.name.get() === params.targetHandle);
+      const targetInput = targetNode.inputs.find(
+        (x) => x.name.get() === params.targetHandle,
+      );
       if (!targetInput?.get()) {
         console.warn(`[useReactFlowStore:onConnect] Target input not found`, {
           params,

@@ -63,8 +63,15 @@ export function detectMissingClasses(options: DetectOptions = {}) {
 /**
  * 2. RAW CODE SCANNER
  */
-export function detectMissingClassesInCode(tsCode: string, options: DetectOptions = {}) {
-  const { forceRefreshCSS = false, onlyReportNew = false, ignore = [] } = options;
+export function detectMissingClassesInCode(
+  tsCode: string,
+  options: DetectOptions = {},
+) {
+  const {
+    forceRefreshCSS = false,
+    onlyReportNew = false,
+    ignore = [],
+  } = options;
 
   ensureCachePopulated(forceRefreshCSS);
 
@@ -157,7 +164,10 @@ function populateValidClasses() {
         extractClassesFromRules(rules);
       }
     } catch (e) {
-      console.debug(`[detectMissingClasses] Skipped cross-origin stylesheet`, e);
+      console.debug(
+        `[detectMissingClasses] Skipped cross-origin stylesheet`,
+        e,
+      );
     }
   }
 }

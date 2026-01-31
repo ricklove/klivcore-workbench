@@ -1,11 +1,14 @@
+import { ObservableHint } from '@legendapp/state';
+import * as THREE from 'three';
 import {
   EmptyNodeComponent,
   NodeTypeWrapComponentWithNodeWrapper,
 } from '../../workflow/node-types-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
-import * as THREE from 'three';
-import { ObservableHint } from '@legendapp/state';
-import { unbox, box, type Box } from './types';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types';
+import { type Box, box, unbox } from './types';
 
 export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`threeMeshDepthPlane`),
@@ -15,11 +18,15 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
   inputs: [
     {
       name: WorkflowBrandedTypes.inputName(`texture`),
-      type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      type: WorkflowBrandedTypes.valueType(
+        `Box<THREE.Texture<HTMLImageElement>>`,
+      ),
     },
     {
       name: WorkflowBrandedTypes.inputName(`depthTexture`),
-      type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      type: WorkflowBrandedTypes.valueType(
+        `Box<THREE.Texture<HTMLImageElement>>`,
+      ),
     },
     {
       name: WorkflowBrandedTypes.inputName(`displacementScale`),
@@ -33,17 +40,24 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   execute: async ({ inputs, runtimeState }) => {
-    const texture = unbox(inputs.texture as Box<THREE.Texture<HTMLImageElement>>);
-    const depthTexture = unbox(inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>);
+    const texture = unbox(
+      inputs.texture as Box<THREE.Texture<HTMLImageElement>>,
+    );
+    const depthTexture = unbox(
+      inputs.depthTexture as Box<THREE.Texture<HTMLImageElement>>,
+    );
     const displacementScale = (inputs.displacementScale as number) ?? 1;
 
     console.log('[threeMeshDepthPlane] START', { texture, depthTexture });
 
     if (!texture || !depthTexture) {
-      console.log('[threeMeshDepthPlane] handleResize missing texture or depthTexture', {
-        texture,
-        depthTexture,
-      });
+      console.log(
+        '[threeMeshDepthPlane] handleResize missing texture or depthTexture',
+        {
+          texture,
+          depthTexture,
+        },
+      );
       return;
     }
 
@@ -109,8 +123,17 @@ export const threeMeshDepthPlane: WorkflowRuntimeNodeTypeDefinition = {
     const width = 1;
     const height = width / aspectRatio;
 
-    console.log('[threeMeshDepthPlane] creating plane with size', { width, height, imageSize });
-    const geometry = new THREE.PlaneGeometry(width, height, imageSize.width, imageSize.height);
+    console.log('[threeMeshDepthPlane] creating plane with size', {
+      width,
+      height,
+      imageSize,
+    });
+    const geometry = new THREE.PlaneGeometry(
+      width,
+      height,
+      imageSize.width,
+      imageSize.height,
+    );
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(Math.random(), Math.random(), Math.random());
 

@@ -1,4 +1,7 @@
-import React, { useState, useRef } from 'react';
+import { useObservable, useValue } from '@legendapp/state/react';
+import type React from 'react';
+import { useRef, useState } from 'react';
+import { clsx } from '../../utils/clsx';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
@@ -6,8 +9,6 @@ import {
   type WorkflowComponentProps_Obs,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useObservable, useValue } from '@legendapp/state/react';
-import { clsx } from '../../utils/clsx';
 
 type TimelineData = {
   initialValue: number;
@@ -113,13 +114,33 @@ export const timelineControlNodeType: WorkflowRuntimeNodeTypeDefinition = {
     const iLoop = inputs.autoLoop as boolean | undefined;
 
     // 3. Resolve Effective Parameters
-    const min = resolveParam(iMin, safeData.localMin ?? 0, safeData.overrideMin);
-    const max = resolveParam(iMax, safeData.localMax ?? 100, safeData.overrideMax);
-    const inc = resolveParam(iInc, safeData.localInc ?? 1, safeData.overrideInc);
-    const loop = resolveParam(iLoop, safeData.localLoop ?? true, safeData.overrideLoop);
+    const min = resolveParam(
+      iMin,
+      safeData.localMin ?? 0,
+      safeData.overrideMin,
+    );
+    const max = resolveParam(
+      iMax,
+      safeData.localMax ?? 100,
+      safeData.overrideMax,
+    );
+    const inc = resolveParam(
+      iInc,
+      safeData.localInc ?? 1,
+      safeData.overrideInc,
+    );
+    const loop = resolveParam(
+      iLoop,
+      safeData.localLoop ?? true,
+      safeData.overrideLoop,
+    );
     // tick is unused in math logic but resolved for consistency
 
-    const tick = resolveParam(iTick, safeData.localTick ?? 1000, safeData.overrideTick);
+    const tick = resolveParam(
+      iTick,
+      safeData.localTick ?? 1000,
+      safeData.overrideTick,
+    );
 
     // 4. Handle Playback Logic
     const initialValue = safeData.initialValue ?? min;
@@ -192,7 +213,9 @@ const NumberScrubber = ({
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const displayValue =
-    typeof value === 'number' && !isNaN(value) ? Number(value).toFixed(2) : '0.00';
+    typeof value === 'number' && !isNaN(value)
+      ? Number(value).toFixed(2)
+      : '0.00';
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (disabled || isEditing) return;
@@ -262,10 +285,18 @@ const NumberScrubber = ({
       )}
       onPointerDown={handlePointerDown}
       onClick={handleClick}
-      title={disabled ? 'Controlled by input' : 'Drag to scrub, Double-click to edit'}
+      title={
+        disabled ? 'Controlled by input' : 'Drag to scrub, Double-click to edit'
+      }
     >
-      {label && <span className="text-[10px] font-bold text-neutral-500 mr-2">{label}</span>}
-      <span className="text-xs font-mono text-neutral-300 ml-auto">{displayValue}</span>
+      {label && (
+        <span className="text-[10px] font-bold text-neutral-500 mr-2">
+          {label}
+        </span>
+      )}
+      <span className="text-xs font-mono text-neutral-300 ml-auto">
+        {displayValue}
+      </span>
     </div>
   );
 };
@@ -291,7 +322,11 @@ const BooleanToggle = ({
     )}
     onClick={() => !disabled && onChange(!value)}
   >
-    {label && <span className="mr-2 text-[10px] font-bold text-neutral-500">{label}</span>}
+    {label && (
+      <span className="mr-2 text-[10px] font-bold text-neutral-500">
+        {label}
+      </span>
+    )}
     {value ? 'ON' : 'OFF'}
   </button>
 );
@@ -362,7 +397,11 @@ const ParamRow = ({
 
 // 4. Main Timeline Component
 export const TimelineControlComponent = (
-  props: WorkflowComponentProps_Obs<TimelineData, TimelineInputs, TimelineOutputs>,
+  props: WorkflowComponentProps_Obs<
+    TimelineData,
+    TimelineInputs,
+    TimelineOutputs
+  >,
 ) => {
   const { data$, inputs$, outputs$ } = props.data;
 
@@ -372,7 +411,9 @@ export const TimelineControlComponent = (
   const valueFromOutput = useValue(outputs$.value) ?? 0;
 
   const ignoreOutputValue$ = useObservable(initialValueFromData);
-  const shouldUseOutputValue = useValue(() => ignoreOutputValue$.get() !== valueFromOutput);
+  const shouldUseOutputValue = useValue(
+    () => ignoreOutputValue$.get() !== valueFromOutput,
+  );
   const value = shouldUseOutputValue ? valueFromOutput : initialValueFromData;
 
   // Local Config State
@@ -418,11 +459,17 @@ export const TimelineControlComponent = (
   };
 
   const effMin = getEff(hasMin, !!overrideMin, localMin ?? 0, inpMin) as number;
-  const effMax = getEff(hasMax, !!overrideMax, localMax ?? 100, inpMax) as number;
+  const effMax = getEff(
+    hasMax,
+    !!overrideMax,
+    localMax ?? 100,
+    inpMax,
+  ) as number;
   const effInc = getEff(hasInc, !!overrideInc, localInc ?? 1, inpInc) as number;
 
   const range = effMax - effMin;
-  const progress = range === 0 ? 0 : Math.min(Math.max((value - effMin) / range, 0), 1);
+  const progress =
+    range === 0 ? 0 : Math.min(Math.max((value - effMin) / range, 0), 1);
 
   const togglePlay = () => {
     const currentOutput = outputs$.value.peek() ?? value;
@@ -433,7 +480,8 @@ export const TimelineControlComponent = (
 
   const handleMainScrub = (newVal: number) => {
     const roundedToStep =
-      Math.round((newVal - effMin) / Math.abs(effInc)) * Math.abs(effInc) + effMin;
+      Math.round((newVal - effMin) / Math.abs(effInc)) * Math.abs(effInc) +
+      effMin;
     const clamped = Math.max(effMin, Math.min(roundedToStep, effMax));
 
     ignoreOutputValue$.set(outputs$.value.peek() ?? value);
@@ -456,12 +504,22 @@ export const TimelineControlComponent = (
             title={playing ? 'Pause' : 'Play'}
           >
             {playing ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
               </svg>
             ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M5 3l14 9-14 9V3z" />
               </svg>
             )}

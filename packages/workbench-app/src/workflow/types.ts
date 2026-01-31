@@ -1,4 +1,4 @@
-import { type Observable, type OpaqueObject, type PlainObject } from '@legendapp/state';
+import type { Observable, OpaqueObject, PlainObject } from '@legendapp/state';
 
 // type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
 // type JsonArray = JsonValue[];
@@ -26,13 +26,17 @@ export type WorkflowInputName = string & { __brand: 'WorkflowInputName' };
 
 export const WorkflowBrandedTypes = {
   typeName: (value: string) => value as unknown as WorkflowNodeTypeName,
-  T: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowNodeTypeName,
+  T: (strings: TemplateStringsArray) =>
+    strings[0] as unknown as WorkflowNodeTypeName,
   valueType: (value: string) => value as unknown as WorkflowValueType,
-  V: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowValueType,
+  V: (strings: TemplateStringsArray) =>
+    strings[0] as unknown as WorkflowValueType,
   inputName: (value: string) => value as unknown as WorkflowInputName,
-  I: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowInputName,
+  I: (strings: TemplateStringsArray) =>
+    strings[0] as unknown as WorkflowInputName,
   outputName: (value: string) => value as unknown as WorkflowOutputName,
-  O: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowOutputName,
+  O: (strings: TemplateStringsArray) =>
+    strings[0] as unknown as WorkflowOutputName,
 
   nodeId: (value: string) => value as unknown as WorkflowNodeId,
   N: (strings: TemplateStringsArray) => strings[0] as unknown as WorkflowNodeId,
@@ -48,7 +52,9 @@ export const WorkflowBrandedTypes = {
     return `${sourceNodeId}:${sourceOutputName}=>${targetNodeId}:${targetInputName}` as unknown as WorkflowEdgeId;
   },
 
-  now: () => (performance.timeOrigin + performance.now()) as unknown as WorkflowTimestamp,
+  now: () =>
+    (performance.timeOrigin +
+      performance.now()) as unknown as WorkflowTimestamp,
 };
 
 export interface WorkflowDocumentData {
@@ -91,7 +97,11 @@ export interface WorkflowReactFlowStore {
     height: number;
     parentId: undefined | WorkflowNodeId;
     extent: undefined | 'parent';
-    data: WorkflowComponentPropsDataAccess<WorkflowJsonObject, unknown, unknown>;
+    data: WorkflowComponentPropsDataAccess<
+      WorkflowJsonObject,
+      unknown,
+      unknown
+    >;
   }[];
   edges: {
     id: WorkflowEdgeId;
@@ -140,10 +150,11 @@ type PartialNull<T> = {
   [P in keyof T]?: T[P] | null;
 };
 
-export type WorkflowComponentPropsBase = WorkflowReactFlowStore['nodes'][number] & {
-  selected: boolean;
-  hideHandles?: boolean;
-};
+export type WorkflowComponentPropsBase =
+  WorkflowReactFlowStore['nodes'][number] & {
+    selected: boolean;
+    hideHandles?: boolean;
+  };
 export type WorkflowComponentProps<
   TData extends WorkflowJsonObject = WorkflowJsonObject,
   TInputs = TData,
@@ -160,7 +171,10 @@ export type WorkflowComponentProps_Obs<
   data: WorkflowComponentPropsData_Obs<TData, TInputs, TOutputs>;
 };
 
-export type WorkflowComponentPropsAny_Ops = Omit<WorkflowComponentPropsBase, 'data'> & {
+export type WorkflowComponentPropsAny_Ops = Omit<
+  WorkflowComponentPropsBase,
+  'data'
+> & {
   data: {
     node$: Observable<WorkflowRuntimeNode>;
     store$: Observable<WorkflowRuntimeStore>;
@@ -170,6 +184,28 @@ export type WorkflowComponentPropsAny_Ops = Omit<WorkflowComponentPropsBase, 'da
     outputs$: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data$: any;
+  };
+};
+
+export type WorkflowComponentSimpleProps = Omit<
+  WorkflowComponentPropsBase,
+  'data'
+> & {
+  data: {
+    node$: Observable<WorkflowRuntimeNode>;
+    store$: Observable<WorkflowRuntimeStore>;
+    inputs: {
+      asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
+      subscribe: <T>() => T;
+    };
+    outputs: {
+      asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
+      subscribe: <T>() => T;
+    };
+    data: {
+      asObservable: <T extends WorkflowJsonObject>() => Observable<T>;
+      subscribe: <T>() => T;
+    };
   };
 };
 
@@ -195,7 +231,10 @@ export interface WorkflowRuntimeNode {
     edgeId?: WorkflowEdgeId;
     getEdge: () => undefined | WorkflowRuntimeEdge;
   }[];
-  getInputInfo: <T>(inputName: string) => { data: T | undefined | null; isConnected: boolean };
+  getInputInfo: <T>(inputName: string) => {
+    data: T | undefined | null;
+    isConnected: boolean;
+  };
 
   outputs: {
     name: WorkflowOutputName;
@@ -255,7 +294,10 @@ export interface WorkflowRuntimeEdge {
       }[];
 }
 
-export type ReadonlyObservable<T> = Omit<Observable<T>, 'set' | 'assign' | 'delete'>;
+export type ReadonlyObservable<T> = Omit<
+  Observable<T>,
+  'set' | 'assign' | 'delete'
+>;
 /** null indicates the value was set to undefined or null, undefined means it is unset */
 export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
   getObservableBox: () => unknown;
@@ -265,7 +307,9 @@ export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
   getDirectValue: <T = TBase>() => undefined | null | T;
   setValue: <T = TBase>(v: null | T) => void;
   clearValue: (v?: undefined) => void;
-  subscribeDirect: (callback: (v: null | TBase | undefined) => void) => () => void;
+  subscribeDirect: (
+    callback: (v: null | TBase | undefined) => void,
+  ) => () => void;
   readonly uiChangeCounter$: ReadonlyObservable<number>;
   getImmediateChangeCounter: () => number;
 }>;
@@ -319,7 +363,9 @@ export interface WorkflowExecutionController {
 
 export interface WorkflowRuntimeNodeTypeDefinition {
   type: WorkflowNodeTypeName;
-  getComponent: () => { Component: React.ComponentType<WorkflowComponentProps> };
+  getComponent: () => {
+    Component: React.ComponentType<WorkflowComponentProps>;
+  };
   defaultSize?: { width: number; height: number };
   inputs: {
     name: WorkflowInputName;

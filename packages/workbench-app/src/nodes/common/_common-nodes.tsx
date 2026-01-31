@@ -10,4 +10,6 @@ const commonNodeTypesList = [
   engineSpyNodeType,
 ];
 
-export const commonNodeTypes = Object.fromEntries(commonNodeTypesList.map((nt) => [nt.type, nt]));
+export const commonNodeTypes = Object.fromEntries(
+  commonNodeTypesList.map((nt) => [nt.type, nt]),
+);

@@ -1,4 +1,10 @@
-import { observable, observe, when, type Observable, type ObserveEvent } from '@legendapp/state';
+import {
+  type Observable,
+  type ObserveEvent,
+  observable,
+  observe,
+  when,
+} from '@legendapp/state';
 
 export function observeBatched(
   compute: (e: { num: number; eInner: ObserveEvent<unknown> }) => void,
@@ -112,7 +118,9 @@ export const demo_observeBatched = () => {
 
     if (count.get() % 250 === 0) {
       sleeping = true;
-      message.set(`No updates!!! Sleeping for 3 seconds... Last Update #${count.get()}`);
+      message.set(
+        `No updates!!! Sleeping for 3 seconds... Last Update #${count.get()}`,
+      );
 
       setTimeout(() => {
         sleeping = false;

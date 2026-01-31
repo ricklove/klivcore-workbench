@@ -1,9 +1,9 @@
-import { WorkflowNodeWrapperSimple } from '../../../workflow/node-wrapper';
-import { type WorkflowComponentProps_Obs } from '../../../workflow/types';
 import { useValue } from '@legendapp/state/react';
-import { unbox, type Box } from '../types';
+import type * as THREE from 'three';
+import { WorkflowNodeWrapperSimple } from '../../../workflow/node-wrapper';
+import type { WorkflowComponentProps_Obs } from '../../../workflow/types';
+import { type Box, unbox } from '../types';
 import { useWebGLPreview } from './use-webgl-preview';
-import * as THREE from 'three';
 
 export const TexturePreviewNodeComponent = (
   props: WorkflowComponentProps_Obs<
@@ -26,7 +26,10 @@ export const TexturePreviewNodeComponent = (
         This div is just a placeholder. 
         The GlobalRenderer draws pixels ON TOP of this area.
       */}
-      <div ref={containerRef} className="w-64 h-64 bg-gray-900 border border-gray-700">
+      <div
+        ref={containerRef}
+        className="w-64 h-64 bg-gray-900 border border-gray-700"
+      >
         {!texture && (
           <div className="flex items-center justify-center h-full text-gray-500 text-xs">
             No Texture

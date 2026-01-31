@@ -1,19 +1,22 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import type { Observable } from '@legendapp/state';
+import { useValue } from '@legendapp/state/react';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   WorkflowBrandedTypes,
   type WorkflowNodeTypeName,
   type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
 } from './types';
-import { useValue } from '@legendapp/state/react';
-import type { Observable } from '@legendapp/state';
 
 type NodeSelectionMenuProps = {
   store$: Observable<WorkflowRuntimeStore>;
   position: { x: number; y: number };
   onSelect: (nodeType: WorkflowNodeTypeName) => void;
   onClose: () => void;
-  filterDefaultNodeTypes: undefined | ((x: WorkflowRuntimeNodeTypeDefinition) => boolean);
+  filterDefaultNodeTypes:
+    | undefined
+    | ((x: WorkflowRuntimeNodeTypeDefinition) => boolean);
 };
 
 export const NodeSelectionMenu: React.FC<NodeSelectionMenuProps> = ({

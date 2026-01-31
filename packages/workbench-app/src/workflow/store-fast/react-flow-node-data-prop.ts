@@ -1,5 +1,9 @@
-import { observable, type Observable, ObservableHint } from '@legendapp/state';
-import type { WorkflowRuntimeStore, WorkflowRuntimeNode, WorkflowJsonObject } from '../types';
+import { type Observable, ObservableHint, observable } from '@legendapp/state';
+import type {
+  WorkflowJsonObject,
+  WorkflowRuntimeNode,
+  WorkflowRuntimeStore,
+} from '../types';
 
 export const getReactFlowNodeDataProp = (
   store$: Observable<WorkflowRuntimeStore>,
@@ -29,10 +33,12 @@ export const getReactFlowNodeDataProp = (
           ),
         ),
       ),
-      data$: node$.data.get().getObservableBox() as Observable<WorkflowJsonObject>,
+      data$: node$.data
+        .get()
+        .getObservableBox() as Observable<WorkflowJsonObject>,
     };
 
-    console.log(`[useReactFlowStore:getValues] node '${node$.id.peek()}' values`, { result });
+    // console.log(`[useReactFlowStore:getValues] node '${node$.id.peek()}' values`, { result });
     return result;
   },
 });

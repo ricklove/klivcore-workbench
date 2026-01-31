@@ -1,9 +1,14 @@
-import { getBezierPath, useReactFlow, BaseEdge, EdgeLabelRenderer } from '@xyflow/react';
-import { memo, useCallback, useMemo, useState } from 'react';
-import type { WorkflowRuntimeEdge, WorkflowRuntimeStore } from './types';
-import { observable, type Observable } from '@legendapp/state';
+import { type Observable, observable } from '@legendapp/state';
 import { Memo, useValue } from '@legendapp/state/react';
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+  useReactFlow,
+} from '@xyflow/react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { optimizationStore } from './optimization-store';
+import type { WorkflowRuntimeEdge, WorkflowRuntimeStore } from './types';
 
 const expandedInfoByEdge$ = observable({} as Record<string, boolean>);
 
@@ -21,7 +26,9 @@ export const CustomEdge = (props: {
     store$: Observable<WorkflowRuntimeStore>;
   };
 }) => {
-  const isMultiSelect = useValue(() => optimizationStore.isMultiSelection$.get());
+  const isMultiSelect = useValue(() =>
+    optimizationStore.isMultiSelection$.get(),
+  );
 
   return (
     <CustomEdgeInner
@@ -105,7 +112,9 @@ const CustomEdgeInner = memo(
     const [expandInfoQuick, setExpandInfoQuick] = useState(false);
     const expandInfoSticky = useValue(() => expandedInfoByEdge$[id]?.get());
     const setExpandInfoSticky = (cb: (prev: boolean) => boolean) => {
-      expandedInfoByEdge$[id]?.set(cb(expandedInfoByEdge$[id]?.peek() ?? false));
+      expandedInfoByEdge$[id]?.set(
+        cb(expandedInfoByEdge$[id]?.peek() ?? false),
+      );
     };
 
     const expandInfo = expandInfoQuick || expandInfoSticky;
@@ -194,7 +203,8 @@ const CustomEdgeInner = memo(
                           value={JSON.stringify(
                             {
                               value: props.data.edge$.value.get().getUiValue(),
-                              changeCounter: props.data.edge$.value.get().uiChangeCounter$,
+                              changeCounter:
+                                props.data.edge$.value.get().uiChangeCounter$,
                             },
                             null,
                             2,

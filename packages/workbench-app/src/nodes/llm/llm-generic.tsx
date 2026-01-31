@@ -1,5 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useState, useEffect } from 'react';
+
+import { useValue } from '@legendapp/state/react';
+import { useEffect, useState } from 'react';
+import { clsx } from '../../utils/clsx';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
 import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
 import {
@@ -8,8 +11,6 @@ import {
   type WorkflowComponentPropsAny_Ops,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
-import { clsx } from '../../utils/clsx';
 
 // --- CONFIGURATION TYPE ---
 
@@ -71,7 +72,13 @@ interface LlmOutputs {
   response: undefined | string;
   done: boolean;
   error: undefined | string;
-  status: 'idle' | 'connecting' | 'thinking' | 'streaming' | 'error' | 'completed';
+  status:
+    | 'idle'
+    | 'connecting'
+    | 'thinking'
+    | 'streaming'
+    | 'error'
+    | 'completed';
   settings: LlmSettings;
   usage: undefined | LlmUsage;
   raw: string | undefined;
@@ -112,7 +119,11 @@ const InputField = ({
       onChange={(e) => !readonly && onChange(e.target.value)}
       readOnly={readonly}
       placeholder={placeholder}
-      title={readonly ? 'Controlled by input connection' : `Enter ${label.toLowerCase()}`}
+      title={
+        readonly
+          ? 'Controlled by input connection'
+          : `Enter ${label.toLowerCase()}`
+      }
     />
   </div>
 );
@@ -202,8 +213,13 @@ export const createLlmRequestNodeType = (
 
       const prompt = promptInput ?? '';
       // Priority: settingsInput > individual inputs > data > defaults
-      const model = settingsInput?.model ?? modelInput ?? safeData.model ?? config.defaultModel;
-      const url = settingsInput?.url ?? urlInput ?? safeData.url ?? config.defaultUrl;
+      const model =
+        settingsInput?.model ??
+        modelInput ??
+        safeData.model ??
+        config.defaultModel;
+      const url =
+        settingsInput?.url ?? urlInput ?? safeData.url ?? config.defaultUrl;
       const apiKey = settingsInput?.apiKey ?? apiKeyInput ?? safeData.apiKey;
 
       const resolvedSettings: LlmSettings = { model, url, apiKey };
@@ -242,7 +258,9 @@ export const createLlmRequestNodeType = (
           });
 
           // Build headers
-          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
 
           if (config.authKind === 'bearer' && apiKey) {
             headers['Authorization'] = `Bearer ${apiKey}`;
@@ -251,7 +269,11 @@ export const createLlmRequestNodeType = (
           // Build request body
           let requestBody: Record<string, unknown>;
           if (config.transformRequest) {
-            requestBody = config.transformRequest({ prompt, model, stream: true });
+            requestBody = config.transformRequest({
+              prompt,
+              model,
+              stream: true,
+            });
           } else {
             requestBody = {
               model,
@@ -276,7 +298,10 @@ export const createLlmRequestNodeType = (
             throw new Error('Response body is missing');
           }
 
-          controller.setProgress({ progressRatio: 0.3, message: 'Starting stream...' });
+          controller.setProgress({
+            progressRatio: 0.3,
+            message: 'Starting stream...',
+          });
           emit({
             status: 'thinking',
           });
@@ -310,7 +335,10 @@ export const createLlmRequestNodeType = (
               if (!trimmedLine) return;
 
               try {
-                console.log('[llm-generic] stream chunk line', { trimmedLine, chunkText });
+                console.log('[llm-generic] stream chunk line', {
+                  trimmedLine,
+                  chunkText,
+                });
                 const rawChunk = trimmedLine;
 
                 const parsedChunk = config.parseStreamChunk(rawChunk);
@@ -344,8 +372,12 @@ export const createLlmRequestNodeType = (
 
                     if (foundCloseThoughtTag) {
                       // Find the first closing tag that appears
-                      const splitIndex = cumulativeThought.indexOf(foundCloseThoughtTag);
-                      const thoughtContent = cumulativeThought.substring(0, splitIndex);
+                      const splitIndex =
+                        cumulativeThought.indexOf(foundCloseThoughtTag);
+                      const thoughtContent = cumulativeThought.substring(
+                        0,
+                        splitIndex,
+                      );
                       const responseContent = cumulativeThought.substring(
                         splitIndex + foundCloseThoughtTag.length,
                       );
@@ -379,9 +411,15 @@ export const createLlmRequestNodeType = (
                   doneChunk = true;
                 }
               } catch (parseError) {
-                console.error('[llm-generic] ERROR stream chunk line', { trimmedLine, chunkText });
+                console.error('[llm-generic] ERROR stream chunk line', {
+                  trimmedLine,
+                  chunkText,
+                });
 
-                controller.setProgress({ progressRatio: 0.0, message: 'Error parsing response' });
+                controller.setProgress({
+                  progressRatio: 0.0,
+                  message: 'Error parsing response',
+                });
                 emit({
                   error: `JSON parse error: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
                   status: 'error',
@@ -393,10 +431,13 @@ export const createLlmRequestNodeType = (
               processLine(line);
             }
 
-            if( doneChunk ) {
-              console.log('[llm-generic] buffer after lines processed', { buffer, doneStream });
+            if (doneChunk) {
+              console.log('[llm-generic] buffer after lines processed', {
+                buffer,
+                doneStream,
+              });
             }
-            const isDone = ( doneStream) && !buffer;
+            const isDone = doneStream && !buffer;
             if (isDone) {
               // If thought was never closed, copy everything to response
               if (!thoughtClosed) {
@@ -404,7 +445,10 @@ export const createLlmRequestNodeType = (
                 cumulativeThought = '';
               }
 
-              controller.setProgress({ progressRatio: 1.0, message: 'Response complete' });
+              controller.setProgress({
+                progressRatio: 1.0,
+                message: 'Response complete',
+              });
               emit({
                 thought: cumulativeThought,
                 response: cumulativeResponse,
@@ -415,8 +459,12 @@ export const createLlmRequestNodeType = (
             }
           }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          controller.setProgress({ progressRatio: 0.0, message: `Error: ${errorMessage}` });
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          controller.setProgress({
+            progressRatio: 0.0,
+            message: `Error: ${errorMessage}`,
+          });
 
           emit({
             error: errorMessage,
@@ -464,21 +512,31 @@ export const LlmRequestComponent = (
   const { node$, data$ } = props.data;
 
   const urlData = useValue(() => data$.url.get() ?? props.config.defaultUrl);
-  const modelData = useValue(() => data$.model.get() ?? props.config.defaultModel);
+  const modelData = useValue(
+    () => data$.model.get() ?? props.config.defaultModel,
+  );
   const apiKeyData = useValue(() => data$.apiKey.get() ?? '');
 
   const modelSlot = useValue(() => node$.getInputInfo<string>('model'));
   const urlSlot = useValue(() => node$.getInputInfo<string>('url'));
   const apiKeySlot = useValue(() => node$.getInputInfo<string>('apiKey'));
-  const settingsSlot = useValue(() => node$.getInputInfo<LlmSettings>('settings'));
+  const settingsSlot = useValue(() =>
+    node$.getInputInfo<LlmSettings>('settings'),
+  );
 
   const isModelReadonly = modelSlot.isConnected || settingsSlot.isConnected;
   const isUrlReadonly = urlSlot.isConnected || settingsSlot.isConnected;
   const isApiKeyReadonly = apiKeySlot.isConnected || settingsSlot.isConnected;
 
-  const currentStatus = useValue(() => props.data.outputs$.status.get() ?? 'idle');
-  const currentThought = useValue(() => props.data.outputs$.thought.get() ?? '');
-  const currentResponse = useValue(() => props.data.outputs$.response.get() ?? '');
+  const currentStatus = useValue(
+    () => props.data.outputs$.status.get() ?? 'idle',
+  );
+  const currentThought = useValue(
+    () => props.data.outputs$.thought.get() ?? '',
+  );
+  const currentResponse = useValue(
+    () => props.data.outputs$.response.get() ?? '',
+  );
   const currentError = useValue(() => props.data.outputs$.error.get());
 
   const [localUrl, setLocalUrl] = useState(urlData);
@@ -537,8 +595,15 @@ export const LlmRequestComponent = (
       <div className="w-full h-full bg-neutral-950 p-3 rounded-md shadow-sm flex flex-col gap-3 nowheel nodrag nopan">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-          <div className="text-xs font-bold text-white">{props.config.name} LLM Request</div>
-          <div className={clsx('text-xs font-medium', getStatusColor(currentStatus))}>
+          <div className="text-xs font-bold text-white">
+            {props.config.name} LLM Request
+          </div>
+          <div
+            className={clsx(
+              'text-xs font-medium',
+              getStatusColor(currentStatus),
+            )}
+          >
             {getStatusText(currentStatus)}
           </div>
         </div>
@@ -578,13 +643,17 @@ export const LlmRequestComponent = (
         <div className="flex flex-col gap-2 flex-1 border-t border-neutral-800 pt-2 overflow-hidden">
           {/* Thought Preview */}
           {currentThought && (
-            <div className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}>
+            <div
+              className={`flex flex-col gap-1 ${thoughtCollapsed ? '' : 'flex-1 min-h-0'}`}
+            >
               <button
                 onClick={() => setThoughtCollapsed(!thoughtCollapsed)}
                 className="flex items-center justify-between text-[10px] font-bold text-purple-400 uppercase tracking-wider hover:text-purple-300 transition-colors cursor-pointer"
               >
                 <span>Thought Process</span>
-                <span className="text-purple-400">{thoughtCollapsed ? '▶' : '▼'}</span>
+                <span className="text-purple-400">
+                  {thoughtCollapsed ? '▶' : '▼'}
+                </span>
               </button>
               {!thoughtCollapsed && (
                 <div className="bg-black/25 border border-purple-800/50 rounded p-2 flex-1 overflow-y-auto">
@@ -603,7 +672,9 @@ export const LlmRequestComponent = (
             </div>
             <div className="bg-black/25 border border-neutral-800 rounded p-2 flex-1 overflow-y-auto">
               {currentError ? (
-                <div className="text-red-500 text-xs whitespace-pre-wrap">{currentError}</div>
+                <div className="text-red-500 text-xs whitespace-pre-wrap">
+                  {currentError}
+                </div>
               ) : (
                 <div className="text-green-400 text-xs font-mono whitespace-pre-wrap">
                   {currentResponse || 'No response yet...'}
@@ -621,6 +692,8 @@ export const LlmRequestComponent = (
 
 export const createLlmNodes = (config: LlmConfig) => {
   return [
-    createLlmRequestNodeType(config, (props) => <LlmRequestComponent {...props} config={config} />),
+    createLlmRequestNodeType(config, (props) => (
+      <LlmRequestComponent {...props} config={config} />
+    )),
   ];
 };

@@ -1,13 +1,25 @@
-import { WorkflowNodeDefault } from './node-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from './types';
-import { JsonNodeComponent, RerouteComponent, StringNodeComponent } from './nodes';
 import { TempWrapper } from './node-temp-wrapper';
 import { NodeTypeWrapComponent } from './node-types-wrapper';
+import { WorkflowNodeDefault } from './node-wrapper';
+import {
+  JsonNodeComponent,
+  RerouteComponent,
+  StringNodeComponent,
+} from './nodes';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from './types';
 
-export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
+export const builtinNodeTypes: Record<
+  string,
+  WorkflowRuntimeNodeTypeDefinition
+> = {
   default: {
     type: WorkflowBrandedTypes.typeName(`default`),
-    getComponent: () => ({ Component: NodeTypeWrapComponent(WorkflowNodeDefault) }),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponent(WorkflowNodeDefault),
+    }),
     inputs: [],
     outputs: [],
     execute: async () => {
@@ -16,7 +28,9 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   reroute: {
     type: WorkflowBrandedTypes.typeName(`reroute`),
-    getComponent: () => ({ Component: NodeTypeWrapComponent(RerouteComponent) }),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponent(RerouteComponent),
+    }),
     defaultSize: { width: 16, height: 24 },
     inputs: [
       {
@@ -42,7 +56,9 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   string: {
     type: WorkflowBrandedTypes.typeName(`string`),
-    getComponent: () => ({ Component: NodeTypeWrapComponent(StringNodeComponent) }),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponent(StringNodeComponent),
+    }),
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`value`),
@@ -59,7 +75,9 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
       const inputsTyped = inputs as {
         value: undefined | string;
       };
-      const dataTyped = data as undefined | { value: undefined | string; overrideInput?: boolean };
+      const dataTyped = data as
+        | undefined
+        | { value: undefined | string; overrideInput?: boolean };
 
       return {
         outputs: {
@@ -74,11 +92,15 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
   },
   json: {
     type: WorkflowBrandedTypes.typeName(`json`),
-    getComponent: () => ({ Component: NodeTypeWrapComponent(JsonNodeComponent) }),
+    getComponent: () => ({
+      Component: NodeTypeWrapComponent(JsonNodeComponent),
+    }),
     inputs: [
       {
         name: WorkflowBrandedTypes.inputName(`value`),
-        type: WorkflowBrandedTypes.valueType(`T extends Record<string, unknown>`),
+        type: WorkflowBrandedTypes.valueType(
+          `T extends Record<string, unknown>`,
+        ),
       },
     ],
     outputs: [
@@ -92,15 +114,23 @@ export const builtinNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition>
         value: undefined | unknown;
       };
       const dataTyped = data as undefined | { value: undefined | string };
-      const dataFromJs = new Function(`return ${dataTyped?.value ?? 'undefined'}`)();
+      const dataFromJs = new Function(
+        `return ${dataTyped?.value ?? 'undefined'}`,
+      )();
       // const dataFromJson = JSON.parse(dataTyped?.value ?? ``);
 
       const obj = inputsTyped.value ?? dataFromJs ?? undefined;
 
-      controller.setProgress({ progressRatio: 0.1, message: 'Creating object...' });
+      controller.setProgress({
+        progressRatio: 0.1,
+        message: 'Creating object...',
+      });
       // const obj = JSON.parse(JSON.stringify(code));
       // const obj = JSON.parse(JSON.stringify(code));
-      controller.setProgress({ progressRatio: 1, message: 'Object creation complete' });
+      controller.setProgress({
+        progressRatio: 1,
+        message: 'Object creation complete',
+      });
 
       return {
         outputs: { value: obj },

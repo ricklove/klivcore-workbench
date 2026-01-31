@@ -1,17 +1,26 @@
-import { beginBatch, endBatch, ObservableHint, type Observable } from '@legendapp/state';
 import {
-  type WorkflowRuntimeEngine,
-  type WorkflowRuntimeNode,
-  type WorkflowRuntimeStore,
-  type WorkflowNodeId,
-  type WorkflowRuntimeValue,
+  beginBatch,
+  endBatch,
+  type Observable,
+  ObservableHint,
+} from '@legendapp/state';
+import {
   WorkflowBrandedTypes,
+  type WorkflowEdgeId,
   type WorkflowExecutionArgs,
   type WorkflowJsonObject,
-  type WorkflowEdgeId,
+  type WorkflowNodeId,
+  type WorkflowRuntimeEngine,
   type WorkflowRuntimeExecutionState,
+  type WorkflowRuntimeNode,
+  type WorkflowRuntimeStore,
+  type WorkflowRuntimeValue,
 } from '../types';
-import { createBatchTrigger, observeBatched, type BatchedTriggerKind } from './observe-batched';
+import {
+  type BatchedTriggerKind,
+  createBatchTrigger,
+  observeBatched,
+} from './observe-batched';
 
 const loggingEnabled = false;
 
@@ -51,10 +60,14 @@ const createEmptyExecutionState = (): WorkflowRuntimeExecutionState => ({
       return this.runCount === 0 ? 0 : this.totalExecutionTime / this.runCount;
     },
     get averageAsyncExecutionTime() {
-      return this.runCount === 0 ? 0 : this.totalAsyncExecutionTime / this.runCount;
+      return this.runCount === 0
+        ? 0
+        : this.totalAsyncExecutionTime / this.runCount;
     },
     get averageAsyncMicrotaskLagTime() {
-      return this.runCount === 0 ? 0 : this.totalAsyncMicrotaskLagTime / this.runCount;
+      return this.runCount === 0
+        ? 0
+        : this.totalAsyncMicrotaskLagTime / this.runCount;
     },
   },
 });
@@ -84,10 +97,13 @@ const executeNode = async ({
 
   const typeDef = store.nodeTypes[node.type];
   if (!typeDef) {
-    logger.warn(`[createWorkflowEngine:processNodeQueue] Node type definition not found:`, {
-      nodeId,
-      type: node.type,
-    });
+    logger.warn(
+      `[createWorkflowEngine:processNodeQueue] Node type definition not found:`,
+      {
+        nodeId,
+        type: node.type,
+      },
+    );
     return undefined;
   }
 
@@ -119,7 +135,8 @@ const executeNode = async ({
   // const executionState: WorkflowRuntimeExecutionState = {
   //   ...node.executionState,
   // };
-  const executionState: WorkflowRuntimeExecutionState = createEmptyExecutionState();
+  const executionState: WorkflowRuntimeExecutionState =
+    createEmptyExecutionState();
   executionState.status = `running`;
   onExecutionStateChange(executionState);
 
@@ -193,14 +210,18 @@ const executeNode = async ({
       executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
       onExecutionStateChange(executionState);
 
-      logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`, {
-        nodeId,
-        args,
-      });
+      logger.log(
+        `[createWorkflowEngine:processNodeQueue:executeNode] Node execution aborted:`,
+        {
+          nodeId,
+          args,
+        },
+      );
     } else {
       executionState.status = `error`;
       executionState.runState.endTimestamp = WorkflowBrandedTypes.now();
-      executionState.runState.errorMessage = (err as Error)?.message ?? `Unknown error`;
+      executionState.runState.errorMessage =
+        (err as Error)?.message ?? `Unknown error`;
       onExecutionStateChange(executionState);
 
       console.error(
@@ -220,12 +241,19 @@ const executeNode = async ({
   stats.errorCount += executionState.status === `error` ? 1 : 0;
   stats.abortedCount += executionState.status === `aborted` ? 1 : 0;
   stats.totalExecutionTime +=
-    executionState.runState.endTimestamp! - executionState.runState.startTimestamp!;
-  stats.totalAsyncExecutionTime += executionState.runState.asyncExecutionTime ?? 0;
-  stats.totalAsyncMicrotaskLagTime += executionState.runState.asyncMicrotaskLagTime ?? 0;
-  if (executionState.status === `error` && executionState.runState.errorMessage) {
+    executionState.runState.endTimestamp! -
+    executionState.runState.startTimestamp!;
+  stats.totalAsyncExecutionTime +=
+    executionState.runState.asyncExecutionTime ?? 0;
+  stats.totalAsyncMicrotaskLagTime +=
+    executionState.runState.asyncMicrotaskLagTime ?? 0;
+  if (
+    executionState.status === `error` &&
+    executionState.runState.errorMessage
+  ) {
     const errorMessage = executionState.runState.errorMessage;
-    stats.errorMessageCounts[errorMessage] = (stats.errorMessageCounts[errorMessage] ?? 0) + 1;
+    stats.errorMessageCounts[errorMessage] =
+      (stats.errorMessageCounts[errorMessage] ?? 0) + 1;
   }
   // executionState.history.push({
   //   status: executionState.status as `success` | `error` | `aborted`,
@@ -247,7 +275,9 @@ export const createWorkflowEngine = (
     running: false,
 
     engineSubscription: undefined as undefined | { unsubscribe: () => void },
-    tickTriggerSubscription: undefined as undefined | { unsubscribe: () => void },
+    tickTriggerSubscription: undefined as
+      | undefined
+      | { unsubscribe: () => void },
 
     /** process:
      * - one subscription (edge key or node key changes)
@@ -293,12 +323,16 @@ export const createWorkflowEngine = (
       propagationCount: 0,
       propagationTotalTime: 0,
       get propagationAverageTime() {
-        return this.propagationCount === 0 ? 0 : this.propagationTotalTime / this.propagationCount;
+        return this.propagationCount === 0
+          ? 0
+          : this.propagationTotalTime / this.propagationCount;
       },
       executionCount: 0,
       executionTotalTime: 0,
       get executionAverageTime() {
-        return this.executionCount === 0 ? 0 : this.executionTotalTime / this.executionCount;
+        return this.executionCount === 0
+          ? 0
+          : this.executionTotalTime / this.executionCount;
       },
       executionMicrotaskLagTotalTime: 0,
       get executionMicrotaskLagAverageTime() {
@@ -336,7 +370,9 @@ export const createWorkflowEngine = (
       },
       get executionHistoryAsyncMicrotaskLagAverageTime() {
         const count = this.executionHistoryCount;
-        return count === 0 ? 0 : this.executionHistoryAsyncMicrotaskLagTotalTime / count;
+        return count === 0
+          ? 0
+          : this.executionHistoryAsyncMicrotaskLagTotalTime / count;
       },
     },
   };
@@ -351,7 +387,9 @@ export const createWorkflowEngine = (
 
     const startTime = performance.now();
 
-    logger.log(`[createWorkflowEngine:propagateValues] Propagating values...`, { engineState });
+    logger.log(`[createWorkflowEngine:propagateValues] Propagating values...`, {
+      engineState,
+    });
 
     beginBatch();
 
@@ -359,8 +397,10 @@ export const createWorkflowEngine = (
 
     // process output values
     for (const ov of engineState.outputValues) {
-      const currentCounter = engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? -1;
-      const newCounter = ov.sourceOutputRuntimeValue.getImmediateChangeCounter();
+      const currentCounter =
+        engineState.dataChangeCounters.get(ov.sourceOutputRuntimeValue) ?? -1;
+      const newCounter =
+        ov.sourceOutputRuntimeValue.getImmediateChangeCounter();
 
       if (newCounter === currentCounter) {
         continue;
@@ -383,7 +423,8 @@ export const createWorkflowEngine = (
 
     // process node data values
     for (const nv of engineState.nodeDataValues) {
-      const currentCounter = engineState.dataChangeCounters.get(nv.dataRuntimeValue) ?? -1;
+      const currentCounter =
+        engineState.dataChangeCounters.get(nv.dataRuntimeValue) ?? -1;
       const newCounter = nv.dataRuntimeValue.getImmediateChangeCounter();
       if (newCounter === currentCounter) {
         continue;
@@ -454,9 +495,12 @@ export const createWorkflowEngine = (
       const node = store.nodes[nodeId];
 
       if (!node) {
-        logger.warn(`[createWorkflowEngine:executeNodes] Node not found, skipping execution:`, {
-          nodeId,
-        });
+        logger.warn(
+          `[createWorkflowEngine:executeNodes] Node not found, skipping execution:`,
+          {
+            nodeId,
+          },
+        );
         engineState.nodeIdsExecuting.delete(nodeId);
         continue;
       }
@@ -477,7 +521,9 @@ export const createWorkflowEngine = (
       }
 
       const promise = (async () => {
-        executionState$.runState.promiseStartTime.set(WorkflowBrandedTypes.now());
+        executionState$.runState.promiseStartTime.set(
+          WorkflowBrandedTypes.now(),
+        );
 
         // if (node.executionState?.status !== `running`) {
         engineState.executionEmitters.get(nodeId)?.unsubscribe();
@@ -493,11 +539,14 @@ export const createWorkflowEngine = (
           controller: {
             abortSignal: engineState.abortController.signal,
             setProgress: ({ progressRatio, message }) => {
-              logger.log(`[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`, {
-                nodeId,
-                progressRatio,
-                message,
-              });
+              logger.log(
+                `[createWorkflowEngine:processNodeQueue:executeNode] Node progress:`,
+                {
+                  nodeId,
+                  progressRatio,
+                  message,
+                },
+              );
 
               // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
               const executionState$ = store$.nodes[nodeId]?.executionState!;
@@ -560,7 +609,9 @@ export const createWorkflowEngine = (
         return { nodeId, executionState };
       })();
 
-      executionState$.runState.promiseInstance.set( ObservableHint.opaque({promise}));
+      executionState$.runState.promiseInstance.set(
+        ObservableHint.opaque({ promise }),
+      );
       promises.push(promise);
     }
 
@@ -614,7 +665,10 @@ export const createWorkflowEngine = (
   };
 
   const tick = () => {
-    logger.log(`[createWorkflowEngine:tick] #${stats.tickCount} ...`, { engineState, stats });
+    logger.log(`[createWorkflowEngine:tick] #${stats.tickCount} ...`, {
+      engineState,
+      stats,
+    });
     engineState.tickTriggerSubscription = undefined;
     if (!engineState.running) {
       return;
@@ -638,7 +692,9 @@ export const createWorkflowEngine = (
     engineState.nodeIdsToExecute.clear();
 
     if (engineState.nodeIdsExecuting.size === 0) {
-      logger.log(`[createWorkflowEngine:tick] No nodes to execute, skipping.`, { engineState });
+      logger.log(`[createWorkflowEngine:tick] No nodes to execute, skipping.`, {
+        engineState,
+      });
       queueTick();
       stats.tickTotalTime += performance.now() - tickStartTime;
       return;
@@ -654,7 +710,7 @@ export const createWorkflowEngine = (
   };
 
   const engine: WorkflowRuntimeEngine = {
-    ...{__engineState: engineState} as unknown as Record<string,never>,
+    ...({ __engineState: engineState } as unknown as Record<string, never>),
     get running() {
       return engineState.running;
     },
@@ -694,11 +750,15 @@ export const createWorkflowEngine = (
     },
     start: () => {
       if (engineState.running) {
-        logger.warn(`[createWorkflowEngine:start] Engine is already running`, { engine });
+        logger.warn(`[createWorkflowEngine:start] Engine is already running`, {
+          engine,
+        });
         return;
       }
 
-      logger.log(`[createWorkflowEngine:start] Starting workflow engine...`, { engine });
+      logger.log(`[createWorkflowEngine:start] Starting workflow engine...`, {
+        engine,
+      });
       engineState.running = true;
 
       if (engineState.abortController.signal.aborted) {
@@ -771,8 +831,12 @@ export const createWorkflowEngine = (
           if (!sourceNode || !targetNode) {
             return [];
           }
-          const sourceOutput = sourceNode.outputs.find((o) => o.name === edge.source.outputName);
-          const targetInput = targetNode.inputs.find((i) => i.name === edge.target.inputName);
+          const sourceOutput = sourceNode.outputs.find(
+            (o) => o.name === edge.source.outputName,
+          );
+          const targetInput = targetNode.inputs.find(
+            (i) => i.name === edge.target.inputName,
+          );
           if (!sourceOutput || !targetInput) {
             return [];
           }
@@ -789,7 +853,9 @@ export const createWorkflowEngine = (
         });
 
         const removedOutputValues = oldOutputValues.filter((oldOv) => {
-          return !engineState.outputValues.find((ov) => ov.edgeId === oldOv.edgeId);
+          return !engineState.outputValues.find(
+            (ov) => ov.edgeId === oldOv.edgeId,
+          );
         });
 
         // clean up removed output values from dataChangeCounters
@@ -830,14 +896,17 @@ export const createWorkflowEngine = (
           });
         }
 
-        console.log(`[createWorkflowEngine:mainSubscription] Subscribed to workflow changes`, {
-          engineState,
-          nodes,
-          edges,
-          _edgeIds,
-          _nodeIds,
-          unsubMain,
-        });
+        console.log(
+          `[createWorkflowEngine:mainSubscription] Subscribed to workflow changes`,
+          {
+            engineState,
+            nodes,
+            edges,
+            _edgeIds,
+            _nodeIds,
+            unsubMain,
+          },
+        );
 
         return () => {
           unsubs.forEach((u) => u());
@@ -855,11 +924,15 @@ export const createWorkflowEngine = (
     },
     stop: ({ shouldAbort }) => {
       if (!engineState.running) {
-        logger.warn(`[createWorkflowEngine:stop] Engine is not running`, { engine });
+        logger.warn(`[createWorkflowEngine:stop] Engine is not running`, {
+          engine,
+        });
         return;
       }
 
-      logger.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, { engine });
+      logger.log(`[createWorkflowEngine:stop] Stopping workflow engine...`, {
+        engine,
+      });
       engineState.running = false;
       engineState.engineSubscription?.unsubscribe();
       engineState.engineSubscription = undefined;

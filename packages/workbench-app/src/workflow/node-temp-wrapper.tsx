@@ -1,8 +1,8 @@
+import { useValue } from '@legendapp/state/react';
 import { useEffect, useState } from 'react';
+import { ErrorBoundary } from './error-boundary';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
 import type { WorkflowComponentProps_Obs } from './types';
-import { useValue } from '@legendapp/state/react';
-import { ErrorBoundary } from './error-boundary';
 
 export const TempWrapper = (props: WorkflowComponentProps_Obs) => {
   const importPath = useValue(() =>
@@ -13,7 +13,10 @@ export const TempWrapper = (props: WorkflowComponentProps_Obs) => {
   );
 
   const [ComponentObj, setComponentObj] = useState(
-    undefined as undefined | { Component: React.ComponentType } | { error: { message: string } },
+    undefined as
+      | undefined
+      | { Component: React.ComponentType }
+      | { error: { message: string } },
   );
   useEffect(() => {
     if (!importPath) {

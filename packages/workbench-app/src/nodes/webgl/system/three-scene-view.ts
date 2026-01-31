@@ -1,11 +1,11 @@
+import type * as THREE from 'three';
 import { NodeTypeWrapComponentWithNodeWrapper } from '../../../workflow/node-types-wrapper';
 import {
-  type WorkflowRuntimeNodeTypeDefinition,
   WorkflowBrandedTypes,
+  type WorkflowRuntimeNodeTypeDefinition,
 } from '../../../workflow/types';
-import { unbox, box, type Box } from '../types';
+import { type Box, box, unbox } from '../types';
 import { ScenePreviewNodeComponent } from './three-scene-preview-component';
-import * as THREE from 'three';
 
 export const threeSceneView: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`threeSceneView`),

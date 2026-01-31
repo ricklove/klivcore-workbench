@@ -1,5 +1,5 @@
 import { observable } from '@legendapp/state';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 export type TexturePreviewData = {
   type: 'texture';
@@ -21,4 +21,6 @@ export type PreviewRequest = {
 };
 
 // Map of NodeID -> Preview Data
-export const webglPreviewStore$ = observable<Record<string, PreviewRequest>>({});
+export const webglPreviewStore$ = observable<Record<string, PreviewRequest>>(
+  {},
+);

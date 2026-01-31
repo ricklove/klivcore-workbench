@@ -1,4 +1,4 @@
-import { observable, type Observable } from '@legendapp/state';
+import { type Observable, observable } from '@legendapp/state';
 import type {
   WorkflowDocumentData,
   WorkflowJsonObject,
@@ -29,7 +29,8 @@ export const persistStoreToDocument = (
         ])
         .filter(([, newId]) => !!newId),
     );
-    const getNodeId = (id: undefined | WorkflowNodeId) => nodeIdMap[id ?? ``] || id;
+    const getNodeId = (id: undefined | WorkflowNodeId) =>
+      nodeIdMap[id ?? ``] || id;
 
     const document: WorkflowDocumentData = {
       nodes: Object.values(store$.nodes)
@@ -70,7 +71,8 @@ export const persistStoreToDocument = (
               name: output$.name.get(),
               type: output$.type.get(),
             })),
-            data: node$.data.get().getUiValue<WorkflowJsonObject>() ?? undefined,
+            data:
+              node$.data.get().getUiValue<WorkflowJsonObject>() ?? undefined,
             parentId: getNodeId(node$.parentId.get()),
             mode: node$.mode.get(),
           };

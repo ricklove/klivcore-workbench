@@ -1,14 +1,14 @@
+import { type Observable, observable } from '@legendapp/state';
+import { Computed, Memo, useValue } from '@legendapp/state/react';
 import { Handle, NodeResizer, Position, useReactFlow } from '@xyflow/react';
 import React, { memo, useCallback, useState } from 'react';
+import { optimizationStore } from './optimization-store';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentPropsAny_Ops as WorkflowComponentPropsAny,
   type WorkflowNodeId,
   type WorkflowRuntimeNode,
 } from './types';
-import { Computed, Memo, useValue } from '@legendapp/state/react';
-import { optimizationStore } from './optimization-store';
-import { observable, type Observable } from '@legendapp/state';
 
 export const WorkflowNodeDefault = (props: WorkflowComponentPropsAny) => {
   return (
@@ -39,7 +39,9 @@ const WorkflowNodeWrapper = ({
 }: WorkflowComponentPropsAny & {
   children: React.ReactNode;
 }) => {
-  const isMultiSelect = useValue(() => optimizationStore.isMultiSelection$.get());
+  const isMultiSelect = useValue(() =>
+    optimizationStore.isMultiSelection$.get(),
+  );
   // const nodeId = useValue(
   //   () => dataReactFlow.node$.newIdUntilReload.get() ?? dataReactFlow.node$.id.get(),
   // );
@@ -48,12 +50,19 @@ const WorkflowNodeWrapper = ({
       <NodeResizer isVisible={selected && !isMultiSelect} />
       <WrapperHeader id={id} selected={selected} data={dataReactFlow} />
       {children}
-      {!hideHandles && <WrapperHandles selected={selected} data={{ node$: dataReactFlow.node$ }} />}
+      {!hideHandles && (
+        <WrapperHandles
+          selected={selected}
+          data={{ node$: dataReactFlow.node$ }}
+        />
+      )}
     </>
   );
 };
 
-const expandedInfoByNode$ = observable({} as Record<WorkflowNodeId, false | `data` | `document`>);
+const expandedInfoByNode$ = observable(
+  {} as Record<WorkflowNodeId, false | `data` | `document`>,
+);
 
 const WrapperHeader = memo(
   ({
@@ -64,8 +73,12 @@ const WrapperHeader = memo(
     // console.log(`[NodeWrapper] rendering node ${nodeIdRaw}`, { dataReactFlow });
     const { deleteElements } = useReactFlow();
 
-    const [nodeIdWarning, setNodeIdWarning] = useState(undefined as undefined | string);
-    const [nodeId, setNodeId] = useState(WorkflowBrandedTypes.nodeIdToString(nodeIdRaw));
+    const [nodeIdWarning, setNodeIdWarning] = useState(
+      undefined as undefined | string,
+    );
+    const [nodeId, setNodeId] = useState(
+      WorkflowBrandedTypes.nodeIdToString(nodeIdRaw),
+    );
     const oldId = React.useRef(nodeIdRaw);
     // eslint-disable-next-line react-hooks/refs
     if (oldId.current !== nodeIdRaw) {
@@ -192,8 +205,13 @@ const WrapperHeader = memo(
                         <div
                           className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
                           onClick={() => {
-                            setExpandInfo(expandInfoRaw === `data` ? false : `data`);
-                            console.log(`dataReactFlow ${nodeId}`, dataReactFlow);
+                            setExpandInfo(
+                              expandInfoRaw === `data` ? false : `data`,
+                            );
+                            console.log(
+                              `dataReactFlow ${nodeId}`,
+                              dataReactFlow,
+                            );
                           }}
                           onMouseEnter={() => setExpandInfoQuick(true)}
                           onMouseLeave={() => setExpandInfoQuick(false)}
@@ -205,7 +223,9 @@ const WrapperHeader = memo(
                             expandInfo ? `bg-blue-800` : `bg-blue-400`
                           }`}
                           onClick={() =>
-                            setExpandInfo(expandInfoRaw === `document` ? false : `document`)
+                            setExpandInfo(
+                              expandInfoRaw === `document` ? false : `document`,
+                            )
                           }
                         >
                           {`ℹ`}
@@ -235,14 +255,18 @@ const WrapperHeader = memo(
                 )}
                 <div
                   className={`flex flex-row items-center gap-0.5 border-none ${
-                    nodeIdWarning || selected ? '' : 'opacity-5 hover:opacity-100 focus:opacity-100'
+                    nodeIdWarning || selected
+                      ? ''
+                      : 'opacity-5 hover:opacity-100 focus:opacity-100'
                   }`}
                 >
                   <div className="w-1 h-1 bg-blue-800 rounded-full" />
                   <input
                     type="text"
                     className={`min-w-0 flex-1 font-bold text-white outline-none bg-transparent p-0 m-0 leading-tight  text-[8px] ${
-                      nodeIdWarning ? '' : 'opacity-5 hover:opacity-100 focus:opacity-100'
+                      nodeIdWarning
+                        ? ''
+                        : 'opacity-5 hover:opacity-100 focus:opacity-100'
                     }`}
                     title={`${nodeId}: ${typeName}`}
                     value={nodeId}
@@ -288,7 +312,10 @@ const WrapperHeader = memo(
 );
 
 export const WrapperHandles = memo(
-  (props: { selected: boolean; data: { node$: Observable<WorkflowRuntimeNode> } }) => {
+  (props: {
+    selected: boolean;
+    data: { node$: Observable<WorkflowRuntimeNode> };
+  }) => {
     const BASE_HANDLE_TOP_OFFSET_PX = 12;
     const BASE_HANDLE_SIDE_OFFSET_PX = 6;
     const HANDLE_VERTICAL_SPACING_PX = 24;

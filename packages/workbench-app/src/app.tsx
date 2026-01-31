@@ -1,4 +1,4 @@
-import { WorkflowView } from "./workflow/workflow";
+import { WorkflowView } from './workflow/workflow';
 
 export const App = () => {
   return (

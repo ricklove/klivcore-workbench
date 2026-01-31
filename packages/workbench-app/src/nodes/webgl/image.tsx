@@ -1,11 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
-import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
-import { type WorkflowComponentProps_Obs } from '../../workflow/types';
-import { useValue } from '@legendapp/state/react';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
-import { WorkflowBrandedTypes, type WorkflowRuntimeNodeTypeDefinition } from '../../workflow/types';
-import * as THREE from 'three';
+
 import { ObservableHint } from '@legendapp/state';
+import { useValue } from '@legendapp/state/react';
+import * as THREE from 'three';
+import { NodeTypeWrapComponentWithNodeWrapper } from '../../workflow/node-types-wrapper';
+import { WorkflowNodeWrapperSimple } from '../../workflow/node-wrapper';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowComponentProps_Obs,
+  type WorkflowRuntimeNodeTypeDefinition,
+} from '../../workflow/types';
 import { box } from './types';
 
 /**
@@ -28,7 +32,9 @@ export const loadTextureArray = async (
   loader.setOptions({ imageOrientation: 'flipY' });
 
   // 1. Load all images concurrently (Network/Decoding phase)
-  const bitmaps: ImageBitmap[] = await Promise.all(urls.map((url) => loader.loadAsync(url)));
+  const bitmaps: ImageBitmap[] = await Promise.all(
+    urls.map((url) => loader.loadAsync(url)),
+  );
 
   const firstBitmap = bitmaps[0];
   if (!firstBitmap) {
@@ -86,7 +92,12 @@ export const loadTextureArray = async (
   }
 
   // 5. Create Texture
-  const textureArray = new THREE.DataArrayTexture(allPixels, finalWidth, finalHeight, urlCount);
+  const textureArray = new THREE.DataArrayTexture(
+    allPixels,
+    finalWidth,
+    finalHeight,
+    urlCount,
+  );
 
   textureArray.format = THREE.RGBAFormat;
   textureArray.type = THREE.UnsignedByteType;
@@ -109,7 +120,9 @@ const threeLoadImageTexture: WorkflowRuntimeNodeTypeDefinition = {
   outputs: [
     {
       name: WorkflowBrandedTypes.outputName(`texture`),
-      type: WorkflowBrandedTypes.valueType(`Box<THREE.Texture<HTMLImageElement>>`),
+      type: WorkflowBrandedTypes.valueType(
+        `Box<THREE.Texture<HTMLImageElement>>`,
+      ),
     },
   ],
   execute: async ({ inputs, runtimeState }) => {
@@ -133,30 +146,34 @@ const threeLoadImageTexture: WorkflowRuntimeNodeTypeDefinition = {
     rs.url = url;
 
     const loader = new THREE.TextureLoader();
-    const texture = await new Promise<THREE.Texture<HTMLImageElement>>((resolve, reject) => {
-      loader.load(
-        url,
-        (texture) => {
-          rs.dispose = () => {
-            texture.dispose();
-          };
+    const texture = await new Promise<THREE.Texture<HTMLImageElement>>(
+      (resolve, reject) => {
+        loader.load(
+          url,
+          (texture) => {
+            rs.dispose = () => {
+              texture.dispose();
+            };
 
-          texture.colorSpace = THREE.SRGBColorSpace;
-          resolve(texture);
-        },
-        undefined,
-        (err) => {
-          console.error('[threeImage] Error loading texture', { url, err });
-          reject(err);
-        },
-      );
-    });
+            texture.colorSpace = THREE.SRGBColorSpace;
+            resolve(texture);
+          },
+          undefined,
+          (err) => {
+            console.error('[threeImage] Error loading texture', { url, err });
+            reject(err);
+          },
+        );
+      },
+    );
 
     return { outputs: { texture: ObservableHint.opaque(box(texture)) } };
   },
 };
 
-export const ImageUrlPreviewComponent = (props: WorkflowComponentProps_Obs<{ url: string }>) => {
+export const ImageUrlPreviewComponent = (
+  props: WorkflowComponentProps_Obs<{ url: string }>,
+) => {
   const { inputs$ } = props.data;
   const url = useValue(() => inputs$.url.get() || '');
 

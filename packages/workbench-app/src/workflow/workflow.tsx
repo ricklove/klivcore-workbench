@@ -1,30 +1,41 @@
 import {
-  ReactFlow,
-  MiniMap,
   Controls,
-  type NodeTypes,
-  useReactFlow,
+  MiniMap,
   type Node,
-  ReactFlowProvider,
-  type XYPosition,
-  Panel,
-  type OnConnectStartParams,
+  type NodeTypes,
   type OnConnectEnd,
+  type OnConnectStartParams,
+  Panel,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
+  type XYPosition,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { observe } from '@legendapp/state';
+import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { CustomEdge } from './edge';
 import { createExampleWorkflowDocumentChain } from './example-document';
-import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-store';
+import { NodeSelectionMenu } from './node-selection-menu';
+import { optimizationStore } from './optimization-store';
 import { useReactFlowStore } from './store-fast/create-react-flow-store';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { persistStoreToDocument } from './store-fast/save-document';
-import { WorkflowBrandedTypes, type WorkflowDocumentData, type WorkflowNodeId } from './types';
+import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-store';
 import { createWorkflowEngine as createWorkflowEngine_direct } from './store-fast/engine-direct';
 import { demo_observeBatched } from './store-fast/observe-batched';
-import { observe } from '@legendapp/state';
-import { optimizationStore } from './optimization-store';
-import { NodeSelectionMenu } from './node-selection-menu';
-import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
+import { persistStoreToDocument } from './store-fast/save-document';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowDocumentData,
+  type WorkflowNodeId,
+} from './types';
+
 enableReactTracking({
   warnMissingUse: true,
 });
@@ -40,7 +51,9 @@ const runtimeStore$ = createWorkflowStoreFromDocument(
         localStorage.getItem(`klivcore-workflow-document`) || ``,
       ) as WorkflowDocumentData;
     } catch (err) {
-      console.error(`[WorkflowView] Error parsing stored workflow document`, { err });
+      console.error(`[WorkflowView] Error parsing stored workflow document`, {
+        err,
+      });
     }
 
     return createExampleWorkflowDocumentChain(16);
@@ -68,11 +81,16 @@ const WorkflowViewInner = () => {
     const unsubscribe = observe(() => {
       const x = storePersistance$.get();
       if (!x?.nodes.length) {
-        console.warn(`[WorkflowView] Persisted document is empty, skipping save.`);
+        console.warn(
+          `[WorkflowView] Persisted document is empty, skipping save.`,
+        );
         return;
       }
 
-      console.log(`[WorkflowView] Persisted document:`, { doc: x, runtimeStore$ });
+      console.log(`[WorkflowView] Persisted document:`, {
+        doc: x,
+        runtimeStore$,
+      });
       localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x));
     });
 
@@ -127,7 +145,8 @@ const WorkflowViewInner = () => {
   //   [],
   // );
 
-  const { nodeTypes, nodes, edges, onNodesChange, onEdgesChange, onConnect } = store;
+  const { nodeTypes, nodes, edges, onNodesChange, onEdgesChange, onConnect } =
+    store;
 
   const { setCenter, setViewport } = useReactFlow();
   const handleMiniMapNodeClick = useCallback(
@@ -170,18 +189,31 @@ const WorkflowViewInner = () => {
     optimizationStore.isMultiSelection$.set(isMultiSelection);
   }, [nodes]);
 
-  const [autoSelectNodeId, setAutoSelectNodeId] = useState(undefined as undefined | WorkflowNodeId);
-  type MenuContext = { type: `pane` } | { type: `connection`; params: OnConnectStartParams };
+  const [autoSelectNodeId, setAutoSelectNodeId] = useState(
+    undefined as undefined | WorkflowNodeId,
+  );
+  type MenuContext =
+    | { type: `pane` }
+    | { type: `connection`; params: OnConnectStartParams };
   const [menu, setMenu] = useState<{
     x: number;
     y: number;
     context: MenuContext;
     timestamp: number;
   } | null>(null);
-  const lastClickRef = useRef<{ time: number; x: number; y: number; count: number } | null>(null);
+  const lastClickRef = useRef<{
+    time: number;
+    x: number;
+    y: number;
+    count: number;
+  } | null>(null);
   const { screenToFlowPosition } = useReactFlow();
   const addNodeToWorkflow = useCallback(
-    async (typeNameRaw: string, position: XYPosition, connectionParams?: OnConnectStartParams) => {
+    async (
+      typeNameRaw: string,
+      position: XYPosition,
+      connectionParams?: OnConnectStartParams,
+    ) => {
       const typeName = WorkflowBrandedTypes.typeName(typeNameRaw);
       const nodeType = runtimeStore$.nodeTypes[typeName]?.peek();
       if (!nodeType) {
@@ -194,11 +226,14 @@ const WorkflowViewInner = () => {
         if (!nodeId || !handleId) return;
 
         const targetInputName =
-          Object.entries(nodeType.inputs).find(([k]) => k === connectionParams?.handleId)?.[0] ??
-          Object.values(nodeType.inputs)[0]?.name;
+          Object.entries(nodeType.inputs).find(
+            ([k]) => k === connectionParams?.handleId,
+          )?.[0] ?? Object.values(nodeType.inputs)[0]?.name;
 
         if (!targetInputName) {
-          console.warn(`[addNode]  Target input not found: ${handleId} on node type: ${typeName}`);
+          console.warn(
+            `[addNode]  Target input not found: ${handleId} on node type: ${typeName}`,
+          );
           return;
         }
 
@@ -213,7 +248,9 @@ const WorkflowViewInner = () => {
         (() => {
           // clone the last nodes size as the default size
           const nodes = runtimeStore$.get().nodes;
-          const nodesOfType = Object.values(nodes).filter((n) => n.type === typeName);
+          const nodesOfType = Object.values(nodes).filter(
+            (n) => n.type === typeName,
+          );
           if (nodesOfType.length === 0) {
             return undefined;
           }
@@ -221,7 +258,10 @@ const WorkflowViewInner = () => {
           if (!lastNode) {
             return undefined;
           }
-          return { width: lastNode.position.width, height: lastNode.position.height };
+          return {
+            width: lastNode.position.width,
+            height: lastNode.position.height,
+          };
         })() ?? { width: 128, height: 24 };
       runtimeStore$.actions.createNode({
         id: newId,
@@ -240,7 +280,9 @@ const WorkflowViewInner = () => {
         runtimeStore$.actions.createEdge({
           source: {
             nodeId: WorkflowBrandedTypes.nodeId(inputEdge!.fromNodeId),
-            outputName: WorkflowBrandedTypes.outputName(inputEdge!.fromOutputName),
+            outputName: WorkflowBrandedTypes.outputName(
+              inputEdge!.fromOutputName,
+            ),
           },
           target: {
             nodeId: newId,
@@ -261,7 +303,9 @@ const WorkflowViewInner = () => {
 
     const node = nodes.find((n) => n.id === autoSelectNodeId);
     if (!node) {
-      console.warn(`[WorkflowView] Auto-select node not found: ${autoSelectNodeId}`);
+      console.warn(
+        `[WorkflowView] Auto-select node not found: ${autoSelectNodeId}`,
+      );
       return;
     }
 
@@ -392,10 +436,13 @@ const WorkflowViewInner = () => {
                 return;
               }
 
-              console.log(`Double click detected, opening node selection menu`, {
-                x: e.clientX,
-                y: e.clientY,
-              });
+              console.log(
+                `Double click detected, opening node selection menu`,
+                {
+                  x: e.clientX,
+                  y: e.clientY,
+                },
+              );
               setMenu({
                 timestamp: Date.now(),
                 x: e.clientX,
@@ -456,7 +503,8 @@ const WorkflowViewInner = () => {
               className="ml-4"
               onChange={(e) => {
                 const val = Number(e.target.value);
-                storeEngine.tickSpeed = val < -500 ? `fast` : val < 0 ? `normal` : val;
+                storeEngine.tickSpeed =
+                  val < -500 ? `fast` : val < 0 ? `normal` : val;
                 setTickSpeed(val);
                 console.log(`[WorkflowView] Set engine tick speed to ${val}ms`);
               }}
@@ -472,7 +520,10 @@ const WorkflowViewInner = () => {
           onSelect={(type) => {
             const position = screenToFlowPosition({ x: menu.x, y: menu.y });
 
-            console.log(`[WorkflowView] Node type selected: ${type}`, { position, menu });
+            console.log(`[WorkflowView] Node type selected: ${type}`, {
+              position,
+              menu,
+            });
             if (menu.context.type === `connection`) {
               addNodeToWorkflow(type, position, menu.context.params);
             } else {
@@ -483,7 +534,9 @@ const WorkflowViewInner = () => {
           }}
           onClose={() => setMenu(null)}
           filterDefaultNodeTypes={
-            menu.context.type !== `connection` ? (x) => x.type !== `reroute` : undefined
+            menu.context.type !== `connection`
+              ? (x) => x.type !== `reroute`
+              : undefined
           }
         />
       )}
