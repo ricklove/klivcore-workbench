@@ -367,8 +367,8 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
           // 2. Initialize Output (Initial + 0)
           quad.material = rs.combineMat!;
-          const combineU = rs.combineMat!
-            .uniforms as unknown as CombineUniforms;
+          const combineU = rs.combineMat
+            ?.uniforms as unknown as CombineUniforms;
           combineU.tInitial.value = depthTexture;
           combineU.tOffset.value = rs.ping.texture; // Ping is zero
 
@@ -384,7 +384,7 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
         if (rs.enabled) {
           const quad = rs.quadScene.children[0] as THREE.Mesh;
           quad.material = rs.solverMat!;
-          const u = rs.solverMat!.uniforms as unknown as SolverUniforms;
+          const u = rs.solverMat?.uniforms as unknown as SolverUniforms;
 
           let read = rs.ping!;
           let write = rs.pong!;
@@ -415,8 +415,8 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
           // C. COMBINE & OUTPUT
           quad.material = rs.combineMat!;
-          const combineU = rs.combineMat!
-            .uniforms as unknown as CombineUniforms;
+          const combineU = rs.combineMat
+            ?.uniforms as unknown as CombineUniforms;
           combineU.tInitial.value = depthTexture;
           combineU.tOffset.value = read.texture; // The calculated offset
 
@@ -431,7 +431,7 @@ export const threeDepthRefinement: WorkflowRuntimeNodeTypeDefinition = {
 
     return {
       outputs: {
-        refinedDepthTexture: ObservableHint.opaque(box(rs.output!.texture)),
+        refinedDepthTexture: ObservableHint.opaque(box(rs.output?.texture)),
         runner: ObservableHint.opaque(box(rs.runner)),
       },
     };

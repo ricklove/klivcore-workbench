@@ -263,7 +263,7 @@ export const createLlmRequestNodeType = (
           };
 
           if (config.authKind === 'bearer' && apiKey) {
-            headers['Authorization'] = `Bearer ${apiKey}`;
+            headers.Authorization = `Bearer ${apiKey}`;
           }
 
           // Build request body

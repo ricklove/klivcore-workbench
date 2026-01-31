@@ -51,9 +51,8 @@ export const StringNodeComponent = (
   }, [props.selected]);
 
   return (
-    <>
-      <WorkflowNodeWrapperSimple {...props}>
-        {/* {textInputSlot.isConnected && (
+    <WorkflowNodeWrapperSimple {...props}>
+      {/* {textInputSlot.isConnected && (
           <div className="absolute top-1 left-0 w-0 text-xs text-gray-400 italic select-none">
             <div className="absolute bottom-0 right-0 text-xs text-gray-400 italic select-none">
               <input
@@ -67,18 +66,17 @@ export const StringNodeComponent = (
             </div>
           </div>
         )} */}
-        <textarea
-          ref={textareaRef}
-          className={`w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan ${isReadonly ? 'bg-gray-800/25' : 'bg-black/25'}`}
-          value={textValue}
-          readOnly={!props.selected || isReadonly}
-          onChange={(e) => {
-            changeTextValue(e.target.value);
-          }}
-          // autoFocus={props.selected}
-        />
-      </WorkflowNodeWrapperSimple>
-    </>
+      <textarea
+        ref={textareaRef}
+        className={`w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan ${isReadonly ? 'bg-gray-800/25' : 'bg-black/25'}`}
+        value={textValue}
+        readOnly={!props.selected || isReadonly}
+        onChange={(e) => {
+          changeTextValue(e.target.value);
+        }}
+        // autoFocus={props.selected}
+      />
+    </WorkflowNodeWrapperSimple>
   );
 };
 

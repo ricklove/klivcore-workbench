@@ -213,7 +213,7 @@ const NumberScrubber = ({
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const displayValue =
-    typeof value === 'number' && !isNaN(value)
+    typeof value === 'number' && !Number.isNaN(value)
       ? Number(value).toFixed(2)
       : '0.00';
 
@@ -269,7 +269,6 @@ const NumberScrubber = ({
         onChange={(e) => onChange(parseFloat(e.target.value))}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        autoFocus
       />
     );
   }

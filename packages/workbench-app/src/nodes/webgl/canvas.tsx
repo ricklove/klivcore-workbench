@@ -177,17 +177,15 @@ export const CanvasThreeRendererNodeComponent = (
       container?.removeChild(canvas);
       resizeObserver.disconnect();
     };
-  }, [unbox(canvasObj), unbox(rendererObj)]);
+  }, [cameraObj, canvasObj, rendererObj]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   return (
-    <>
-      <WorkflowNodeWrapperSimple {...props}>
-        <div
-          className="bg-black w-full h-full nowheel nodrag nopan"
-          ref={containerRef}
-        />
-      </WorkflowNodeWrapperSimple>
-    </>
+    <WorkflowNodeWrapperSimple {...props}>
+      <div
+        className="bg-black w-full h-full nowheel nodrag nopan"
+        ref={containerRef}
+      />
+    </WorkflowNodeWrapperSimple>
   );
 };

@@ -220,48 +220,46 @@ export const ThreePositionControllerComponent = (
 
   return (
     <WorkflowNodeWrapperSimple {...props}>
-      <>
-        <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
-          <NumberScrubber
-            label="X"
-            colorClassName="text-red-500"
-            value={position[0] || 0}
-            onChange={(v) => updatePositionIndex(0, v)}
-          />
-          <NumberScrubber
-            label="Y"
-            colorClassName="text-green-500"
-            value={position[1] || 0}
-            onChange={(v) => updatePositionIndex(1, v)}
-          />
-          <NumberScrubber
-            label="Z"
-            colorClassName="text-blue-500"
-            value={position[2] || 0}
-            onChange={(v) => updatePositionIndex(2, v)}
-          />
-        </div>
-        <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
-          <NumberScrubber
-            label="X"
-            colorClassName="text-red-500"
-            value={rotation[0] || 0}
-            onChange={(v) => updateRotationIndex(0, v)}
-          />
-          <NumberScrubber
-            label="Y"
-            colorClassName="text-green-500"
-            value={rotation[1] || 0}
-            onChange={(v) => updateRotationIndex(1, v)}
-          />
-          <NumberScrubber
-            label="Z"
-            colorClassName="text-blue-500"
-            value={rotation[2] || 0}
-            onChange={(v) => updateRotationIndex(2, v)}
-          />
-        </div>
-      </>
+      <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
+        <NumberScrubber
+          label="X"
+          colorClassName="text-red-500"
+          value={position[0] || 0}
+          onChange={(v) => updatePositionIndex(0, v)}
+        />
+        <NumberScrubber
+          label="Y"
+          colorClassName="text-green-500"
+          value={position[1] || 0}
+          onChange={(v) => updatePositionIndex(1, v)}
+        />
+        <NumberScrubber
+          label="Z"
+          colorClassName="text-blue-500"
+          value={position[2] || 0}
+          onChange={(v) => updatePositionIndex(2, v)}
+        />
+      </div>
+      <div className="flex flex-row gap-2 p-2 w-full bg-neutral-950 rounded-md shadow-sm nowheel nodrag nopan">
+        <NumberScrubber
+          label="X"
+          colorClassName="text-red-500"
+          value={rotation[0] || 0}
+          onChange={(v) => updateRotationIndex(0, v)}
+        />
+        <NumberScrubber
+          label="Y"
+          colorClassName="text-green-500"
+          value={rotation[1] || 0}
+          onChange={(v) => updateRotationIndex(1, v)}
+        />
+        <NumberScrubber
+          label="Z"
+          colorClassName="text-blue-500"
+          value={rotation[2] || 0}
+          onChange={(v) => updateRotationIndex(2, v)}
+        />
+      </div>
     </WorkflowNodeWrapperSimple>
   );
 };

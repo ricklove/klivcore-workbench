@@ -97,7 +97,7 @@ const WorkflowViewInner = () => {
     return () => {
       unsubscribe();
     };
-  }, [runtimeStore$]);
+  }, []);
 
   // console.log(`[WorkflowView:RENDER] reactFlowStore`, {
   //   reactFlowStore,
@@ -150,18 +150,18 @@ const WorkflowViewInner = () => {
 
   const { setCenter, setViewport } = useReactFlow();
   const handleMiniMapNodeClick = useCallback(
-    (e: React.MouseEvent, node: Node) => {
+    (_e: React.MouseEvent, node: Node) => {
       console.log(`MiniMap node clicked:`, { node });
       setCenter(node.position.x, node.position.y, { zoom: 1, duration: 250 });
     },
-    [setCenter, setViewport],
+    [setCenter],
   );
   const handleMiniMapClick = useCallback(
-    (e: React.MouseEvent, position: XYPosition) => {
+    (_e: React.MouseEvent, position: XYPosition) => {
       console.log(`MiniMap node clicked:`, { position });
       setCenter(position.x, position.y, { zoom: 1, duration: 250 });
     },
-    [setCenter, setViewport],
+    [setCenter],
   );
 
   const [, setEngineRunning] = useState(storeEngine.running);
@@ -279,21 +279,21 @@ const WorkflowViewInner = () => {
       if (inputEdge) {
         runtimeStore$.actions.createEdge({
           source: {
-            nodeId: WorkflowBrandedTypes.nodeId(inputEdge!.fromNodeId),
+            nodeId: WorkflowBrandedTypes.nodeId(inputEdge?.fromNodeId),
             outputName: WorkflowBrandedTypes.outputName(
-              inputEdge!.fromOutputName,
+              inputEdge?.fromOutputName,
             ),
           },
           target: {
             nodeId: newId,
-            inputName: WorkflowBrandedTypes.inputName(inputEdge!.inputName),
+            inputName: WorkflowBrandedTypes.inputName(inputEdge?.inputName),
           },
         });
       }
 
       setAutoSelectNodeId(newId);
     },
-    [nodeTypes, onNodesChange],
+    [],
   );
 
   useEffect(() => {
@@ -313,72 +313,69 @@ const WorkflowViewInner = () => {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAutoSelectNodeId(undefined);
-  }, [autoSelectNodeId, nodes]);
+  }, [autoSelectNodeId, nodes, onNodesChange]);
 
-  const onConnectEnd: OnConnectEnd = useCallback(
-    (event, connectionState) => {
-      if (connectionState.isValid) {
-        // handled
-        return;
-      }
-      const { clientX, clientY } =
-        ('changedTouches' in event ? event.changedTouches[0] : event) ?? {};
-      if (!clientX || !clientY) {
-        console.warn('[onConnectEnd] No clientX/clientY on event', { event });
-        return;
-      }
+  const onConnectEnd: OnConnectEnd = useCallback((event, connectionState) => {
+    if (connectionState.isValid) {
+      // handled
+      return;
+    }
+    const { clientX, clientY } =
+      ('changedTouches' in event ? event.changedTouches[0] : event) ?? {};
+    if (!clientX || !clientY) {
+      console.warn('[onConnectEnd] No clientX/clientY on event', { event });
+      return;
+    }
 
-      const fromNodeId = connectionState.fromNode?.id;
-      const fromHandleId = connectionState.fromHandle?.id;
+    const fromNodeId = connectionState.fromNode?.id;
+    const fromHandleId = connectionState.fromHandle?.id;
 
-      const toNodeId = connectionState.toNode?.id;
-      const toHandleId = connectionState.toHandle?.id;
-      const params =
-        fromNodeId && fromHandleId
+    const toNodeId = connectionState.toNode?.id;
+    const toHandleId = connectionState.toHandle?.id;
+    const params =
+      fromNodeId && fromHandleId
+        ? {
+            nodeId: fromNodeId,
+            handleId: fromHandleId,
+            handleType: `source` as const,
+          }
+        : toNodeId && toHandleId
           ? {
-              nodeId: fromNodeId,
-              handleId: fromHandleId,
-              handleType: `source` as const,
+              nodeId: toNodeId,
+              handleId: toHandleId,
+              handleType: `target` as const,
             }
-          : toNodeId && toHandleId
-            ? {
-                nodeId: toNodeId,
-                handleId: toHandleId,
-                handleType: `target` as const,
-              }
-            : undefined;
+          : undefined;
 
-      if (!params) {
-        console.warn('[onConnectEnd] missing fromNodeId or fromHandleId', {
-          fromNodeId,
-          fromHandleId,
-        });
-        return;
-      }
-
-      setMenu({
-        timestamp: Date.now(),
-        x: clientX,
-        y: clientY,
-        context: {
-          type: `connection`,
-          params,
-        },
+    if (!params) {
+      console.warn('[onConnectEnd] missing fromNodeId or fromHandleId', {
+        fromNodeId,
+        fromHandleId,
       });
+      return;
+    }
 
-      // const position = screenToFlowPosition({
-      //   x: clientX,
-      //   y: clientY,
-      // });
+    setMenu({
+      timestamp: Date.now(),
+      x: clientX,
+      y: clientY,
+      context: {
+        type: `connection`,
+        params,
+      },
+    });
 
-      // // when a connection is dropped on the pane it's not valid
-      // addNodeToWorkflow(`string`, position, {
-      //   nodeId: connectionState.nodeId,
-      //   handleId: connectionState.handleId,
-      // });
-    },
-    [screenToFlowPosition],
-  );
+    // const position = screenToFlowPosition({
+    //   x: clientX,
+    //   y: clientY,
+    // });
+
+    // // when a connection is dropped on the pane it's not valid
+    // addNodeToWorkflow(`string`, position, {
+    //   nodeId: connectionState.nodeId,
+    //   handleId: connectionState.handleId,
+    // });
+  }, []);
 
   return (
     <div className="w-full h-full bg-slate-900 text-white">

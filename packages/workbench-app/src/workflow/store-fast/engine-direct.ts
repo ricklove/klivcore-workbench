@@ -510,7 +510,7 @@ export const createWorkflowEngine = (
         continue;
       }
 
-      const executionState$ = store$.nodes[nodeId]!.executionState;
+      const executionState$ = store$.nodes[nodeId]?.executionState;
       if (!executionState$.peek()) {
         executionState$.set({
           ...createEmptyExecutionState(),

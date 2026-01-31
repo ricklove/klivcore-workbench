@@ -46,7 +46,7 @@ const getters = {
       },
     },
     getInputData: <T>(
-      storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
+      _storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
       inputName: WorkflowInputName,
     ): { data: T | undefined | null; isConnected: boolean } => {
@@ -56,7 +56,7 @@ const getters = {
       return { data, isConnected };
     },
     getOutputData: <T>(
-      storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
+      _storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
       outputName: WorkflowOutputName,
     ): { data: T | undefined | null; isConnected: boolean } => {
@@ -66,7 +66,7 @@ const getters = {
       return { data, isConnected };
     },
     getData: <T>(
-      storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
+      _storeObj: Pick<WorkflowRuntimeStore, 'nodes' | 'edges' | 'nodeTypes'>,
       node: WorkflowRuntimeNode,
     ): { data: T | undefined | null } => {
       const data = node.data.getUiValue<T>();
@@ -296,7 +296,7 @@ const loadWorkflowStoreFromDocument = (
       }
 
       const sourceOutput = sourceNode?.outputs.find(
-        (o) => o.name === input.source!.name,
+        (o) => o.name === input.source?.name,
       );
       if (sourceOutput) {
         sourceOutput.edgeIds = sourceOutput.edgeIds || [];

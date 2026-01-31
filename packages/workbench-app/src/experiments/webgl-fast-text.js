@@ -228,7 +228,7 @@ export class Sketch {
     this.gui = new GUI({ width: 300 });
   }
 
-  animate(time) {
+  animate(_time) {
     /**
      * Animate stuff here
      */
@@ -360,7 +360,7 @@ function parseColorLayers(text, defaultColor = '#ffffff') {
 
       // Simple Regex to validate hex code
       if (/^[0-9a-fA-F]{6}$/.test(potentialHex)) {
-        currentColor = '#' + potentialHex;
+        currentColor = `#${potentialHex}`;
         uniqueColors.add(currentColor);
 
         i += 8; // Advance past "$#123456"
@@ -509,7 +509,7 @@ function generateRandomDoc(wordCount, maxLineChars = 80) {
 
       // random tabs
       const tabs = [...new Array(Math.floor(Math.random() * 5))]
-        .map((x) => [`    `])
+        .map((_x) => [`    `])
         .join();
       output += tabs;
       currentLineLen = tabs.length;

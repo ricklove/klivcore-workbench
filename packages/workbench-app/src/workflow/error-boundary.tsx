@@ -10,7 +10,7 @@ export class ErrorBoundary extends Component<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  static getDerivedStateFromError(error: unknown) {
+  static getDerivedStateFromError(_error: unknown) {
     return { hasError: true };
   }
 

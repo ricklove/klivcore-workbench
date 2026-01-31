@@ -93,7 +93,7 @@ export const NumberScrubber = ({
   const [isIntegerMode, setIsIntegerMode] = useState(value % 1 === 0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const displayValue = isNaN(value)
+  const displayValue = Number.isNaN(value)
     ? isIntegerMode
       ? '0'
       : '0.00'
@@ -184,7 +184,6 @@ export const NumberScrubber = ({
           onChange={handleInputChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          autoFocus
         />
       ) : (
         <div

@@ -37,20 +37,18 @@ export const TempWrapper = (props: WorkflowComponentProps_Obs) => {
   }, [importPath]);
 
   return (
-    <>
-      <WorkflowNodeWrapperSimple {...props}>
-        <div>
-          {ComponentObj && 'Component' in ComponentObj && (
-            <ErrorBoundary message={`Error rendering Component`}>
-              <ComponentObj.Component />
-            </ErrorBoundary>
-          )}
-          {ComponentObj && 'error' in ComponentObj && (
-            <div>Error loading component: {ComponentObj.error.message}</div>
-          )}
-          {!ComponentObj && <div>Loading component...</div>}
-        </div>
-      </WorkflowNodeWrapperSimple>
-    </>
+    <WorkflowNodeWrapperSimple {...props}>
+      <div>
+        {ComponentObj && 'Component' in ComponentObj && (
+          <ErrorBoundary message={`Error rendering Component`}>
+            <ComponentObj.Component />
+          </ErrorBoundary>
+        )}
+        {ComponentObj && 'error' in ComponentObj && (
+          <div>Error loading component: {ComponentObj.error.message}</div>
+        )}
+        {!ComponentObj && <div>Loading component...</div>}
+      </div>
+    </WorkflowNodeWrapperSimple>
   );
 };

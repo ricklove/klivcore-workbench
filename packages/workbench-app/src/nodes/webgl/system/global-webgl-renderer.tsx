@@ -96,11 +96,11 @@ export const GlobalWebGLRenderer = () => {
           if ('isDataArrayTexture' in tex && tex.isDataArrayTexture) {
             quadMesh.material = matArray;
             // Safe uniform access
-            if (matArray.uniforms['tArray']) {
-              matArray.uniforms['tArray'].value = tex;
+            if (matArray.uniforms.tArray) {
+              matArray.uniforms.tArray.value = tex;
             }
-            if (matArray.uniforms['uIndex']) {
-              matArray.uniforms['uIndex'].value = req.data.layerIndex;
+            if (matArray.uniforms.uIndex) {
+              matArray.uniforms.uIndex.value = req.data.layerIndex;
             }
           } else {
             quadMesh.material = matStandard;

@@ -12,11 +12,9 @@ import {
 
 export const WorkflowNodeDefault = (props: WorkflowComponentPropsAny) => {
   return (
-    <>
-      <WorkflowNodeWrapperSimple {...props}>
-        <div className="text-white">Node {props.id}</div>
-      </WorkflowNodeWrapperSimple>
-    </>
+    <WorkflowNodeWrapperSimple {...props}>
+      <div className="text-white">Node {props.id}</div>
+    </WorkflowNodeWrapperSimple>
   );
 };
 
@@ -112,7 +110,7 @@ const WrapperHeader = memo(
 
       setNodeIdWarning(undefined);
       store$.actions.renameNode({ oldId: nodeIdRaw, newId: value });
-    }, [nodeId]);
+    }, [nodeId, nodeIdRaw, store$.actions.renameNode, store$.nodes.get]);
 
     const handleDeleteNode = () => {
       console.log(`[NodeWrapper] handleDeleteNode`, { nodeId });
@@ -130,71 +128,70 @@ const WrapperHeader = memo(
     const typeName = useValue(() => node$.type.get());
 
     return (
-      <>
-        <div className="absolute top-0 left-0 right-0 z-10 h-0">
-          <div className="absolute bottom-0 left-0 right-0 ">
-            {expandInfo && (
-              <div className="absolute top-0 left-0 right-0 h-0 scale-50">
-                <div
-                  className="absolute bottom-1 flex flex-col justify-end gap-1 min-w-75 min-h-75"
-                  style={{ width: `200%`, marginLeft: `-50%` }}
-                >
-                  <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
-                    <div className="flex flex-row items-center justify-between gap-1 p-0.5">
-                      <div>{nodeId}</div>
-                      <Memo>{() => <div>{node$.type.get()}</div>}</Memo>
-                      <div
-                        className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center ${
-                          `` //`rounded border border-white p-1 text-white`
-                        } ${
-                          `` //expandInfo ? `bg-blue-800` : `bg-blue-400`
-                        }`}
-                        onClick={() => {
-                          setExpandInfo(false);
-                        }}
-                      >
-                        ✖
-                      </div>
+      <div className="absolute top-0 left-0 right-0 z-10 h-0">
+        <div className="absolute bottom-0 left-0 right-0 ">
+          {expandInfo && (
+            <div className="absolute top-0 left-0 right-0 h-0 scale-50">
+              <div
+                className="absolute bottom-1 flex flex-col justify-end gap-1 min-w-75 min-h-75"
+                style={{ width: `200%`, marginLeft: `-50%` }}
+              >
+                <div className="flex flex-col flex-1 p-1 text-xs bg-blue-950 border border-blue-800 rounded nowheel nodrag nopan">
+                  <div className="flex flex-row items-center justify-between gap-1 p-0.5">
+                    <div>{nodeId}</div>
+                    <Memo>{() => <div>{node$.type.get()}</div>}</Memo>
+                    <div
+                      className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center ${
+                        `` //`rounded border border-white p-1 text-white`
+                      } ${
+                        `` //expandInfo ? `bg-blue-800` : `bg-blue-400`
+                      }`}
+                      onClick={() => {
+                        setExpandInfo(false);
+                      }}
+                    >
+                      ✖
                     </div>
-                    <Computed>
-                      {() => (
-                        <textarea
-                          className="flex-1 resize-none bg-black p-1 text-[8px]"
-                          value={JSON.stringify(
-                            expandInfo === `data`
-                              ? {
-                                  // id: node$.id.get(),
-                                  // newIdUntilReload: node$.newIdUntilReload.get(),
-                                  inputs: dataReactFlow.inputs$.get(),
-                                  data: dataReactFlow.data$.get(),
-                                  outputs: dataReactFlow.outputs$.get(),
-                                  // node: {
-                                  //   inputs: node$.inputs.get(),
-                                  //   data: node$.data.get(),
-                                  //   outputs: node$.outputs.get(),
-                                  // },
-                                }
-                              : node$.get(),
-                            null,
-                            2,
-                          )}
-                          readOnly
-                        />
-                      )}
-                    </Computed>
                   </div>
+                  <Computed>
+                    {() => (
+                      <textarea
+                        className="flex-1 resize-none bg-black p-1 text-[8px]"
+                        value={JSON.stringify(
+                          expandInfo === `data`
+                            ? {
+                                // id: node$.id.get(),
+                                // newIdUntilReload: node$.newIdUntilReload.get(),
+                                inputs: dataReactFlow.inputs$.get(),
+                                data: dataReactFlow.data$.get(),
+                                outputs: dataReactFlow.outputs$.get(),
+                                // node: {
+                                //   inputs: node$.inputs.get(),
+                                //   data: node$.data.get(),
+                                //   outputs: node$.outputs.get(),
+                                // },
+                              }
+                            : node$.get(),
+                          null,
+                          2,
+                        )}
+                        readOnly
+                      />
+                    )}
+                  </Computed>
                 </div>
               </div>
-            )}
-            <div className="flex flex-col">
-              <div className="relative">
-                <div className="absolute bottom-0 right-0">
-                  <div className="flex flex-row items-center gap-1 ">
-                    <div className="flex-1 self-stretch nowheel nodrag nopan pointer-events-none" />
-                    <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
-                      {/* <div className="flex-1">{`🔷`}</div> */}
-                      <div className="flex flex-row items-center min-w-0 gap-1 nowheel nodrag nopan ">
-                        {/* {data.refresh && (
+            </div>
+          )}
+          <div className="flex flex-col">
+            <div className="relative">
+              <div className="absolute bottom-0 right-0">
+                <div className="flex flex-row items-center gap-1 ">
+                  <div className="flex-1 self-stretch nowheel nodrag nopan pointer-events-none" />
+                  <div className="flex flex-row items-center gap-1 p-1 rounded-t opacity-0 hover:opacity-100 bg-slate-500/25">
+                    {/* <div className="flex-1">{`🔷`}</div> */}
+                    <div className="flex flex-row items-center min-w-0 gap-1 nowheel nodrag nopan ">
+                      {/* {data.refresh && (
                 <div
                   className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white p-1 text-white`}
                   onClick={() => data.refresh?.()}
@@ -202,111 +199,107 @@ const WrapperHeader = memo(
                   {`▶️`}
                 </div>
               )} */}
-                        <div
-                          className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
-                          onClick={() => {
-                            setExpandInfo(
-                              expandInfoRaw === `data` ? false : `data`,
-                            );
-                            console.log(
-                              `dataReactFlow ${nodeId}`,
-                              dataReactFlow,
-                            );
-                          }}
-                          onMouseEnter={() => setExpandInfoQuick(true)}
-                          onMouseLeave={() => setExpandInfoQuick(false)}
-                        >
-                          {`🔎`}
-                        </div>
-                        <div
-                          className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
-                            expandInfo ? `bg-blue-800` : `bg-blue-400`
-                          }`}
-                          onClick={() =>
-                            setExpandInfo(
-                              expandInfoRaw === `document` ? false : `document`,
-                            )
-                          }
-                        >
-                          {`ℹ`}
-                        </div>
-                        <div
-                          className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
-                          onClick={handleDeleteNode}
-                        >
-                          {`🗑️`}
-                        </div>
+                      <div
+                        className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                        onClick={() => {
+                          setExpandInfo(
+                            expandInfoRaw === `data` ? false : `data`,
+                          );
+                          console.log(`dataReactFlow ${nodeId}`, dataReactFlow);
+                        }}
+                        onMouseEnter={() => setExpandInfoQuick(true)}
+                        onMouseLeave={() => setExpandInfoQuick(false)}
+                      >
+                        {`🔎`}
+                      </div>
+                      <div
+                        className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white ${
+                          expandInfo ? `bg-blue-800` : `bg-blue-400`
+                        }`}
+                        onClick={() =>
+                          setExpandInfo(
+                            expandInfoRaw === `document` ? false : `document`,
+                          )
+                        }
+                      >
+                        {`ℹ`}
+                      </div>
+                      <div
+                        className={`flex h-4 w-4 cursor-pointer flex-row items-center justify-center rounded border border-white bg-red-400 p-1 text-white`}
+                        onClick={handleDeleteNode}
+                      >
+                        {`🗑️`}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-0">
-                {nodeIdWarning && (
-                  <div
-                    className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
-                      nodeIdWarning
-                        ? 'border border-red-500'
-                        : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
-                    }`}
-                  >
-                    {`[${nodeIdRaw}] ${nodeIdWarning}`}
-                  </div>
-                )}
+            </div>
+            <div className="flex flex-col gap-0">
+              {nodeIdWarning && (
                 <div
-                  className={`flex flex-row items-center gap-0.5 border-none ${
-                    nodeIdWarning || selected
+                  className={`min-w-0 flex-1 font-bold text-xs text-white outline-none bg-transparent  p-0 m-0 leading-tight  text-[8px] ${
+                    nodeIdWarning
+                      ? 'border border-red-500'
+                      : 'border-none opacity-5 hover:opacity-100 focus:opacity-100'
+                  }`}
+                >
+                  {`[${nodeIdRaw}] ${nodeIdWarning}`}
+                </div>
+              )}
+              <div
+                className={`flex flex-row items-center gap-0.5 border-none ${
+                  nodeIdWarning || selected
+                    ? ''
+                    : 'opacity-5 hover:opacity-100 focus:opacity-100'
+                }`}
+              >
+                <div className="w-1 h-1 bg-blue-800 rounded-full" />
+                <input
+                  type="text"
+                  className={`min-w-0 flex-1 font-bold text-white outline-none bg-transparent p-0 m-0 leading-tight  text-[8px] ${
+                    nodeIdWarning
                       ? ''
                       : 'opacity-5 hover:opacity-100 focus:opacity-100'
                   }`}
-                >
-                  <div className="w-1 h-1 bg-blue-800 rounded-full" />
-                  <input
-                    type="text"
-                    className={`min-w-0 flex-1 font-bold text-white outline-none bg-transparent p-0 m-0 leading-tight  text-[8px] ${
-                      nodeIdWarning
-                        ? ''
-                        : 'opacity-5 hover:opacity-100 focus:opacity-100'
-                    }`}
-                    title={`${nodeId}: ${typeName}`}
-                    value={nodeId}
-                    onChange={(x) => setNodeId(x.target.value)}
-                    onBlur={handleNodeIdChange}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  />
-                </div>
+                  title={`${nodeId}: ${typeName}`}
+                  value={nodeId}
+                  onChange={(x) => setNodeId(x.target.value)}
+                  onBlur={handleNodeIdChange}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                />
               </div>
-              <Memo>
-                {() => (
-                  <>
-                    <div
-                      className={`transition delay-50 duration-300 text-[8px] ${
-                        node$.executionState.status.get() === 'running'
-                          ? 'bg-green-700 opacity-100'
-                          : node$.executionState.status.get() === 'error'
-                            ? 'bg-red-700 opacity-100'
-                            : node$.executionState.status.get() === 'aborted'
-                              ? 'bg-yellow-700 opacity-50'
-                              : node$.executionState.status.get() === 'success'
-                                ? 'bg-gray-600 opacity-10'
-                                : 'bg-gray-700 opacity-10'
-                      }`}
-                    >
-                      {node$.executionState.status.get()}
-                      {node$.executionState.status.get() === 'error'
-                        ? ` - ${node$.executionState.runState.errorMessage.get() ?? ``}`
-                        : ``}
-                    </div>
-                  </>
-                )}
-              </Memo>
             </div>
+            <Memo>
+              {() => (
+                <>
+                  <div
+                    className={`transition delay-50 duration-300 text-[8px] ${
+                      node$.executionState.status.get() === 'running'
+                        ? 'bg-green-700 opacity-100'
+                        : node$.executionState.status.get() === 'error'
+                          ? 'bg-red-700 opacity-100'
+                          : node$.executionState.status.get() === 'aborted'
+                            ? 'bg-yellow-700 opacity-50'
+                            : node$.executionState.status.get() === 'success'
+                              ? 'bg-gray-600 opacity-10'
+                              : 'bg-gray-700 opacity-10'
+                    }`}
+                  >
+                    {node$.executionState.status.get()}
+                    {node$.executionState.status.get() === 'error'
+                      ? ` - ${node$.executionState.runState.errorMessage.get() ?? ``}`
+                      : ``}
+                  </div>
+                </>
+              )}
+            </Memo>
           </div>
         </div>
-      </>
+      </div>
     );
   },
 );
@@ -347,7 +340,7 @@ export const WrapperHandles = memo(
           const key = input.name;
 
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const edgeId = input.edgeId;
+          const _edgeId = input.edgeId;
           const edge = input.edge;
           return (
             <React.Fragment key={key}>
@@ -406,7 +399,7 @@ export const WrapperHandles = memo(
         {Object.values(outputs).map((output, index) => {
           const key = output.name;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const edgeIds = output.edgeIds;
+          const _edgeIds = output.edgeIds;
           const edges = output.edges;
           return (
             <React.Fragment key={key}>
