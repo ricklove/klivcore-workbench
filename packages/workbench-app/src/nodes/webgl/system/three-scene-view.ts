@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../../../workflow/node-types-wrapper';
+import { NodeTypeWrapComponentWithNodeWrapper } from '../_deps';
 import {
   WorkflowBrandedTypes,
   type WorkflowRuntimeNodeTypeDefinition,
