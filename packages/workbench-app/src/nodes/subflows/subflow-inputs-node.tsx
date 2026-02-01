@@ -5,7 +5,11 @@ import {
   type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { FieldEditor } from './components/field-editor';
+import {
+  FieldDisplay,
+  FieldEditor,
+  formatFieldTypeText,
+} from './components/field-editor';
 
 export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`subflow-inputs`),
@@ -14,7 +18,34 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async () => {
+  execute: async ({ data, node, store }) => {
+    const { fields } =
+      (data as { fields: Array<{ name: string; type: string }> }) ?? {};
+    if (!fields) {
+      return;
+    }
+
+    // the subflow inputs come into the subflow node as outputs of this node
+    store.actions.updateOutputs(
+      node.id,
+      fields.map((field) => ({
+        name: WorkflowBrandedTypes.outputName(field.name),
+        type: WorkflowBrandedTypes.valueType(field.type),
+      })),
+    );
+
+    store.actions.updateInputs(node.id, [
+      ...fields.map((field) => ({
+        name: WorkflowBrandedTypes.inputName(`default_${field.name}`),
+        type: WorkflowBrandedTypes.valueType(field.type),
+      })),
+      // TODO: add input upon attach edge
+      // {
+      //   name: WorkflowBrandedTypes.inputName(`add`),
+      //   type: WorkflowBrandedTypes.valueType(`unknown`),
+      // },
+    ]);
+
     return {
       outputs: {},
     };
@@ -37,11 +68,5 @@ export const SubflowInputsComponent = (
     return <FieldEditor fields$={data$.fields} />;
   }
 
-  return (
-    <div className="w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan bg-black/25 flex items-center justify-center">
-      <span className="text-sm text-gray-400">
-        Subflow Inputs ({fields.length})
-      </span>
-    </div>
-  );
+  return <FieldDisplay label="Subflow Inputs" fields={fields} />;
 };

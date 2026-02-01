@@ -17,7 +17,7 @@ interface FieldEditorProps {
 
 export const FieldEditor = ({ fields$ }: FieldEditorProps) => {
   const fields = useValue(fields$) ?? [];
-  const [tab, setTab] = useState<'form' | 'type'>('form');
+  const [tab, setTab] = useState<'form' | 'type'>('type');
   const [typeText, setTypeText] = useState(
     `{\n${fields.map((field) => `  ${field.name}: ${field.type}`).join(';\n')}\n}`,
   );
@@ -33,9 +33,7 @@ export const FieldEditor = ({ fields$ }: FieldEditorProps) => {
 
   useEffect(() => {
     if (tab !== 'type') {
-      setTypeText(
-        `{\n${fields.map((field) => `  ${field.name}: ${field.type};`).join('\n')}\n}`,
-      );
+      setTypeText(formatFieldTypeText(fields));
     }
   }, [fields, tab]);
 
@@ -216,9 +214,7 @@ export const FieldEditor = ({ fields$ }: FieldEditorProps) => {
   };
 
   const reloadTypeEditor = () => {
-    setTypeText(
-      `{\n${fields.map((field) => `  ${field.name}: ${field.type};`).join('\n')}\n}`,
-    );
+    setTypeText(formatFieldTypeText(fields));
   };
 
   const runFullValidation = async () => {
@@ -245,7 +241,7 @@ export const FieldEditor = ({ fields$ }: FieldEditorProps) => {
           }`}
           onClick={handleFormTabSwitch}
         >
-          Form Editor
+          Form
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${
@@ -255,7 +251,7 @@ export const FieldEditor = ({ fields$ }: FieldEditorProps) => {
           }`}
           onClick={handleTypeTabSwitch}
         >
-          Type Editor
+          Type
         </button>
       </div>
 
@@ -404,3 +400,29 @@ export const FieldEditor = ({ fields$ }: FieldEditorProps) => {
     </div>
   );
 };
+
+export const FieldDisplay = (props: { label: string; fields: Field[] }) => {
+  return (
+    <div className="field-editor w-full h-full flex flex-col bg-black/25 nowheel nodrag nopan">
+      <div className="flex border-b border-gray-700">
+        <div
+          className={`px-4 py-2 text-sm font-medium text-white border-b-2 border-blue-500`}
+        >
+          {props.label}
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col">
+        <textarea
+          value={formatFieldTypeText(props.fields)}
+          readOnly
+          className="flex-1 w-full text-white border-none outline-none resize-none nowheel nodrag nopan bg-black/25 font-mono text-xs p-2"
+          placeholder={`{\n  fieldName: string;\n  anotherField: number;\n}`}
+        />
+      </div>
+    </div>
+  );
+};
+
+export function formatFieldTypeText(fields: Field[]): string {
+  return `{\n${fields.map((field) => `  ${field.name}: ${field.type};`).join('\n')}\n}`;
+}

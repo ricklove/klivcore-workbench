@@ -641,6 +641,102 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       store$.edges[edgeId]?.isDeleted.set(true);
       // store$.edges[edgeId]?.delete();
     },
+    updateInputs: (nodeId, inputs) => {
+      const node$ = store$.nodes[nodeId];
+      const node = store$.nodes[nodeId]?.peek();
+      if (!node$ || !node) {
+        console.warn(`[updateInputs] Node with id ${nodeId} does not exist`);
+        return;
+      }
+
+      const addedInputs = inputs.filter(
+        (input) => !node.inputs.find((i) => i.name === input.name),
+      );
+      const removedInputs = node.inputs.filter(
+        (input) => !inputs.find((i) => i.name === input.name),
+      );
+      const changedInputs = node.inputs.filter((input) => {
+        const newInput = inputs.find((i) => i.name === input.name);
+        return newInput && newInput.type !== input.type;
+      });
+
+      for (const item of addedInputs) {
+        node$.inputs.push({
+          name: item.name,
+          type: item.type,
+          value: createRuntimeValue({ data: undefined }),
+          edgeId: undefined,
+          getEdge() {
+            return getters.node.inputs.getEdge(store$.get(), this);
+          },
+        });
+      }
+
+      for (const item of removedInputs) {
+        const input$ = node$.inputs.find((i) => i.name.peek() === item.name);
+        const edgeId = input$?.edgeId.peek();
+        if (edgeId) {
+          store$.actions.deleteEdge(edgeId);
+        }
+        input$?.delete();
+      }
+
+      for (const item of changedInputs) {
+        const input$ = node$.inputs.find((i) => i.name.peek() === item.name);
+        if (!input$) {
+          continue;
+        }
+        input$.type.set(item.type);
+      }
+    },
+    updateOutputs: (nodeId, outputs) => {
+      const node$ = store$.nodes[nodeId];
+      const node = store$.nodes[nodeId]?.peek();
+      if (!node$ || !node) {
+        console.warn(`[updateOutputs] Node with id ${nodeId} does not exist`);
+        return;
+      }
+
+      const addedOutputs = outputs.filter(
+        (output) => !node.outputs.find((o) => o.name === output.name),
+      );
+      const removedOutputs = node.outputs.filter(
+        (output) => !outputs.find((o) => o.name === output.name),
+      );
+      const changedOutputs = node.outputs.filter((output) => {
+        const newOutput = outputs.find((o) => o.name === output.name);
+        return newOutput && newOutput.type !== output.type;
+      });
+
+      for (const item of addedOutputs) {
+        node$.outputs.push({
+          name: item.name,
+          type: item.type,
+          value: createRuntimeValue({ data: undefined }),
+          edgeIds: undefined,
+          getEdges() {
+            return getters.node.outputs.getEdges(store$.get(), this);
+          },
+        });
+      }
+
+      for (const item of removedOutputs) {
+        const output$ = node$.outputs.find((o) => o.name.peek() === item.name);
+        const edgeIds = output$?.edgeIds.peek() || [];
+        for (const edgeId of edgeIds) {
+          store$.actions.deleteEdge(edgeId);
+        }
+        output$?.delete();
+      }
+
+      for (const item of changedOutputs) {
+        const output$ = node$.outputs.find((o) => o.name.peek() === item.name);
+        if (!output$) {
+          continue;
+        }
+        output$.type.set(item.type);
+      }
+    },
   };
 
   const store$: Observable<WorkflowRuntimeStore> = observable({

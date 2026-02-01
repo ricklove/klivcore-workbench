@@ -5,7 +5,11 @@ import {
   type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import { FieldEditor } from './components/field-editor';
+import {
+  FieldDisplay,
+  FieldEditor,
+  formatFieldTypeText,
+} from './components/field-editor';
 
 export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`subflow-outputs`),
@@ -14,7 +18,30 @@ export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async () => {
+  execute: async ({ data, node, store }) => {
+    const { fields } =
+      (data as { fields: Array<{ name: string; type: string }> }) ?? {};
+    if (!fields) {
+      return;
+    }
+
+    // the subflow outputs come into the subflow node as inputs of this node
+    store.actions.updateInputs(
+      node.id,
+      fields.map((field) => ({
+        name: WorkflowBrandedTypes.inputName(field.name),
+        type: WorkflowBrandedTypes.valueType(field.type),
+      })),
+    );
+
+    store.actions.updateOutputs(
+      node.id,
+      fields.map((field) => ({
+        name: WorkflowBrandedTypes.outputName(`ext_${field.name}`),
+        type: WorkflowBrandedTypes.valueType(field.type),
+      })),
+    );
+
     return {
       outputs: {},
     };
@@ -37,11 +64,5 @@ export const SubflowOutputsComponent = (
     return <FieldEditor fields$={data$.fields} />;
   }
 
-  return (
-    <div className="w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan bg-black/25 flex items-center justify-center">
-      <span className="text-sm text-gray-400">
-        Subflow Outputs ({fields.length})
-      </span>
-    </div>
-  );
+  return <FieldDisplay label="Subflow Outputs" fields={fields} />;
 };

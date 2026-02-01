@@ -409,6 +409,15 @@ export interface WorkflowRuntimeStoreActions {
     };
   }) => void;
   deleteEdge: (edgeId: WorkflowEdgeId) => void;
+
+  updateInputs: (
+    nodeId: WorkflowNodeId,
+    inputs: { name: WorkflowInputName; type: WorkflowValueType }[],
+  ) => void;
+  updateOutputs: (
+    nodeId: WorkflowNodeId,
+    outputs: { name: WorkflowOutputName; type: WorkflowValueType }[],
+  ) => void;
 }
 
 export interface WorkflowExecutionController {
