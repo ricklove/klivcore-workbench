@@ -2,6 +2,7 @@ import { type Observable, ObservableHint, observable } from '@legendapp/state';
 import { codeBuiltinNodeTypes } from '../../code-tools/code-nodes';
 import { commonNodeTypes } from '../../nodes/common/_common-nodes';
 import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
+import { subflowNodeTypes } from '../../nodes/subflows/_subflow-nodes';
 import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
 import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
 import { builtinNodeTypes } from '../node-types-wrapper';
@@ -20,7 +21,6 @@ import {
   type WorkflowRuntimeStoreActions,
 } from '../types';
 import { createRuntimeValue } from './runtime-value';
-import { subflowNodeTypes } from '../../nodes/subflows/_subflow-nodes';
 
 const getters = {
   node: {

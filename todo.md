@@ -11,15 +11,15 @@
 - [x] add `packages/workbench-app/src/nodes/subflows/subflow-instance-node.tsx`
 - [x] make these all have an empty node component that doesn't do anything yet, but base it on `packages/workbench-app/src/nodes/common/string-input-node.tsx`
 
-- [ ] add `packages/workbench-app/src/nodes/subflows/components/field-editor.tsx`
-    - [ ] this edits a legend state prop: `fields:{name:string, type:string}[]`
-    - [ ] allow switching to json editor (as tab)
-    - [ ] add/delete rows
-    - [ ] edit name,type strings
-    - [ ] verify names are variable name safe (js rules)
-    - [ ] add a function to check valid type syntax `verifyTypescriptSyntax` in `packages/workbench-app/src/code-tools/swc-tools.ts`
-    - [ ] use `verifyTypescriptSyntax` to check field types
-    - [ ] use `verifyTypescriptSyntax` to check whole set is valid:
+- [x] add `packages/workbench-app/src/nodes/subflows/components/field-editor.tsx`
+    - [x] this edits a legend state prop: `fields:{name:string, type:string}[]`
+    - [x] allow switching to json editor (as tab)
+    - [x] add/delete rows
+    - [x] edit name,type strings
+    - [x] verify names are variable name safe (js rules)
+    - [x] add a function to check valid type syntax `verifyTypescriptSyntax` in `packages/workbench-app/src/code-tools/swc-tools.ts`
+    - [x] use `verifyTypescriptSyntax` to check field types
+    - [x] use `verifyTypescriptSyntax` to check whole set is valid:
         
 ```ts
 export type testFileds = {
@@ -27,3 +27,5 @@ export type testFileds = {
 }
 
 ```
+
+- [ ] add FieldEditor to `subflow-inputs-node` and `subflow-outputs-node` to edit their `data$:fields` value

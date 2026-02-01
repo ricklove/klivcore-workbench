@@ -53,3 +53,17 @@ export const transformTypescript = async (tsCode: string) => {
 
   return code;
 };
+
+export const verifyTypescriptSyntax = async (tsCode: string) => {
+  await ensureSwcIsLoaded();
+
+  try {
+    parseSync(tsCode, { syntax: 'typescript', tsx: true });
+    return { isValid: true, error: undefined };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+};
