@@ -1,9 +1,9 @@
 import type * as THREE from 'three';
-import { NodeTypeWrapComponentWithNodeWrapper } from '../_deps';
 import {
   WorkflowBrandedTypes,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../../workflow/types';
+import { NodeTypeWrapComponentWithNodeWrapper } from '../_deps';
 import { type Box, box, unbox } from '../types';
 import { ScenePreviewNodeComponent } from './three-scene-preview-component';
 

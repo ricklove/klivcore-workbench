@@ -4,6 +4,7 @@ import { commonNodeTypes } from '../../nodes/common/_common-nodes';
 import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
 import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
 import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
+import { builtinNodeTypes } from '../node-types-wrapper';
 import {
   WorkflowBrandedTypes,
   type WorkflowDocumentData,
@@ -19,7 +20,7 @@ import {
   type WorkflowRuntimeStoreActions,
 } from '../types';
 import { createRuntimeValue } from './runtime-value';
-import { builtinNodeTypes } from '../node-types-wrapper';
+import { subflowNodeTypes } from '../../nodes/subflows/_subflow-nodes';
 
 const getters = {
   node: {
@@ -662,6 +663,7 @@ export const createWorkflowStoreFromDocument = (
   const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
     ...builtinNodeTypes,
     ...commonNodeTypes,
+    ...subflowNodeTypes,
     ...codeBuiltinNodeTypes,
     ...webglNodeTypes,
     ...llmNodeTypes,
