@@ -1,10 +1,16 @@
 import { cloneNodeType } from './clone-node';
 import { engineSpyNodeType } from './engine-spy-';
+import { jsonInputNodeType } from './json-input-node';
 import { numberInputNodeType } from './number-input-node';
+import { rerouteNodeType } from './reroute-node';
+import { stringInputNodeType } from './string-input-node';
 
 const commonNodeTypesList = [
   //
+  stringInputNodeType,
+  jsonInputNodeType,
   numberInputNodeType,
+  rerouteNodeType,
   cloneNodeType,
   // TODO: move to debug tools
   engineSpyNodeType,

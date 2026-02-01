@@ -4,7 +4,6 @@ import { commonNodeTypes } from '../../nodes/common/_common-nodes';
 import { llmNodeTypes } from '../../nodes/llm/_llm-nodes';
 import { valueGateNodeTypes } from '../../nodes/utility/value-gate';
 import { webglNodeTypes } from '../../nodes/webgl/_webgl-nodes';
-import { builtinNodeTypes } from '../node-types';
 import {
   WorkflowBrandedTypes,
   type WorkflowDocumentData,
@@ -20,6 +19,7 @@ import {
   type WorkflowRuntimeStoreActions,
 } from '../types';
 import { createRuntimeValue } from './runtime-value';
+import { builtinNodeTypes } from '../node-types-wrapper';
 
 const getters = {
   node: {

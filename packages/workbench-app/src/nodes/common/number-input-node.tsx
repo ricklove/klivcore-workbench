@@ -9,7 +9,6 @@ import {
 } from '../../workflow/types';
 
 // --- LOGIC: Node Definition ---
-// eslint-disable-next-line react-refresh/only-export-components
 export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`number-input`),
   getComponent: () => ({

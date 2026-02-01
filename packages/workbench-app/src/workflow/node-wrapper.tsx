@@ -12,14 +12,6 @@ import {
   type WorkflowRuntimeNode,
 } from './types';
 
-export const WorkflowNodeDefault = (props: WorkflowComponentPropsOnlyNode) => {
-  return (
-    <WorkflowNodeWrapperSimple {...props}>
-      <div className="text-white">Node {props.id}</div>
-    </WorkflowNodeWrapperSimple>
-  );
-};
-
 export const WorkflowNodeWrapperSimple = (
   props: WorkflowComponentPropsOnlyNode & {
     children: React.ReactNode;

@@ -1,8 +1,8 @@
 import { type Observable, observable } from '@legendapp/state';
 import { useValue } from '@legendapp/state/react';
 import React from 'react';
+import { StringInputComponent } from '../nodes/common/string-input-node';
 import { NodeStandardContainer } from '../workflow/node-types-wrapper';
-import { StringNodeComponent } from '../workflow/nodes';
 import {
   WorkflowBrandedTypes,
   type WorkflowRuntimeNodeTypeDefinition,
@@ -17,7 +17,7 @@ export const codeBuiltinNodeTypes: Record<
   toFunction: {
     type: WorkflowBrandedTypes.typeName(`toFunction`),
     getComponent: () => ({
-      Component: NodeStandardContainer(StringNodeComponent),
+      Component: NodeStandardContainer(StringInputComponent),
     }),
     inputs: [
       {
@@ -115,7 +115,7 @@ export const codeBuiltinNodeTypes: Record<
   toComponentTypeNode: {
     type: WorkflowBrandedTypes.typeName(`toComponentTypeNode`),
     getComponent: () => ({
-      Component: NodeStandardContainer(StringNodeComponent),
+      Component: NodeStandardContainer(StringInputComponent),
     }),
     inputs: [
       {
@@ -225,7 +225,7 @@ export const codeBuiltinNodeTypes: Record<
   detectMissingClasses: {
     type: WorkflowBrandedTypes.typeName(`detectMissingClasses`),
     getComponent: () => ({
-      Component: NodeStandardContainer(StringNodeComponent),
+      Component: NodeStandardContainer(StringInputComponent),
     }),
     inputs: [
       {
@@ -271,7 +271,7 @@ export const codeBuiltinNodeTypes: Record<
   transformTypescript: {
     type: WorkflowBrandedTypes.typeName(`transformTypescript`),
     getComponent: () => ({
-      Component: NodeStandardContainer(StringNodeComponent),
+      Component: NodeStandardContainer(StringInputComponent),
     }),
     inputs: [
       {

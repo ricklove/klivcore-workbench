@@ -2,10 +2,38 @@ import { useValue } from '@legendapp/state/react';
 import { memo } from 'react';
 import { ErrorBoundary } from './error-boundary';
 import { WorkflowNodeWrapperSimple } from './node-wrapper';
-import type {
-  WorkflowComponentProps,
-  WorkflowComponentSimplePropsBase,
+import {
+  WorkflowBrandedTypes,
+  type WorkflowComponentProps,
+  type WorkflowComponentPropsOnlyNode,
+  type WorkflowComponentSimplePropsBase,
+  type WorkflowRuntimeNodeTypeDefinition,
 } from './types';
+
+export const builtinNodeTypes: Record<
+  string,
+  WorkflowRuntimeNodeTypeDefinition
+> = {
+  default: {
+    type: WorkflowBrandedTypes.typeName(`default`),
+    getComponent: () => ({
+      Component: NodeStandardContainer(WorkflowNodeDefault),
+    }),
+    inputs: [],
+    outputs: [],
+    execute: async () => {
+      throw new Error('Not implemented');
+    },
+  },
+};
+
+export const WorkflowNodeDefault = (props: WorkflowComponentPropsOnlyNode) => {
+  return (
+    <WorkflowNodeWrapperSimple {...props}>
+      <div className="text-white">Node {props.id}</div>
+    </WorkflowNodeWrapperSimple>
+  );
+};
 
 export const EmptyNodeComponent = () => (
   <>
