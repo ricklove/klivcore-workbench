@@ -61,8 +61,9 @@ export const JsonInputComponent = (
   const { data, inputs } = props.data;
   const data$ = data.asObservable();
   const textData = useValue(data$.value);
-  const overrideInput = useValue(data$.overrideInput);
-  const textInput = useValue(inputs.value.asObservable());
+  // const overrideInput = useValue(data$.overrideInput);
+  const overrideInput = useValue(false);
+  const textInput = useValue(() => inputs.value.asObservable().get());
 
   const text = overrideInput
     ? textData
@@ -72,6 +73,7 @@ export const JsonInputComponent = (
   const isReadonly = !overrideInput && textInput !== undefined;
 
   const [textValue, setTextValue] = useState(text);
+
   const changeTextValue = (newValue: string) => {
     setTextValue(newValue);
     try {
@@ -95,7 +97,7 @@ export const JsonInputComponent = (
     <textarea
       ref={textareaRef}
       className={`w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan ${isReadonly ? 'bg-gray-800/25' : 'bg-black/25'}`}
-      value={textValue}
+      value={!overrideInput ? text : textValue}
       readOnly={!props.selected || isReadonly}
       onChange={(e) => {
         changeTextValue(e.target.value);

@@ -313,4 +313,92 @@ export const codeBuiltinNodeTypes: Record<
       };
     },
   },
+
+  parseTypescript: {
+    type: WorkflowBrandedTypes.typeName(`parseTypescript`),
+    getComponent: () => ({
+      Component: NodeStandardContainer(StringInputComponent),
+    }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`unknown`),
+      },
+    ],
+    execute: async ({ inputs, data, controller }) => {
+      const inputsTyped = inputs as {
+        value: undefined | string;
+      };
+      const dataTyped = data as undefined | { value: undefined | string };
+
+      const tsCode = inputsTyped.value ?? dataTyped?.value ?? ``;
+
+      controller.setProgress({
+        progressRatio: 0.5,
+        message: 'Compiling TypeScript...',
+      });
+
+      const { parseTypescript } = await import('./swc-tools.ts');
+      const result = await parseTypescript(tsCode);
+
+      controller.setProgress({
+        progressRatio: 1,
+        message: 'Compiling TypeScript complete',
+      });
+
+      return {
+        outputs: { value: result ?? null },
+      };
+    },
+  },
+
+  parseObjectTypeDefinition: {
+    type: WorkflowBrandedTypes.typeName(`parseObjectTypeDefinition`),
+    getComponent: () => ({
+      Component: NodeStandardContainer(StringInputComponent),
+    }),
+    inputs: [
+      {
+        name: WorkflowBrandedTypes.inputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`string`),
+      },
+    ],
+    outputs: [
+      {
+        name: WorkflowBrandedTypes.outputName(`value`),
+        type: WorkflowBrandedTypes.valueType(`unknown`),
+      },
+    ],
+    execute: async ({ inputs, data, controller }) => {
+      const inputsTyped = inputs as {
+        value: undefined | string;
+      };
+      const dataTyped = data as undefined | { value: undefined | string };
+
+      const tsCode = inputsTyped.value ?? dataTyped?.value ?? ``;
+
+      controller.setProgress({
+        progressRatio: 0.5,
+        message: 'Compiling TypeScript...',
+      });
+
+      const { parseObjectTypeDefinition } = await import('./swc-tools.ts');
+      const result = await parseObjectTypeDefinition(tsCode);
+
+      controller.setProgress({
+        progressRatio: 1,
+        message: 'Compiling TypeScript complete',
+      });
+
+      return {
+        outputs: { value: result ?? null },
+      };
+    },
+  },
 };

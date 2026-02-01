@@ -28,4 +28,4 @@ export type testFileds = {
 
 ```
 
-- [ ] add FieldEditor to `subflow-inputs-node` and `subflow-outputs-node` to edit their `data$:fields` value
+- [x] add FieldEditor to `subflow-inputs-node` and `subflow-outputs-node` to edit their `data$:fields` value
