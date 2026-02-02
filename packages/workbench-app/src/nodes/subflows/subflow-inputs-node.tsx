@@ -5,12 +5,16 @@ import {
   type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import {
-  FieldDisplay,
-  FieldEditor,
-  formatFieldTypeText,
-} from './components/field-editor';
+import { FieldDisplay, FieldEditor } from './components/field-editor';
 import { observe, type Observable } from '@legendapp/state';
+
+export type SubflowInputsRuntimeData = {
+  injectedInputs?: Record<string, unknown>;
+};
+export type SubflowInputsData = {
+  fields: Array<{ name: string; type: string }>;
+  __trigger?: number;
+};
 
 export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`subflow-inputs`),
@@ -22,9 +26,9 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   load: async ({ node$, store$ }) => {
     const unsub = observe(() => {
       const data = node$.data.get();
-      const dataValue$ = data.getObservableBox() as Observable<{
-        fields: Array<{ name: string; type: string }>;
-      }>;
+      const dataValue$ = data.getObservableBox() as Observable<
+        SubflowInputsData | undefined
+      >;
       const fields = dataValue$?.fields.get() ?? [];
       if (!fields) {
         return;
@@ -60,25 +64,27 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  execute: async ({ data, inputs }) => {
-    const { fields } =
-      (data as { fields: Array<{ name: string; type: string }> }) ?? {};
+  execute: async ({ data, inputs, runtimeState }) => {
+    const { fields } = (data as SubflowInputsData) ?? {};
     if (!fields) {
       return;
     }
 
-    const defaultValues = Object.fromEntries(
+    const runtimeStateTyped = runtimeState as SubflowInputsRuntimeData;
+
+    const outputValues = Object.fromEntries(
       fields.map((field) => [
         field.name,
-        inputs[
-          WorkflowBrandedTypes.inputName(`default_${field.name}`)
-        ] as unknown,
+        runtimeStateTyped.injectedInputs?.[field.name] ??
+          (inputs[
+            WorkflowBrandedTypes.inputName(`default_${field.name}`)
+          ] as unknown),
       ]),
     );
 
     return {
       outputs: {
-        ...defaultValues,
+        ...outputValues,
       },
     };
   },

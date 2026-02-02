@@ -386,16 +386,16 @@ const loadNode = async ({
       registerEvent: (event) => {
         console.log(`[loadNode] registering event for node ${nodeId}`);
         const sub = event((outputs) => {
-          console.log(
-            `[loadNode] Setting outputs of node ${nodeId} with ${Object.keys(
-              outputs,
-            )
-              .map((x) => `'${x}'`)
-              .join(', ')}`,
-            {
-              outputs,
-            },
-          );
+          // console.log(
+          //   `[loadNode] Setting outputs of node ${nodeId} with ${Object.keys(
+          //     outputs,
+          //   )
+          //     .map((x) => `'${x}'`)
+          //     .join(', ')}`,
+          //   {
+          //     outputs,
+          //   },
+          // );
           node$.outputs.forEach((output$) => {
             output$.value.get().setValue(outputs[output$.name.get()]);
           });

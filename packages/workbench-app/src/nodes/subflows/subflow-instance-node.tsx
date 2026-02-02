@@ -15,6 +15,10 @@ import { createWorkflowStoreFromDocument } from '../../workflow/store-fast/creat
 import { observable, observe, type Observable } from '@legendapp/state';
 import { createWorkflowEngine } from '../../workflow/store-fast/engine-direct';
 import { engineController$ } from '../../workflow/engine-controller';
+import type {
+  SubflowInputsData,
+  SubflowInputsRuntimeData,
+} from './subflow-inputs-node';
 
 type RuntimeStateType = {
   subflowUrl?: string;
@@ -283,7 +287,54 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         };
       });
 
-      // TODO: setup input subscriptions
+      // setup input subscriptions
+      unsubs.addUnsubFun = observe(() => {
+        const inputs = node$.inputs.get();
+        const inputValues = inputs
+          .map((x) => x.value.getObservableBox() as Observable<unknown>)
+          .map((o) => o.get());
+        const subflowInputsNode$ = runtimeStateTyped.subflowNodes$?.inputsNode;
+        const subflowInputsNode = subflowInputsNode$?.get();
+        if (!subflowInputsNode$ || !subflowInputsNode) {
+          console.error(
+            `[subflowInstanceNodeType.load.observe] no subflowInputsNode to provide inputs`,
+            {
+              subflowInputsNode,
+              subflowInputsNode$,
+              runtimeStore$: runtimeStateTyped.runtimeStore$?.get(),
+            },
+          );
+        }
+
+        inputs.forEach((input, index) => {
+          const subflowInput = subflowInputsNode?.inputs.find(
+            (n) => n.name === `default_${input.name}`,
+          );
+          if (!subflowInputsNode || !subflowInput) {
+            console.error(
+              `[subflowInstanceNodeType.load.observe] no subflowInput found for input '${input.name}'`,
+              {
+                subflowInputs: subflowInputsNode?.inputs,
+              },
+            );
+            return;
+          }
+          const subRuntimeState =
+            subflowInputsNode.runtimeState as WorkflowRuntimeValue<SubflowInputsRuntimeData>;
+          const r = subRuntimeState.getDirectValue() ?? {};
+          if (!subRuntimeState.getDirectValue()) {
+            subRuntimeState.setValue(r);
+          }
+
+          r.injectedInputs = r.injectedInputs || {};
+          r.injectedInputs[input.name] = inputValues[index];
+        });
+
+        // trigger an execute on the subflow engine by changing the data
+        (
+          subflowInputsNode?.data.getObservableBox() as Observable<SubflowInputsData>
+        ).__trigger.set(Math.random());
+      });
     });
 
     return {
