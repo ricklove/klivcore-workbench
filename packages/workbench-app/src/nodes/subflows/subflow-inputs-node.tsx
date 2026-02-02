@@ -10,6 +10,7 @@ import {
   FieldEditor,
   formatFieldTypeText,
 } from './components/field-editor';
+import { observe, type Observable } from '@legendapp/state';
 
 export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`subflow-inputs`),
@@ -18,36 +19,67 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async ({ data, node, store }) => {
+  load: async ({ node$, store$ }) => {
+    const unsub = observe(() => {
+      const data = node$.data.get();
+      const dataValue$ = data.getObservableBox() as Observable<{
+        fields: Array<{ name: string; type: string }>;
+      }>;
+      const fields = dataValue$?.fields.get() ?? [];
+      if (!fields) {
+        return;
+      }
+
+      const store = store$.peek();
+      const node = node$.peek();
+
+      // the subflow inputs come into the subflow node as outputs of this node
+      store.actions.updateOutputs(
+        node.id,
+        fields.map((field) => ({
+          name: WorkflowBrandedTypes.outputName(field.name),
+          type: WorkflowBrandedTypes.valueType(field.type),
+        })),
+      );
+
+      store.actions.updateInputs(node.id, [
+        ...fields.map((field) => ({
+          name: WorkflowBrandedTypes.inputName(`default_${field.name}`),
+          type: WorkflowBrandedTypes.valueType(field.type),
+        })),
+        // TODO: add input upon attach edge
+        // {
+        //   name: WorkflowBrandedTypes.inputName(`add`),
+        //   type: WorkflowBrandedTypes.valueType(`unknown`),
+        // },
+      ]);
+    });
+    return {
+      unsubscribe: () => {
+        unsub();
+      },
+    };
+  },
+  execute: async ({ data, inputs }) => {
     const { fields } =
       (data as { fields: Array<{ name: string; type: string }> }) ?? {};
     if (!fields) {
       return;
     }
 
-    // the subflow inputs come into the subflow node as outputs of this node
-    store.actions.updateOutputs(
-      node.id,
-      fields.map((field) => ({
-        name: WorkflowBrandedTypes.outputName(field.name),
-        type: WorkflowBrandedTypes.valueType(field.type),
-      })),
+    const defaultValues = Object.fromEntries(
+      fields.map((field) => [
+        field.name,
+        inputs[
+          WorkflowBrandedTypes.inputName(`default_${field.name}`)
+        ] as unknown,
+      ]),
     );
 
-    store.actions.updateInputs(node.id, [
-      ...fields.map((field) => ({
-        name: WorkflowBrandedTypes.inputName(`default_${field.name}`),
-        type: WorkflowBrandedTypes.valueType(field.type),
-      })),
-      // TODO: add input upon attach edge
-      // {
-      //   name: WorkflowBrandedTypes.inputName(`add`),
-      //   type: WorkflowBrandedTypes.valueType(`unknown`),
-      // },
-    ]);
-
     return {
-      outputs: {},
+      outputs: {
+        ...defaultValues,
+      },
     };
   },
 };
