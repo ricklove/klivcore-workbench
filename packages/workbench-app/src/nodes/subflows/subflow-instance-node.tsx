@@ -126,38 +126,18 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
       // setup inputs and outputs
       runtimeStateTyped.subflowNodes$ = observable({
-        inputsNode: undefined as WorkflowRuntimeNode | undefined,
-        outputsNode: undefined as WorkflowRuntimeNode | undefined,
-      });
-      observe(() => {
-        if (!runtimeStateTyped.runtimeStore$?.get()) {
-          return;
-        }
-
-        const inputsNode$ = Object.values(
-          runtimeStateTyped.runtimeStore$.nodes,
-        )?.find(
-          (n: Observable<WorkflowRuntimeNode>) =>
-            n.type.get() === WorkflowBrandedTypes.typeName(`subflow-inputs`),
-        ) as Observable<WorkflowRuntimeNode | undefined> | undefined;
-        const outputsNode$ = Object.values(
-          runtimeStateTyped.runtimeStore$.nodes,
-        )?.find(
-          (n: Observable<WorkflowRuntimeNode>) =>
-            n.type.get() === WorkflowBrandedTypes.typeName(`subflow-outputs`),
-        ) as Observable<WorkflowRuntimeNode | undefined> | undefined;
-
-        runtimeStateTyped.subflowNodes$?.outputsNode.set(outputsNode$?.get());
-        runtimeStateTyped.subflowNodes$?.inputsNode.set(inputsNode$?.get());
-
-        console.log(
-          `[subflowInstanceNodeType.execute.setup inputs and outputs.observe] nodes changed: `,
-          {
-            inputsNode$: inputsNode$,
-            outputsNode$: outputsNode$,
-            runtimeStore$: runtimeStateTyped.runtimeStore$?.peek(),
-          },
-        );
+        inputsNode: Object.values(runtimeStore$.nodes)
+          ?.find(
+            (n: Observable<WorkflowRuntimeNode>) =>
+              n.type.get() === WorkflowBrandedTypes.typeName(`subflow-inputs`),
+          )
+          ?.get() as WorkflowRuntimeNode | undefined,
+        outputsNode: Object.values(runtimeStore$.nodes)
+          ?.find(
+            (n: Observable<WorkflowRuntimeNode>) =>
+              n.type.get() === WorkflowBrandedTypes.typeName(`subflow-outputs`),
+          )
+          ?.get() as WorkflowRuntimeNode | undefined,
       });
 
       store.actions.updateInputs(node.id, [
