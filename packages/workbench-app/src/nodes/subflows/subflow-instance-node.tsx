@@ -32,12 +32,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
   getComponent: () => ({
     Component: NodeStandardContainer(SubflowInstanceComponent),
   }),
-  inputs: [
-    {
-      name: WorkflowBrandedTypes.inputName(`trigger`),
-      type: WorkflowBrandedTypes.valueType(`unknown`),
-    },
-  ],
+  inputs: [],
   outputs: [],
   execute: async () => {
     return undefined;
@@ -193,10 +188,6 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       const store = store$.get();
       const nodeId = node$.id.get();
       store.actions.updateInputs(nodeId, [
-        {
-          name: WorkflowBrandedTypes.inputName(`trigger`),
-          type: WorkflowBrandedTypes.valueType(`unknown`),
-        },
         ...(runtimeStateTyped.subflowNodes$?.inputsNode
           ?.peek()
           ?.outputs.map((field) => ({
