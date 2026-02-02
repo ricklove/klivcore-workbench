@@ -1,4 +1,4 @@
-import initSwc, { parseSync, transformSync, type Module } from '@swc/wasm-web';
+import initSwc, { type Module, parseSync, transformSync } from '@swc/wasm-web';
 
 async function setupSwc() {
   const wasmUrl = '/wasm/wasm_bg.wasm';

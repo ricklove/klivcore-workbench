@@ -18,32 +18,48 @@ export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async ({ data, node, store }) => {
+  execute: async ({ data, node, store, inputs, runtimeState }) => {
     const { fields } =
       (data as { fields: Array<{ name: string; type: string }> }) ?? {};
     if (!fields) {
       return;
     }
 
-    // the subflow outputs come into the subflow node as inputs of this node
-    store.actions.updateInputs(
-      node.id,
-      fields.map((field) => ({
-        name: WorkflowBrandedTypes.inputName(field.name),
-        type: WorkflowBrandedTypes.valueType(field.type),
-      })),
-    );
+    const runtimeStateTyped = runtimeState as {
+      fields: Array<{ name: string; type: string }>;
+    };
+    if (
+      runtimeStateTyped.fields !== fields &&
+      JSON.stringify(
+        node.inputs.map((x) => ({ name: x.name, type: x.type })),
+      ) !== JSON.stringify(fields)
+    ) {
+      runtimeStateTyped.fields = fields;
+      // the subflow outputs come into the subflow node as inputs of this node
+      store.actions.updateInputs(
+        node.id,
+        fields.map((field) => ({
+          name: WorkflowBrandedTypes.inputName(field.name),
+          type: WorkflowBrandedTypes.valueType(field.type),
+        })),
+      );
 
-    store.actions.updateOutputs(
-      node.id,
-      fields.map((field) => ({
-        name: WorkflowBrandedTypes.outputName(`ext_${field.name}`),
-        type: WorkflowBrandedTypes.valueType(field.type),
-      })),
-    );
+      store.actions.updateOutputs(
+        node.id,
+        fields.map((field) => ({
+          name: WorkflowBrandedTypes.outputName(`ext_${field.name}`),
+          type: WorkflowBrandedTypes.valueType(field.type),
+        })),
+      );
+    }
 
+    console.log(`[subflowOutputsNodeType.execute] inputs: `, { inputs });
     return {
-      outputs: {},
+      outputs: {
+        ...Object.fromEntries(
+          Object.entries(inputs).map(([key, value]) => [`ext_${key}`, value]),
+        ),
+      },
     };
   },
 };

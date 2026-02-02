@@ -29,3 +29,5 @@ export type testFileds = {
 ```
 
 - [x] add FieldEditor to `subflow-inputs-node` and `subflow-outputs-node` to edit their `data$:fields` value
+
+- [ ] Add a text input to SubflowInstanceComponent to set the data$.url path

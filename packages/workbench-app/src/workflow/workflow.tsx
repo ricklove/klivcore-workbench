@@ -35,6 +35,7 @@ import {
   type WorkflowDocumentData,
   type WorkflowNodeId,
 } from './types';
+import { engineController$ } from './engine-controller';
 
 enableReactTracking({
   warnMissingUse: true,
@@ -483,8 +484,10 @@ const WorkflowViewInner = () => {
               onClick={() => {
                 if (storeEngine.running) {
                   storeEngine.stop({ shouldAbort: true });
+                  engineController$.running.set(false);
                 } else {
                   storeEngine.start();
+                  engineController$.running.set(true);
                 }
                 setEngineRunning(storeEngine.running);
               }}
@@ -503,6 +506,7 @@ const WorkflowViewInner = () => {
                 const val = Number(e.target.value);
                 storeEngine.tickSpeed =
                   val < -500 ? `fast` : val < 0 ? `normal` : val;
+                engineController$.tickSpeed.set(storeEngine.tickSpeed);
                 setTickSpeed(val);
                 console.log(`[WorkflowView] Set engine tick speed to ${val}ms`);
               }}

@@ -225,6 +225,7 @@ const executeNode = async ({
         (err as Error)?.message ?? `Unknown error`;
       onExecutionStateChange(executionState);
 
+      console.error(err);
       console.error(
         `[createWorkflowEngine:processNodeQueue:executeNode] Error executing node: ${nodeId}`,
         {
@@ -579,18 +580,57 @@ export const createWorkflowEngine = (
               // purgeBatch();
             },
             registerEvent: (event) => {
+              let isUnsubscribed = false;
               const lastUnsub = engineState.executionEmitters.get(nodeId);
               const unsub = event((result) => {
-                // console.log(
-                //   `[createWorkflowEngine:executeNode:registerEvent] Node event emitted:`,
-                //   {
-                //     nodeId,
-                //     result,
-                //   },
-                // );
+                if (isUnsubscribed) {
+                  console.error(
+                    `[createWorkflowEngine:executeNode:registerEvent] Error: Node event emitted, but already unsubscribed:`,
+                    {
+                      nodeId,
+                      result,
+                    },
+                  );
+                  return;
+                }
+
+                console.log(
+                  `[createWorkflowEngine:executeNode:registerEvent] Node event emitted:`,
+                  {
+                    nodeId,
+                    result,
+                  },
+                );
+
+                let outputCount = 0;
                 for (const output of node.outputs) {
-                  if (result[output.name] === undefined) continue;
+                  if (result[output.name] === undefined) {
+                    console.error(
+                      `[createWorkflowEngine:executeNode:registerEvent] Warning: Event result for output not found:`,
+                      {
+                        nodeId,
+                        outputName: output.name,
+                        result,
+                      },
+                    );
+                    continue;
+                  }
                   output.value.setValue(result[output.name]);
+                  outputCount++;
+                }
+                if (outputCount !== Object.keys(result).length) {
+                  // warn about extra outputs
+                  const extraOutputNames = Object.keys(result).filter(
+                    (o) => !node.outputs.find((out) => out.name === o),
+                  );
+                  console.error(
+                    `[createWorkflowEngine:executeNode:registerEvent] Warning: Event result has extra outputs not defined on node: ${extraOutputNames.map((name) => `'${name}'`).join(', ')}`,
+                    {
+                      nodeId,
+                      extraOutputNames,
+                      result,
+                    },
+                  );
                 }
                 // purgeBatch();
               });
@@ -600,6 +640,7 @@ export const createWorkflowEngine = (
                   ? unsub
                   : {
                       unsubscribe: () => {
+                        isUnsubscribed = true;
                         unsub.unsubscribe();
                         lastUnsub.unsubscribe();
                       },
