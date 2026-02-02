@@ -107,6 +107,10 @@ export const codeBuiltinNodeTypes: Record<
         message: 'Function execution complete',
       });
 
+      if (funResult === undefined) {
+        return;
+      }
+
       return {
         outputs: { value: funResult ?? null },
       };

@@ -154,16 +154,33 @@ const WrapperHeader = memo(
                         value={JSON.stringify(
                           expandInfo === `data`
                             ? {
-                                // id: node$.id.get(),
-                                // newIdUntilReload: node$.newIdUntilReload.get(),
-                                inputs: dataReactFlow.node$.inputs.get(),
-                                data: dataReactFlow.node$.data.get(),
-                                outputs: dataReactFlow.node$.outputs.get(),
-                                // node: {
-                                //   inputs: node$.inputs.get(),
-                                //   data: node$.data.get(),
-                                //   outputs: node$.outputs.get(),
-                                // },
+                                data: {
+                                  changeCounter: dataReactFlow.node$.data
+                                    .get()
+                                    .uiChangeCounter$.get(),
+                                  value: dataReactFlow.node$.data
+                                    .get()
+                                    .getUiValue(),
+                                },
+                                inputs: dataReactFlow.node$.inputs
+                                  .get()
+                                  .map((x) => ({
+                                    name: x.name,
+                                    changeCounter:
+                                      x.value.uiChangeCounter$.get(),
+                                    value: x.value.getUiValue(),
+                                    edgeid: x.edgeId,
+                                  })),
+
+                                outputs: dataReactFlow.node$.outputs
+                                  .get()
+                                  .map((x) => ({
+                                    name: x.name,
+                                    changeCounter:
+                                      x.value.uiChangeCounter$.get(),
+                                    value: x.value.getUiValue(),
+                                    edgeIds: x.edgeIds,
+                                  })),
                               }
                             : node$.get(),
                           null,

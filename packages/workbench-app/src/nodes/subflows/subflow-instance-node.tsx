@@ -1,4 +1,4 @@
-import { useValue } from '@legendapp/state/react';
+import { useObservable, useValue } from '@legendapp/state/react';
 import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
   WorkflowBrandedTypes,
@@ -20,7 +20,14 @@ import type {
   SubflowInputsRuntimeData,
 } from './subflow-inputs-node';
 
+type SubflowInstanceData = {
+  url: string;
+  autoLoad?: boolean;
+  trigger?: number;
+};
+
 type RuntimeStateType = {
+  isLoaded?: boolean;
   subflowUrl?: string;
   runtimeStore$?: Observable<WorkflowRuntimeStore>;
   storeEngine?: WorkflowRuntimeEngine;
@@ -38,8 +45,20 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async () => {
-    return undefined;
+  execute: async ({ runtimeState, data }) => {
+    if (data?.autoLoad || runtimeState.isLoaded) {
+      return;
+    }
+
+    console.log(`[subflowInstanceNodeType.load] loading subflow upon execute`);
+
+    runtimeState.isLoaded = true;
+    return {
+      outputs: {},
+      data: {
+        trigger: Math.random(),
+      },
+    };
   },
   load: async ({ runtimeState, controller, store$, node$ }) => {
     const nodeUnsub = observe(() => {
@@ -47,6 +66,18 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         node$.data.get() as WorkflowRuntimeValue<SubflowInstanceData>;
       const dataValue =
         data.getObservableBox() as Observable<SubflowInstanceData>;
+      const autoLoad = dataValue.autoLoad.get();
+      dataValue.trigger.get();
+
+      const runtimeStateTyped = runtimeState as RuntimeStateType;
+
+      const isLoaded = runtimeStateTyped.isLoaded;
+      if (!autoLoad && !isLoaded) {
+        console.log(
+          `[subflowInstanceNodeType.load] not auto loading subflow (autoLoad: ${autoLoad}, isLoaded: ${isLoaded})`,
+        );
+        return;
+      }
       const url = dataValue.url.get();
       if (!url) {
         console.warn(`[subflowInstanceNodeType.load] no subflow URL defined`, {
@@ -55,8 +86,6 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         });
         return undefined;
       }
-
-      const runtimeStateTyped = runtimeState as RuntimeStateType;
 
       if (runtimeStateTyped.subflowUrl === url) {
         console.warn(`[subflowInstanceNodeType.load] subflow URL unchanged`, {
@@ -343,10 +372,6 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
   },
 };
 
-type SubflowInstanceData = {
-  url: string;
-};
-
 export const SubflowInstanceComponent = (
   props: WorkflowComponentSimplePropsTyped<
     SubflowInstanceData,
@@ -356,27 +381,81 @@ export const SubflowInstanceComponent = (
 ) => {
   const { node$, data } = props.data;
   const data$ = data.asObservable();
-  const url = useValue(data$.url) ?? '';
 
-  const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newUrl = event.target.value;
+  const urlInput$ = useObservable(data$.url.peek());
+  const urlInput = useValue(urlInput$) ?? '';
+
+  const autoLoad = useValue(data$.autoLoad) ?? false;
+
+  const handleLoadPress = () => {
+    const newUrl = urlInput$.peek();
     node$.data.get().setValue({
       url: newUrl,
     });
   };
+  const handleOpenPress = () => {
+    const docUrl = urlInput$.peek();
+    const localStorageKey = docUrl.replace(`@localhost/`, `ksub-`);
+    const doc = localStorage.getItem(localStorageKey);
+    if (!doc) {
+      console.error(`No subflow found at ${docUrl}`);
+      return;
+    }
+
+    const mainDoc = localStorage.getItem(`klivcore-workflow-document`) ?? ``;
+    localStorage.setItem(`${localStorageKey}-RETURN`, mainDoc);
+    localStorage.setItem(`klivcore-workflow-document`, doc);
+    window.location.reload();
+  };
+  const handleCreatePress = () => {
+    const newUrl = urlInput$.peek();
+    const localStorageKey = newUrl.replace(`@localhost/`, `ksub-`);
+    const newDoc: WorkflowDocumentData = {
+      nodes: [],
+    };
+    localStorage.setItem(localStorageKey, JSON.stringify(newDoc));
+    handleOpenPress();
+  };
 
   return (
     <div className="w-full h-full text-white border-none outline-none resize-none nowheel nodrag nopan bg-black/25 flex flex-col p-2">
-      <span className="text-sm text-gray-400 mb-2">Subflow Instance</span>
-      <div className="w-full">
-        <label className="text-xs text-gray-500 block mb-1">URL Path:</label>
-        <input
-          type="text"
-          value={url}
-          onChange={handleUrlChange}
-          className="w-full px-2 py-1 text-xs bg-black/50 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-          placeholder="/path/to/subflow"
-        />
+      <span className="text-sm text-gray-400">Subflow Instance</span>
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 block mb-1">URL Path:</label>
+          <input
+            type="text"
+            value={urlInput}
+            onChange={(x) => urlInput$.set(x.target.value)}
+            className="w-full px-2 py-1 text-xs bg-black/50 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+            placeholder="/path/to/subflow"
+          />
+        </div>
+        <div className="flex flex-row items-center justify-start gap-1">
+          <input
+            type="checkbox"
+            checked={autoLoad}
+            onChange={(x) => {
+              data$.autoLoad.set(x.target.checked);
+            }}
+            className="text-xs"
+          />
+          <label className="text-xs">Auto Load</label>
+        </div>
+        <div className="flex flex-row justify-end gap-1">
+          <button
+            onClick={handleLoadPress}
+            className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+          >
+            Load
+          </button>
+          <button
+            onClick={handleCreatePress}
+            className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+          >
+            Create
+          </button>
+        </div>
       </div>
     </div>
   );
