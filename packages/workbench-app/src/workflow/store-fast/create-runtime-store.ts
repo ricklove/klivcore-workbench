@@ -247,7 +247,9 @@ const loadWorkflowStoreFromDocument = (
       getGraphErrors() {
         return getters.node.getGraphErrors(storeObj, this);
       },
+      unloader: ObservableHint.opaque({}),
     };
+
     storeObj.nodes[runtimeNode.id] = runtimeNode;
   }
 
@@ -363,6 +365,60 @@ const populateNodeType = (
   }
 };
 
+const loadNode = async ({
+  store$,
+  nodeId,
+}: {
+  store$: Observable<WorkflowRuntimeStore>;
+  nodeId: WorkflowNodeId;
+}) => {
+  const node$ = store$.nodes[nodeId];
+  if (!node$) {
+    return;
+  }
+  const nodeTypeName = node$.type.peek();
+  const nodeType = store$.nodeTypes[nodeTypeName]?.peek();
+  const sub = await nodeType?.load?.({
+    node$,
+    store$,
+    runtimeState: node$.peek().runtimeState,
+    controller: {
+      registerEvent: (event) => {
+        console.log(`[loadNode] registering event for node ${nodeId}`);
+        const sub = event((outputs) => {
+          console.log(
+            `[loadNode] Setting outputs of node ${nodeId} with ${Object.keys(
+              outputs,
+            )
+              .map((x) => `'${x}'`)
+              .join(', ')}`,
+            {
+              outputs,
+            },
+          );
+          node$.outputs.forEach((output$) => {
+            output$.value.get().setValue(outputs[output$.name.get()]);
+          });
+        });
+
+        //         for (const output of node.outputs) {
+        //   if (result.outputs[output.name] === undefined) continue;
+        //   output.value.setValue(result.outputs[output.name]);
+        // }
+
+        return sub;
+      },
+    },
+  });
+
+  const node = node$.peek();
+  const lastUnload = node.unloader.unload;
+  node.unloader.unload = () => {
+    sub?.unsubscribe();
+    lastUnload?.();
+  };
+};
+
 const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
   const actions: WorkflowRuntimeStoreActions = {
     createNodeType: (definition) => {
@@ -371,6 +427,10 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       for (const node of Object.values(store$.nodes.get())) {
         if (node.type === definition.type) {
           populateNodeType(store$.get(), node);
+          loadNode({
+            store$,
+            nodeId: node.id,
+          });
         }
       }
     },
@@ -408,6 +468,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           getGraphErrors() {
             return getters.node.getGraphErrors(store$.get(), runtimeNode);
           },
+          unloader: ObservableHint.opaque({}),
         };
 
         store$.nodes[nodeId]?.set(runtimeNode);
@@ -457,8 +518,14 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         getGraphErrors: () => {
           return getters.node.getGraphErrors(store$.get(), runtimeNode);
         },
+        unloader: ObservableHint.opaque({}),
       };
+
       store$.nodes[nodeId]?.set(runtimeNode);
+      loadNode({
+        store$,
+        nodeId,
+      });
     },
     deleteNode: (nodeId) => {
       console.log(`[deleteNode] Deleting node with id ${nodeId}`, { store$ });
@@ -494,6 +561,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       });
 
       node$?.isDeleted.set(true);
+      node$?.peek().unloader.unload?.();
       // node$?.delete();
     },
     renameNode: ({ oldId, newId }) => {
@@ -772,6 +840,10 @@ export const createWorkflowStoreFromDocument = (
   // populate all nodes with their type definitions
   for (const node of Object.values(store$.nodes.get())) {
     populateNodeType(store$.get(), node);
+    loadNode({
+      store$,
+      nodeId: node.id,
+    });
   }
 
   return store$;

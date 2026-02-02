@@ -9,6 +9,7 @@ import {
   type WorkflowRuntimeNode,
   type WorkflowRuntimeNodeTypeDefinition,
   type WorkflowRuntimeStore,
+  type WorkflowRuntimeValue,
 } from '../../workflow/types';
 import { createWorkflowStoreFromDocument } from '../../workflow/store-fast/create-runtime-store';
 import { observable, observe, type Observable } from '@legendapp/state';
@@ -23,6 +24,7 @@ type RuntimeStateType = {
     inputsNode: WorkflowRuntimeNode | undefined;
     outputsNode: WorkflowRuntimeNode | undefined;
   }>;
+  unsubs: Array<() => void>;
 };
 
 export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
@@ -37,17 +39,61 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   outputs: [],
-  execute: async ({ data, runtimeState, controller, store, node }) => {
-    const dataTyped = data as SubflowInstanceData;
-    if (!dataTyped?.url) {
-      return;
-    }
+  execute: async () => {
+    return undefined;
+  },
+  load: async ({ runtimeState, controller, store$, node$ }) => {
+    const nodeUnsub = observe(() => {
+      const data =
+        node$.data.get() as WorkflowRuntimeValue<SubflowInstanceData>;
+      const dataValue =
+        data.getObservableBox() as Observable<SubflowInstanceData>;
+      const url = dataValue.url.get();
+      if (!url) {
+        console.warn(`[subflowInstanceNodeType.load] no subflow URL defined`, {
+          nodeId: node$.id.peek(),
+          data: node$.data.peek(),
+        });
+        return undefined;
+      }
 
-    const runtimeStateTyped = runtimeState as RuntimeStateType;
+      const runtimeStateTyped = runtimeState as RuntimeStateType;
 
-    if (!runtimeStateTyped.subflowUrl) {
+      if (runtimeStateTyped.subflowUrl === url) {
+        console.warn(`[subflowInstanceNodeType.load] subflow URL unchanged`, {
+          nodeId: node$.id.peek(),
+          url,
+        });
+        return;
+      }
+
+      if (runtimeStateTyped.subflowUrl) {
+        console.log(
+          `[subflowInstanceNodeType.load] subflow URL changed from ${runtimeStateTyped.subflowUrl} to ${url}`,
+        );
+        runtimeStateTyped.unsubs.forEach((unsub) => {
+          unsub();
+        });
+        runtimeStateTyped.storeEngine?.stop({ shouldAbort: true });
+        runtimeStateTyped.runtimeStore$ = undefined;
+        runtimeStateTyped.storeEngine = undefined;
+        runtimeStateTyped.subflowNodes$ = undefined;
+        runtimeStateTyped.subflowUrl = undefined;
+      }
+
+      runtimeStateTyped.subflowUrl = url;
+      runtimeStateTyped.unsubs = [];
+      const unsubs = {
+        set addUnsubFun(item: () => void) {
+          runtimeStateTyped.unsubs.push(item);
+        },
+        set addUnsubObj(item: { unsubscribe: () => void }) {
+          runtimeStateTyped.unsubs.push(item.unsubscribe);
+        },
+      };
+
       // setup subflow store and engine
-      if (!dataTyped.url.startsWith(`@localhost/`)) {
+      if (!url.startsWith(`@localhost/`)) {
         console.log(
           'Only localhost subflow URLs are supported in this version.',
         );
@@ -56,7 +102,11 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         );
       }
 
-      const localStorageKey = dataTyped.url.replace(`@localhost/`, `ksub-`);
+      console.log(
+        `[subflowInstanceNodeType.load] setup subflow store from ${url}`,
+      );
+
+      const localStorageKey = url.replace(`@localhost/`, `ksub-`);
 
       const storeDoc = (() => {
         try {
@@ -65,7 +115,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           ) as WorkflowDocumentData;
         } catch (err) {
           console.error(
-            `[WorkflowView] Error parsing stored workflow document`,
+            `[subflowInstanceNodeType.load] Error parsing stored workflow document`,
             {
               err,
             },
@@ -98,14 +148,14 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       // });
 
       console.log(
-        `[subflowInstanceNodeType.execute] created subflow runtime store and engine: `,
+        `[subflowInstanceNodeType.load] created subflow runtime store and engine: `,
         {
           runtimeStore$,
           storeEngine,
         },
       );
 
-      observe(() => {
+      unsubs.addUnsubFun = observe(() => {
         const running = engineController$.running.get();
         const tickSpeed = engineController$.tickSpeed.get();
         if (!runtimeStateTyped.storeEngine) {
@@ -119,7 +169,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         runtimeStateTyped.storeEngine.tickSpeed = tickSpeed;
       });
 
-      console.log(`[subflowInstanceNodeType.execute] setup engine controls: `, {
+      console.log(`[subflowInstanceNodeType.load] setup engine controls: `, {
         runtimeStore$,
         storeEngine,
       });
@@ -140,7 +190,9 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           ?.get() as WorkflowRuntimeNode | undefined,
       });
 
-      store.actions.updateInputs(node.id, [
+      const store = store$.get();
+      const nodeId = node$.id.get();
+      store.actions.updateInputs(nodeId, [
         {
           name: WorkflowBrandedTypes.inputName(`trigger`),
           type: WorkflowBrandedTypes.valueType(`unknown`),
@@ -154,7 +206,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       ]);
 
       store.actions.updateOutputs(
-        node.id,
+        nodeId,
         runtimeStateTyped.subflowNodes$?.outputsNode
           ?.peek()
           ?.inputs?.map((field) => ({
@@ -163,85 +215,88 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           })) ?? [],
       );
 
-      runtimeStateTyped.subflowUrl = dataTyped.url;
-    }
+      // setup output subscriptions
+      unsubs.addUnsubObj = controller.registerEvent((emit) => {
+        const outputSubs = new Map<WorkflowOutputName, () => void>();
 
-    // setup output subscriptions
-    controller.registerEvent((emit) => {
-      const outputSubs = new Map<WorkflowOutputName, () => void>();
-
-      observe(() => {
-        const subflowOutputsNode$ =
-          runtimeStateTyped.subflowNodes$?.outputsNode;
-        const subflowOutputsNode = subflowOutputsNode$?.get();
-        if (!subflowOutputsNode$ || !subflowOutputsNode) {
-          console.log(
-            `[subflowInstanceNodeType.execute.registerEvent] no subflowOutputsNode`,
-            {
-              subflowOutputsNode,
-              subflowOutputsNode$,
-              runtimeStore$: runtimeStateTyped.runtimeStore$?.get(),
-            },
-          );
-
-          return;
-        }
-
-        const outputs = subflowOutputsNode$.outputs.map((output) =>
-          output.get(),
-        );
-
-        console.log(
-          `[subflowInstanceNodeType.execute.registerEvent] outputs: `,
-          { outputs },
-        );
-
-        const removedOutputs = [...outputSubs.keys()].filter(
-          (outputName) => !outputs.find((output) => output.name === outputName),
-        );
-        for (const removedOutput of removedOutputs) {
-          const unsub = outputSubs.get(removedOutput);
-          if (unsub) {
-            unsub();
-            outputSubs.delete(removedOutput);
-          }
-        }
-
-        for (const output of outputs) {
-          if (outputSubs.has(output.name)) {
-            continue;
-          }
-
-          const unsub = output.value.subscribeDirect((value) => {
-            const nameRaw = output.name;
-            const name = output.name.replace(`ext_`, ``) as WorkflowOutputName;
+        const mainUnsub = observe(() => {
+          const subflowOutputsNode$ =
+            runtimeStateTyped.subflowNodes$?.outputsNode;
+          const subflowOutputsNode = subflowOutputsNode$?.get();
+          if (!subflowOutputsNode$ || !subflowOutputsNode) {
             console.log(
-              `[subflowInstanceNodeType.execute.registerEvent.subscribeDirect] emitting value`,
-              { name, nameRaw, value },
+              `[subflowInstanceNodeType.load.registerEvent.observe] no subflowOutputsNode`,
+              {
+                subflowOutputsNode,
+                subflowOutputsNode$,
+                runtimeStore$: runtimeStateTyped.runtimeStore$?.get(),
+              },
             );
 
-            emit({
-              [name]: value,
+            return;
+          }
+
+          const outputs = subflowOutputsNode$.outputs.map((output) =>
+            output.get(),
+          );
+
+          console.log(
+            `[subflowInstanceNodeType.load.registerEvent.observe] outputs: `,
+            { outputs },
+          );
+
+          const removedOutputs = [...outputSubs.keys()].filter(
+            (outputName) =>
+              !outputs.find((output) => output.name === outputName),
+          );
+          for (const removedOutput of removedOutputs) {
+            const unsub = outputSubs.get(removedOutput);
+            if (unsub) {
+              unsub();
+              outputSubs.delete(removedOutput);
+            }
+          }
+
+          for (const output of outputs) {
+            if (outputSubs.has(output.name)) {
+              continue;
+            }
+
+            const unsub = output.value.subscribeDirect((value) => {
+              const nameRaw = output.name;
+              const name = output.name.replace(
+                `ext_`,
+                ``,
+              ) as WorkflowOutputName;
+              console.log(
+                `[subflowInstanceNodeType.load.registerEvent.observe.subscribeDirect] emitting value`,
+                { name, nameRaw, value },
+              );
+
+              emit({
+                [name]: value,
+              });
             });
-          });
-          outputSubs.set(output.name, unsub);
-        }
+            outputSubs.set(output.name, unsub);
+          }
+        });
+
+        return {
+          unsubscribe: () => {
+            mainUnsub();
+            for (const unsub of outputSubs.values()) {
+              unsub();
+            }
+            outputSubs.clear();
+          },
+        };
       });
 
-      return {
-        unsubscribe: () => {
-          for (const unsub of outputSubs.values()) {
-            unsub();
-          }
-          outputSubs.clear();
-        },
-      };
+      // TODO: setup input subscriptions
     });
 
-    // setup input subscriptions
-
     return {
-      outputs: {},
+      unsubscribe: nodeUnsub,
     };
   },
 };

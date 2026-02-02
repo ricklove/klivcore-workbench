@@ -321,6 +321,8 @@ export interface WorkflowRuntimeNode {
     | {
         kind: `missing-type-definition`;
       }[];
+
+  unloader: OpaqueObject<OpaqueObject<{ unload?: () => void }>>;
 }
 
 export type WorkflowRuntimeNodeInput = WorkflowRuntimeNode['inputs'][number];
@@ -442,6 +444,13 @@ export interface WorkflowRuntimeNodeTypeDefinition {
     name: WorkflowOutputName;
     type: WorkflowValueType;
   }[];
+  /** load the node
+   * use null to reset output value or the data object
+   * undefined output keys will not be changed
+   * undefined data will not update the node's data
+   */
+  load?: (args: WorkflowLoadArgs) => Promise<{ unsubscribe: () => void }>;
+
   /** execute the node's logic
    * use null to reset output value or the data object
    * undefined output keys will not be changed
@@ -452,6 +461,17 @@ export interface WorkflowRuntimeNodeTypeDefinition {
   // TODO: node lifecycle methods (to replace automatic population of inputs/outputs)
   // loadNodeType?: (store: WorkflowRuntimeStore) => void;
   // unloadNodeType?: (store: WorkflowRuntimeStore) => void;
+}
+
+export interface WorkflowLoadArgs {
+  runtimeState: Record<string, unknown>;
+  node$: Observable<WorkflowRuntimeNode>;
+  store$: Observable<WorkflowRuntimeStore>;
+  controller: {
+    registerEvent: <TOutput extends Record<string, unknown>>(
+      event: (emit: (data: TOutput) => void) => { unsubscribe: () => void },
+    ) => { unsubscribe: () => void };
+  };
 }
 
 export interface WorkflowExecutionArgs {
