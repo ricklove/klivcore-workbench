@@ -212,9 +212,10 @@ const CustomEdgeInner = memo(
                           className="flex-1 resize-none bg-black p-1"
                           value={JSON.stringify(
                             {
+                              changeCounter: props.data.edge$.value
+                                .get()
+                                .uiChangeCounter$.get(),
                               value: props.data.edge$.value.get().getUiValue(),
-                              changeCounter:
-                                props.data.edge$.value.get().uiChangeCounter$,
                             },
                             null,
                             2,

@@ -107,12 +107,12 @@ export const codeBuiltinNodeTypes: Record<
         message: 'Function execution complete',
       });
 
-      if (funResult === undefined) {
+      if (funResult == null) {
         return;
       }
 
       return {
-        outputs: { value: funResult ?? null },
+        outputs: { value: funResult ?? undefined },
       };
     },
   },
