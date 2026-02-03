@@ -32,14 +32,15 @@ export const jsonInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
     const dataTyped = data as undefined | { value: undefined | string };
     const dataFromJs = new Function(
       `return ${dataTyped?.value ?? 'undefined'}`,
-    )();
-
-    const obj = inputsTyped.value ?? dataFromJs ?? undefined;
+    );
 
     controller.setProgress({
       progressRatio: 0.1,
       message: 'Creating object...',
     });
+
+    const obj = inputsTyped.value ?? dataFromJs() ?? undefined;
+
     controller.setProgress({
       progressRatio: 1,
       message: 'Object creation complete',

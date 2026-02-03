@@ -34,7 +34,6 @@ export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       outputs: {
         value,
       },
-      ...(!inputValue ? { data: { value } } : {}),
     };
   },
 };

@@ -144,13 +144,19 @@ const executeNode = async ({
     startTimestamp: WorkflowBrandedTypes.now(),
   };
 
+  if (!node.runtimeState.getDirectValue()) {
+    node.runtimeState.setValue({
+      __instanceid: `executeNode_${nodeId}_${WorkflowBrandedTypes.now()}`,
+    });
+  }
+
   const args: WorkflowExecutionArgs = {
     inputs: Object.fromEntries(
       node.inputs.map((input) => [input.name, input.value.getDirectValue()]),
     ),
     data: node.data.getDirectValue<WorkflowJsonObject>() ?? undefined,
-    runtimeState:
-      node.runtimeState.getDirectValue<Record<string, unknown>>() ?? {},
+    // biome-ignore lint/style/noNonNullAssertion: <just set>
+    runtimeState: node.runtimeState.getDirectValue<Record<string, unknown>>()!,
     node,
     store,
     controller,

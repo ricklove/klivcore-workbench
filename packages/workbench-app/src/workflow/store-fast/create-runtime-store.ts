@@ -242,7 +242,11 @@ const loadWorkflowStoreFromDocument = (
         return getters.node.getData<T>(storeObj, runtimeNode);
       },
       data: createRuntimeValue({ data: n.data }),
-      runtimeState: createRuntimeValue({ data: {} }),
+      runtimeState: createRuntimeValue({
+        data: {
+          __instanceid: `loadWorkflowStoreFromDocument_${n.id}_${WorkflowBrandedTypes.now()}`,
+        },
+      }),
       mode: n.mode,
       getGraphErrors() {
         return getters.node.getGraphErrors(storeObj, this);
@@ -378,45 +382,58 @@ const loadNode = async ({
   }
   const nodeTypeName = node$.type.peek();
   const nodeType = store$.nodeTypes[nodeTypeName]?.peek();
-  const sub = await nodeType?.load?.({
-    node$,
-    store$,
-    runtimeState: node$.peek().runtimeState,
-    controller: {
-      registerEvent: (event) => {
-        console.log(`[loadNode] registering event for node ${nodeId}`);
-        const sub = event((outputs) => {
-          // console.log(
-          //   `[loadNode] Setting outputs of node ${nodeId} with ${Object.keys(
-          //     outputs,
-          //   )
-          //     .map((x) => `'${x}'`)
-          //     .join(', ')}`,
-          //   {
-          //     outputs,
-          //   },
-          // );
-          node$.outputs.forEach((output$) => {
-            output$.value.get().setValue(outputs[output$.name.get()]);
+  try {
+    if (!node$.peek().runtimeState.getDirectValue()) {
+      node$.peek().runtimeState.setValue({
+        __instanceid: `loadNode_${nodeId}_${WorkflowBrandedTypes.now()}`,
+      });
+    }
+    const sub = await nodeType?.load?.({
+      node$,
+      store$,
+      // biome-ignore lint/style/noNonNullAssertion: <just set>
+      runtimeState: node$.peek().runtimeState.getDirectValue()!,
+      controller: {
+        registerEvent: (event) => {
+          console.log(`[loadNode] registering event for node ${nodeId}`);
+          const sub = event((outputs) => {
+            // console.log(
+            //   `[loadNode] Setting outputs of node ${nodeId} with ${Object.keys(
+            //     outputs,
+            //   )
+            //     .map((x) => `'${x}'`)
+            //     .join(', ')}`,
+            //   {
+            //     outputs,
+            //   },
+            // );
+            node$.outputs.forEach((output$) => {
+              output$.value.get().setValue(outputs[output$.name.get()]);
+            });
           });
-        });
 
-        //         for (const output of node.outputs) {
-        //   if (result.outputs[output.name] === undefined) continue;
-        //   output.value.setValue(result.outputs[output.name]);
-        // }
+          //         for (const output of node.outputs) {
+          //   if (result.outputs[output.name] === undefined) continue;
+          //   output.value.setValue(result.outputs[output.name]);
+          // }
 
-        return sub;
+          return sub;
+        },
       },
-    },
-  });
+    });
 
-  const node = node$.peek();
-  const lastUnload = node.unloader.unload;
-  node.unloader.unload = () => {
-    sub?.unsubscribe();
-    lastUnload?.();
-  };
+    const node = node$.peek();
+    const lastUnload = node.unloader.unload;
+    node.unloader.unload = () => {
+      sub?.unsubscribe();
+      lastUnload?.();
+    };
+  } catch (e) {
+    console.error(
+      `[loadNode] Error loading node ${nodeId} of type ${nodeTypeName}`,
+      e,
+    );
+  }
 };
 
 const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
@@ -497,7 +514,11 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
           },
         })),
         data: createRuntimeValue({ data: undefined }),
-        runtimeState: createRuntimeValue({ data: {} }),
+        runtimeState: createRuntimeValue({
+          data: {
+            __instanceid: `createNode_${nodeId}_${WorkflowBrandedTypes.now()}`,
+          },
+        }),
         getInputInfo: <T>(inputName: string) => {
           return getters.node.getInputData<T>(
             store$.get(),
