@@ -55,10 +55,17 @@ export const StringInputComponent = (
   const { node$, inputs, data } = props.data;
   const data$ = data.asObservable();
 
-  const textData = useValue(data$.value);
-  const overrideInput = useValue(data$.overrideInput);
-  const textInput = useValue(inputs.value.asObservable());
+  const textData = useValue(() => data$.value.get());
+  const overrideInput = useValue(() => data$.overrideInput.get());
+  const textInput = useValue(() => inputs.value.asObservable().get());
   const textInputSlot = useValue(() => node$.getInputInfo<string>(`value`));
+
+  console.log(`StringInputComponent render: `, {
+    textData,
+    overrideInput,
+    textInput,
+    textInputSlot,
+  });
 
   const text = overrideInput ? textData : (textInput ?? textData ?? '');
   const isReadonly = !overrideInput && textInputSlot.isConnected;
