@@ -3,7 +3,7 @@ import path from 'node:path';
 
 export const run = async (): Promise<string> => {
   const PORT = Number(Bun.env.PORT) || 7601;
-  const STORAGE_DIR_NAME = Bun.env.STORAGE_DIR ?? `../lofr-app/src`;
+  const STORAGE_DIR_NAME = Bun.env.STORAGE_DIR ?? `../../`;
   const BASE_STORAGE_PATH = path.resolve(process.cwd(), STORAGE_DIR_NAME);
   const ALLOWED_ORIGIN = Bun.env.ALLOWED_ORIGIN ?? `*`;
 
