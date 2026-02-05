@@ -5,11 +5,7 @@ import {
   type WorkflowComponentSimplePropsTyped,
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
-import {
-  FieldDisplay,
-  FieldEditor,
-  formatFieldTypeText,
-} from './components/field-editor';
+import { FieldDisplay, FieldEditor } from './components/field-editor';
 
 export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`subflow-outputs`),

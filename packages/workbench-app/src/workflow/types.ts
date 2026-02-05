@@ -129,11 +129,11 @@ export type WorkflowComponentPropsDataAccess<
 > = {
   node$: Observable<WorkflowRuntimeNode>;
   store$: Observable<WorkflowRuntimeStore>;
-  getValues: () => {
-    inputs$: TInputs;
-    outputs$: TOutputs;
-    data$: Observable<undefined | null | Partial<TData>>;
-  };
+  // getValues: () => {
+  //   inputs$: TInputs;
+  //   outputs$: TOutputs;
+  //   data$: Observable<undefined | null | Partial<TData>>;
+  // };
   getStandardNodeDataProp: () => Pick<
     WorkflowComponentSimplePropsBase[`data`],
     `data` | `inputs` | `outputs`

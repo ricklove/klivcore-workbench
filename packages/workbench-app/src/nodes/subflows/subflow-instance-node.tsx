@@ -1,4 +1,4 @@
-import { type Observable, observable, observe } from '@legendapp/state';
+import { type Observable, observe } from '@legendapp/state';
 import { useObservable, useValue } from '@legendapp/state/react';
 import { engineController$ } from '../../workflow/engine-controller';
 import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
