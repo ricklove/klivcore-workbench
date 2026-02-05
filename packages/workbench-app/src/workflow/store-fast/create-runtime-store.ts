@@ -21,6 +21,7 @@ import {
   type WorkflowRuntimeStoreActions,
 } from '../types';
 import { createRuntimeValue } from './runtime-value';
+import { storageNodeTypes } from '../../nodes/storage/_storage-nodes';
 
 const getters = {
   node: {
@@ -853,6 +854,7 @@ export const createWorkflowStoreFromDocument = (
     ...webglNodeTypes,
     ...llmNodeTypes,
     ...valueGateNodeTypes,
+    ...storageNodeTypes,
   };
 
   // populate node types
