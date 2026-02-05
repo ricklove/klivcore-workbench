@@ -30,4 +30,8 @@ export type testFileds = {
 
 - [x] add FieldEditor to `subflow-inputs-node` and `subflow-outputs-node` to edit their `data$:fields` value
 
+- [ ] fix `packages/workflow-server/src/workflow-server.ts`
+
 - [ ] Add a text input to SubflowInstanceComponent to set the data$.url path
+
+- [ ] 

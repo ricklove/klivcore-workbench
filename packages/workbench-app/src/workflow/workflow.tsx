@@ -22,6 +22,7 @@ import {
   useState,
 } from 'react';
 import { CustomEdge } from './edge';
+import { engineController$ } from './engine-controller';
 import { createExampleWorkflowDocumentChain } from './example-document';
 import { NodeSelectionMenu } from './node-selection-menu';
 import { optimizationStore } from './optimization-store';
@@ -35,7 +36,6 @@ import {
   type WorkflowDocumentData,
   type WorkflowNodeId,
 } from './types';
-import { engineController$ } from './engine-controller';
 
 enableReactTracking({
   warnMissingUse: true,

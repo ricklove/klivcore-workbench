@@ -1,3 +1,4 @@
+import { type Observable, observe } from '@legendapp/state';
 import { useValue } from '@legendapp/state/react';
 import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
@@ -6,7 +7,6 @@ import {
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 import { FieldDisplay, FieldEditor } from './components/field-editor';
-import { observe, type Observable } from '@legendapp/state';
 
 export type SubflowInputsRuntimeData = {
   injectedInputs?: Record<string, unknown>;
