@@ -19,6 +19,7 @@ import type {
   SubflowInputsData,
   SubflowInputsRuntimeData,
 } from './subflow-inputs-node';
+import { storageStore$ } from '../storage/_storage-store';
 
 type SubflowInstanceData = {
   url: string;
@@ -74,7 +75,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
     };
   },
   load: async ({ runtimeState, controller, store$, node$ }) => {
-    const nodeUnsub = observe((e) => {
+    const nodeUnsub = observe(async (e) => {
       console.log(
         `[subflowInstanceNodeType.load] 00 loading subflow instance node`,
         {
@@ -230,38 +231,21 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       });
 
       // setup subflow store and engine
-      if (!url.toLowerCase().startsWith(`@localstorage/`)) {
-        console.log(
-          'Only localhost subflow URLs are supported in this version.',
+      const storageProvider = storageStore$.getProviderWithPath(url);
+      if (!storageProvider) {
+        console.error(
+          `[subflowInstanceNodeType.load] No storage provider found for URL: ${url}`,
         );
         return;
-        // throw new Error(
-        //   'Only localhost subflow URLs are supported in this version.',
-        // );
       }
 
       console.log(
         `[subflowInstanceNodeType.load] 03 setup subflow store from ${url}`,
       );
 
-      const localStorageKey = `ksub-${url.substring(`@localstorage/`.length)}`;
-
-      const storeDoc = (() => {
-        try {
-          return JSON.parse(
-            localStorage.getItem(localStorageKey) || ``,
-          ) as WorkflowDocumentData;
-        } catch (err) {
-          console.error(
-            `[subflowInstanceNodeType.load] Error parsing stored workflow document`,
-            {
-              localStorageKey,
-              err,
-            },
-          );
-        }
-        return;
-      })();
+      const doc = await storageProvider.provider?.load<WorkflowDocumentData>(
+        storageProvider.path,
+      );
 
       console.log(
         `[subflowInstanceNodeType.load] 04 creating store from document: `,
@@ -269,7 +253,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       );
 
       runtimeStateTyped.runtimeStore$ = createWorkflowStoreFromDocument(
-        storeDoc ?? {
+        doc ?? {
           nodes: [],
         },
       );
