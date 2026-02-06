@@ -1,5 +1,6 @@
 import type { Observable } from '@legendapp/state';
-import { useObservable, useValue } from '@legendapp/state/react';
+
+import { useObservable, useObserve, useValue } from '@legendapp/state/react';
 import { useCallback, useRef, useState } from 'react';
 import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
 import {
@@ -12,6 +13,7 @@ import { storageStore$ } from './_storage-store';
 export type TextFileData = {
   url: string;
   dataField: string;
+  syncEnabled: boolean;
 };
 
 type TextFileStatus =
@@ -60,11 +62,13 @@ const TextFileComponent = (
 
   const url = useValue(() => data$.url.get()) ?? '';
   const dataField = useValue(() => data$.dataField.get()) ?? '';
+  const syncEnabled = useValue(() => data$.syncEnabled.get()) ?? false;
 
   // Local observable state for file tracking
   const localState$ = useObservable({
     loadedFileContents: undefined as string | undefined,
     lastKnownAttachedContents: undefined as string | undefined,
+    syncPaused: false, // Paused when overwrite detected
   });
 
   // Reactively get the attached node's data field value
@@ -88,6 +92,7 @@ const TextFileComponent = (
 
   // Compute status reactively
   const loadedFileContents = useValue(localState$.loadedFileContents);
+  const syncPaused = useValue(localState$.syncPaused);
   const status: TextFileStatus = (() => {
     if (!url) return { kind: 'error', message: 'URL is required' };
     if (!dataField) return { kind: 'error', message: 'Data Field is required' };
@@ -194,9 +199,13 @@ const TextFileComponent = (
           setMessage(
             'Attached content has unsaved changes. Use "Load (Overwrite)" to discard.',
           );
+          localState$.syncPaused.set(true);
           return;
         }
       }
+
+      // Resume sync if it was paused
+      localState$.syncPaused.set(false);
 
       setIsLoading(true);
       setMessage(undefined);
@@ -284,15 +293,7 @@ const TextFileComponent = (
               setMessage(
                 'File has changed since load. Use "Save (Overwrite)" to force.',
               );
-              const lastKnown = localState$.lastKnownAttachedContents.peek();
-              const inputHasChanged = attachedValue !== lastKnown;
-              // Update status via message - status will be computed as 'unsaved' anyway
-              // but we track conflict state for the save button
-              if (inputHasChanged) {
-                setMessage(
-                  'File has changed since load AND you have unsaved changes. Use "Save (Overwrite)" to force.',
-                );
-              }
+              localState$.syncPaused.set(true);
               setIsSaving(false);
               return;
             }
@@ -307,6 +308,7 @@ const TextFileComponent = (
 
         localState$.loadedFileContents.set(attachedValue);
         localState$.lastKnownAttachedContents.set(attachedValue);
+        localState$.syncPaused.set(false);
 
         // Update file-contents output
         const node = node$.peek();
@@ -329,9 +331,144 @@ const TextFileComponent = (
     [data$, node$, localState$, attachedValue],
   );
 
+  // Debounced save for sync
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Helper to get attached value reactively
+  const getAttachedValueReactive = () => {
+    const currentDataField = data$.dataField.get();
+    if (!currentDataField) return undefined;
+
+    const attachedEdge = node$.inputs[0]?.getEdge();
+    const attachedNode = attachedEdge?.source.getNode();
+    if (!attachedNode) return undefined;
+
+    const attachedNodeObs = store$.nodes[attachedNode.id];
+    if (!attachedNodeObs) return undefined;
+
+    const attachedData$ = attachedNodeObs.data?.get()?.getObservableBox() as
+      | Observable<Record<string, unknown>>
+      | undefined;
+    const fieldValue = attachedData$?.[currentDataField]?.get();
+    return typeof fieldValue === 'string' ? fieldValue : undefined;
+  };
+
+  // Initial sync check - load file and compare with attached value
+  const handleInitialSync = useCallback(async () => {
+    const currentUrl = data$.url.peek();
+    if (!currentUrl) return;
+
+    const currentDataField = data$.dataField.peek();
+    if (!currentDataField) return;
+
+    const providerResult = storageStore$.getProviderWithPath(currentUrl);
+    if (!providerResult?.provider) return;
+
+    // Get current attached value
+    const attachedEdge = node$.peek().inputs[0]?.getEdge();
+    const attachedNode = attachedEdge?.source.getNode();
+    let currentAttached: string | undefined;
+    if (attachedNode) {
+      const attachedNodeObs = store$.nodes[attachedNode.id];
+      if (attachedNodeObs) {
+        const attachedData = attachedNodeObs.data?.peek()?.getDirectValue() as
+          | Record<string, unknown>
+          | undefined;
+        const fieldValue = attachedData?.[currentDataField];
+        if (typeof fieldValue === 'string') {
+          currentAttached = fieldValue;
+        }
+      }
+    }
+
+    try {
+      const fileContents = await providerResult.provider
+        .peek()
+        .load<string>(providerResult.path);
+
+      // Store what's on disk
+      localState$.loadedFileContents.set(fileContents);
+      localState$.lastKnownAttachedContents.set(currentAttached);
+
+      // If they match, we're good - sync can proceed
+      if (fileContents === currentAttached) {
+        setMessage('Sync enabled - file matches');
+        return;
+      }
+
+      // They differ - pause sync and let user choose direction
+      localState$.syncPaused.set(true);
+      setMessage('File and attached content differ. Choose which to keep.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
+        // File doesn't exist - that's fine, we'll create it on first save
+        localState$.loadedFileContents.set(undefined);
+        setMessage('Sync enabled - new file will be created');
+      } else {
+        localState$.syncPaused.set(true);
+        setMessage(`Sync error: ${errorMessage}`);
+      }
+    }
+  }, [data$, node$, store$, localState$]);
+
+  // Auto-sync: initial check on enable, save on change (debounced)
+  useObserve(() => {
+    const isSyncEnabled = data$.syncEnabled.get();
+    const isPaused = localState$.syncPaused.get();
+    const currentAttachedValue = getAttachedValueReactive();
+    const currentLoadedContents = localState$.loadedFileContents.get();
+
+    if (!isSyncEnabled || isPaused) {
+      // Clear any pending save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    // If we haven't loaded yet, do initial sync check
+    if (currentLoadedContents === undefined) {
+      handleInitialSync();
+      return;
+    }
+
+    // If attached value changed, save with debounce
+    if (
+      currentAttachedValue !== undefined &&
+      currentAttachedValue !== currentLoadedContents
+    ) {
+      // Clear previous timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      // Debounce save by 500ms
+      saveTimeoutRef.current = setTimeout(() => {
+        saveTimeoutRef.current = null;
+        handleSave(false);
+      }, 500);
+    }
+  });
+
+  const handleToggleSync = useCallback(() => {
+    const current = data$.syncEnabled.peek() ?? false;
+    node$.data.get().setValue({
+      url: data$.url.peek() ?? '',
+      dataField: data$.dataField.peek() ?? '',
+      syncEnabled: !current,
+    });
+    // Reset pause state when toggling
+    if (!current) {
+      localState$.syncPaused.set(false);
+    }
+  }, [node$, data$, localState$]);
+
   const statusDisplay = getStatusDisplay(status);
-  const showOverwriteLoad = status.kind === 'unsaved';
-  const showOverwriteSave = false; // Conflict detection happens during save attempt
+  const showOverwriteLoad =
+    status.kind === 'unsaved' || (syncEnabled && syncPaused);
+  const showOverwriteSave =
+    syncEnabled && syncPaused && loadedFileContents !== undefined;
 
   return (
     <div className="w-full h-full p-2 flex flex-col gap-2 text-white text-xs overflow-auto">
@@ -381,6 +518,18 @@ const TextFileComponent = (
         />
       </label>
 
+      <label className="flex items-center gap-2 cursor-pointer nodrag nowheel nopan">
+        <input
+          type="checkbox"
+          checked={syncEnabled}
+          onChange={handleToggleSync}
+          className="w-4 h-4"
+        />
+        <span className="text-gray-400">
+          Sync {syncEnabled && syncPaused && '(paused)'}
+        </span>
+      </label>
+
       <div className="flex gap-2 flex-wrap">
         <button
           type="button"
@@ -404,7 +553,7 @@ const TextFileComponent = (
           {isSaving
             ? 'Saving...'
             : showOverwriteSave
-              ? 'Save (Overwrite)'
+              ? '⚠ Save (Overwrite)'
               : 'Save'}
         </button>
       </div>
