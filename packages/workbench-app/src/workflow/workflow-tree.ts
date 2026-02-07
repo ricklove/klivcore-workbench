@@ -45,11 +45,13 @@ export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
     if (!x?.nodes.length) {
       console.warn(
         `[WorkflowView] Persisted document is empty, skipping save.`,
+        { documentUrl },
       );
       return;
     }
 
     console.log(`[WorkflowView] Persisted document:`, {
+      documentUrl,
       doc: x,
       runtimeStore$,
     });
