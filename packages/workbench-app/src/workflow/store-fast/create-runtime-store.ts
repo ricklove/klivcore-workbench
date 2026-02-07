@@ -22,6 +22,7 @@ import {
   type WorkflowRuntimeStoreActions,
 } from '../types';
 import { createRuntimeValue } from './runtime-value';
+import { mediaNodeTypes } from '../../nodes/media/_media-nodes';
 
 const getters = {
   node: {
@@ -851,6 +852,7 @@ export const createWorkflowStoreFromDocument = (
   const nodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> = {
     ...builtinNodeTypes,
     ...commonNodeTypes,
+    ...mediaNodeTypes,
     ...subflowNodeTypes,
     ...codeBuiltinNodeTypes,
     ...webglNodeTypes,
