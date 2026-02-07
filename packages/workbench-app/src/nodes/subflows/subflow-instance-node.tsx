@@ -22,6 +22,7 @@ type SubflowInstanceData = {
   url: string;
   autoLoad?: boolean;
   trigger?: number;
+  isLoaded?: boolean;
 };
 
 type RuntimeStateType = {
@@ -73,6 +74,11 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
     };
   },
   load: async ({ runtimeState, controller, store$, node$ }) => {
+    const data = node$.data.peek() as WorkflowRuntimeValue<SubflowInstanceData>;
+    const dataValue =
+      data.getObservableBox() as Observable<SubflowInstanceData>;
+    dataValue.isLoaded.set(false);
+
     const nodeUnsub = observe(async (e) => {
       console.log(
         `[subflowInstanceNodeType.load] 00 loading subflow instance node`,
@@ -80,10 +86,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           event: e,
         },
       );
-      const data =
-        node$.data.peek() as WorkflowRuntimeValue<SubflowInstanceData>;
-      const dataValue =
-        data.getObservableBox() as Observable<SubflowInstanceData>;
+
       const autoLoad = dataValue.autoLoad.get();
       const dataTrigger = dataValue.trigger.get();
 
@@ -385,6 +388,8 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           subflowInputsNode?.data.getObservableBox() as Observable<SubflowInputsData>
         ).__trigger.set(Math.random());
       });
+
+      dataValue.isLoaded.set(true);
     });
 
     return {
@@ -402,6 +407,7 @@ export const SubflowInstanceComponent = (
 ) => {
   const { node$, data } = props.data;
   const data$ = data.asObservable();
+  const isLoaded = useValue(data$.isLoaded) ?? false;
 
   const runtimeStateTyped = useValue(
     () => node$.runtimeState.get().getDirectValue() as RuntimeStateType,
@@ -454,16 +460,24 @@ export const SubflowInstanceComponent = (
             placeholder="/path/to/subflow"
           />
         </div>
-        <div className="flex flex-row items-center justify-start gap-1">
-          <input
-            type="checkbox"
-            checked={autoLoad}
-            onChange={(x) => {
-              data$.autoLoad.set(x.target.checked);
-            }}
-            className="text-xs"
-          />
-          <label className="text-xs">Auto Load</label>
+        <div className="flex flex-row items-center justify-between gap-1">
+          <div className="flex flex-row items-center justify-start gap-1">
+            <input
+              type="checkbox"
+              checked={autoLoad}
+              onChange={(x) => {
+                data$.autoLoad.set(x.target.checked);
+              }}
+              className="text-xs"
+            />
+            <label className="text-xs">Auto Load</label>
+          </div>
+          <div className="flex flex-row gap-1 items-center text-xs">
+            <div
+              className={`rounded-full w-2 h-2 border ${isLoaded ? 'bg-green-500 border-green-700' : 'bg-red-500 border-red-700'}`}
+            ></div>
+            <span>{isLoaded ? `Loaded` : 'Unloaded'}</span>
+          </div>
         </div>
         <div className="flex flex-row justify-end gap-1">
           <button
@@ -480,7 +494,8 @@ export const SubflowInstanceComponent = (
           </button>
           <button
             onClick={handleOpenPress}
-            className="mt-2 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded"
+            className={`mt-2 px-3 py-1  text-white text-xs rounded ${isLoaded ? `bg-green-600 hover:bg-green-700` : 'bg-gray-600 cursor-not-allowed'} `}
+            disabled={!isLoaded}
           >
             Open
           </button>
