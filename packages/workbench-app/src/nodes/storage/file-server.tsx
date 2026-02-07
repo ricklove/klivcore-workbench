@@ -61,7 +61,10 @@ export const fileServerNodeType: WorkflowRuntimeNodeTypeDefinition = {
           const fullUrl = `${url}/save?path=${encodeURIComponent(filePath)}`;
           const response = await fetch(fullUrl, {
             method: 'POST',
-            body: typeof value === 'string' ? value : JSON.stringify(value),
+            body:
+              typeof value === 'string'
+                ? value
+                : JSON.stringify(value, null, 2),
           });
           if (!response.ok) {
             const errorText = await response

@@ -1,0 +1,63 @@
+{
+  "nodes": [
+    {
+      "id": "n-string-1770490015892",
+      "type": "string",
+      "position": {
+        "x": 744,
+        "y": 264,
+        "width": 128,
+        "height": 24
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "value": "test 02"
+      }
+    },
+    {
+      "id": "n-subflow-outputs-1770490059238",
+      "type": "subflow-outputs",
+      "position": {
+        "x": 976,
+        "y": 264,
+        "width": 296,
+        "height": 200
+      },
+      "inputs": [
+        {
+          "name": "value",
+          "type": "string",
+          "source": {
+            "nodeId": "n-string-1770490015892",
+            "name": "value"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "ext_value",
+          "type": "string"
+        }
+      ],
+      "data": {
+        "fields": [
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
