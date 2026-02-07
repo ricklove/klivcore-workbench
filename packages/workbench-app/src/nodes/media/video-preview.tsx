@@ -27,7 +27,6 @@ export const videoPreviewNodeType: WorkflowRuntimeNodeTypeDefinition = {
   execute: async ({ inputs, data }) => {
     const inputsTyped = inputs as { url: undefined | string };
     const dataTyped = data as undefined | { url: undefined | string };
-
     const finalUrl = inputsTyped.url ?? dataTyped?.url ?? null;
 
     return {
@@ -41,7 +40,7 @@ export const videoPreviewNodeType: WorkflowRuntimeNodeTypeDefinition = {
 // --- UI: Component ---
 export const VideoPreviewComponent = (
   props: WorkflowComponentSimplePropsTyped<
-    { url: string }, // Data
+    { url: string; autoplay?: boolean; loop?: boolean }, // Data
     { url: string }, // Inputs
     { url: string } // Outputs
   >,
@@ -54,27 +53,26 @@ export const VideoPreviewComponent = (
   const urlInput = useValue(() => inputs.url.asObservable().get());
   const urlInputSlot = useValue(() => node$.getInputInfo<string>(`url`));
 
-  // Determine the URL to display: prefer the input wire, fallback to internal data
+  // Settings with defaults (checked by default)
+  const autoplay = useValue(() => data$.autoplay.get() ?? true);
+  const loop = useValue(() => data$.loop.get() ?? true);
+
   const videoUrl = urlInput ?? urlData ?? '';
   const isConnected = urlInputSlot.isConnected;
 
-  const handleUrlChange = (newUrl: string) => {
-    data$.url.set(newUrl);
-  };
-
   return (
-    <div className="flex flex-col gap-1 p-1 w-full h-full min-w-[160px]">
+    <div className="flex flex-col gap-1 p-1 w-full h-full min-w-[180px]">
       {/* Video Preview Area */}
       <div className="relative flex-1 flex items-center justify-center bg-black/40 rounded overflow-hidden border border-white/10 aspect-video">
         {videoUrl ? (
           <video
-            key={videoUrl} // Key forces re-render/re-load when URL changes
+            key={`${videoUrl}-${autoplay}-${loop}`} // Re-mount when settings change to ensure browser respects flags
             src={videoUrl}
             controls
             muted
+            autoPlay={autoplay}
+            loop={loop}
             playsInline
-            autoPlay
-            loop
             className="max-w-full max-h-full w-full h-full object-contain"
           />
         ) : (
@@ -82,18 +80,45 @@ export const VideoPreviewComponent = (
         )}
       </div>
 
-      {/* Manual URL Input (only editable if not connected) */}
+      {/* Manual URL Input */}
       {!isConnected && (
         <input
           type="text"
-          placeholder="Paste Video URL (mp4, webm)..."
+          placeholder="Video URL..."
           className="w-full bg-black/40 text-[10px] text-white/70 px-2 py-1 rounded outline-none border border-white/5 focus:border-blue-500/50"
           value={urlData ?? ''}
-          onChange={(e) => handleUrlChange(e.target.value)}
+          onChange={(e) => data$.url.set(e.target.value)}
         />
       )}
 
-      {/* Small Indicator if connected */}
+      {/* Settings Row */}
+      <div className="flex items-center gap-3 px-1 py-1 border-t border-white/5 mt-1">
+        <label className="flex items-center gap-1.5 cursor-pointer group">
+          <input
+            type="checkbox"
+            className="w-3 h-3 accent-blue-500 rounded border-white/20 bg-black/40"
+            checked={autoplay}
+            onChange={(e) => data$.autoplay.set(e.target.checked)}
+          />
+          <span className="text-[9px] text-white/50 group-hover:text-white/80 uppercase font-bold tracking-wider">
+            Autoplay
+          </span>
+        </label>
+
+        <label className="flex items-center gap-1.5 cursor-pointer group">
+          <input
+            type="checkbox"
+            className="w-3 h-3 accent-blue-500 rounded border-white/20 bg-black/40"
+            checked={loop}
+            onChange={(e) => data$.loop.set(e.target.checked)}
+          />
+          <span className="text-[9px] text-white/50 group-hover:text-white/80 uppercase font-bold tracking-wider">
+            Loop
+          </span>
+        </label>
+      </div>
+
+      {/* Linked Indicator */}
       {isConnected && (
         <div className="text-[9px] text-blue-400 font-mono truncate px-1">
           Linked: {videoUrl}
