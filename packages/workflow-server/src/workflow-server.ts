@@ -1,10 +1,28 @@
 import { mkdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
+import { parseArgs } from 'node:util';
+import { getThumbnail } from './thumbnails';
+
+const { values: flags } = parseArgs({
+  args: Bun.argv.slice(2),
+  options: {
+    port: { type: 'string', short: 'p' },
+    dir: { type: 'string', short: 'd' },
+  },
+  strict: false,
+});
 
 export const run = async (): Promise<string> => {
-  const PORT = Number(Bun.env.PORT) || 7601;
-  const STORAGE_DIR_NAME = Bun.env.STORAGE_DIR ?? `../../`;
+  const PORT = Number(flags.port || 0) || Number(Bun.env.PORT) || 7601;
+  const STORAGE_DIR_NAME =
+    String(flags.dir || ``) || (Bun.env.STORAGE_DIR ?? `.`);
+
   const BASE_STORAGE_PATH = path.resolve(process.cwd(), STORAGE_DIR_NAME);
+  const THUMB_CACHE_DIR = path.join(
+    BASE_STORAGE_PATH,
+    `.cache-workflow-thumbnails`,
+  );
+
   const ALLOWED_ORIGIN = Bun.env.ALLOWED_ORIGIN ?? `*`;
 
   console.log(`Storage base path resolved to: ${BASE_STORAGE_PATH}`);
@@ -106,6 +124,37 @@ export const run = async (): Promise<string> => {
             );
           }
           return new Response(file, { headers: COMMON_HEADERS }); // Bun serves the file efficiently
+        }
+
+        // --- ROUTE: GET /thumbnail ---
+        if (pathname === `/thumbnail` && method === `GET`) {
+          const width = Number(url.searchParams.get(`w`)) || 200;
+
+          if (!absolutePath)
+            return Response.json(
+              { error: 'Invalid path' },
+              { status: 400, headers: COMMON_HEADERS },
+            );
+
+          try {
+            const thumb = await getThumbnail(
+              absolutePath,
+              THUMB_CACHE_DIR,
+              width,
+            );
+            return new Response(thumb, {
+              headers: {
+                ...COMMON_HEADERS,
+                'Content-Type': 'image/webp',
+                'Cache-Control': 'public, max-age=3600',
+              },
+            });
+          } catch (e) {
+            return new Response('Error processing image', {
+              status: 500,
+              headers: COMMON_HEADERS,
+            });
+          }
         }
 
         // --- ROUTE: POST /save ---

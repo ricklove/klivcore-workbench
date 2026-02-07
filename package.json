@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "biome check . --write",
     "dev": "cd packages/workbench-app && bun run dev",
-    "dev:server": "cd packages/workflow-server && bun run dev",
+    "dev:server": "cd packages/workflow-server && bun run dev --dir=../../",
     "build": "cd packages/workbench-app && tsc -b",
     "setup:config": "klivcore-standards --version v1"
   },
