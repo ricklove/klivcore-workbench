@@ -4,7 +4,7 @@ import { persistStoreToDocument } from './store-fast/save-document';
 import { createWorkflowEngine } from './store-fast/engine-direct';
 import { engineController$ } from './engine-controller';
 import { storageStore$ } from '../nodes/storage/_storage-store';
-import type { WorkflowDocumentData } from './types';
+import type { WorkflowDocumentData, WorkflowRuntimeStore } from './types';
 
 export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
   const storageProvider = storageStore$.getProviderWithPath(documentUrl);
@@ -95,23 +95,71 @@ const rooNode = createWorkflowSet({
 export const workflowTreeStore$ = observable({
   workflowRoot: ObservableHint.opaque(rooNode),
   active: ObservableHint.opaque(rooNode),
+  activePathSegments: () => {
+    let a = workflowTreeStore$.active.get();
+    const paths = [] as {
+      name: string;
+      instanceId: string;
+    }[];
+    paths.push({
+      name: a.runtimeStore$._instanceId.peek(),
+      instanceId: a.runtimeStore$._instanceId.peek(),
+    });
+    while (a.parent) {
+      a = a.parent;
+      paths.push({
+        name: a.runtimeStore$._instanceId.peek(),
+        instanceId: a.runtimeStore$._instanceId.peek(),
+      });
+    }
+    return paths.reverse();
+  },
   actions: ObservableHint.plain({
     createSubflow({ documentUrl }: { documentUrl: string }) {
       const subflow = createWorkflowSet({
         documentUrl,
       }) as WorkflowTreeNode;
-      workflowTreeStore$.active.peek().children?.push(subflow);
+      const n = workflowTreeStore$.active.peek();
+      n.children = n.children || [];
+      n.children.push(subflow);
       subflow.parent = workflowTreeStore$.active.peek();
       return subflow;
     },
-    openSubflow(node: WorkflowTreeNode) {
-      workflowTreeStore$.active.set(node);
-    },
-    popSubflow() {
-      const parent = workflowTreeStore$.active.peek().parent;
-      if (parent) {
-        workflowTreeStore$.active.set(parent);
+    openSubflow(store: WorkflowRuntimeStore) {
+      const child = workflowTreeStore$.active
+        .peek()
+        .children?.find(
+          (x) => x.runtimeStore$.peek()._instanceId === store._instanceId,
+        );
+      if (!child) {
+        console.error(`[openSubflow] No subflow found for store`, {
+          storeId: store._instanceId,
+          childrenIds: workflowTreeStore$.active
+            .peek()
+            .children?.map((c) => c.runtimeStore$.peek()._instanceId),
+          store,
+          active: workflowTreeStore$.active.peek(),
+        });
+        return;
       }
+      workflowTreeStore$.active.set(ObservableHint.opaque(child));
+    },
+    popSubflow(instanceId?: string) {
+      let a = workflowTreeStore$.active.peek();
+
+      if (instanceId === a.runtimeStore$._instanceId.get()) {
+        return;
+      }
+
+      const parent = workflowTreeStore$.active.peek().parent;
+      while (parent) {
+        if (a.runtimeStore$._instanceId.get() === instanceId) {
+          break;
+        }
+        a = parent;
+      }
+
+      workflowTreeStore$.active.set(ObservableHint.opaque(a));
     },
   }),
 });

@@ -374,6 +374,7 @@ export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
   getImmediateChangeCounter: () => number;
 }>;
 export interface WorkflowRuntimeStore {
+  _instanceId: string;
   nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
   edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;

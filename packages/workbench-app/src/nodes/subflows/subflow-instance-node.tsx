@@ -398,6 +398,10 @@ export const SubflowInstanceComponent = (
   const { node$, data } = props.data;
   const data$ = data.asObservable();
 
+  const runtimeStateTyped = useValue(
+    () => node$.runtimeState.get().getDirectValue() as RuntimeStateType,
+  );
+
   const urlInput$ = useObservable(data$.url.peek());
   const urlInput = useValue(urlInput$) ?? '';
 
@@ -410,18 +414,17 @@ export const SubflowInstanceComponent = (
     });
   };
   const handleOpenPress = () => {
-    const docUrl = urlInput$.peek();
-    const localStorageKey = docUrl.replace(`@localStorage/`, `ksub-`);
-    const doc = localStorage.getItem(localStorageKey);
-    if (!doc) {
-      console.error(`No subflow found at ${docUrl}`);
+    const s = runtimeStateTyped.runtimeStore$?.peek();
+    if (!s) {
+      console.error(
+        `[SubflowInstanceComponent.handleOpenPress] no runtime store to open subflow with`,
+        {
+          runtimeStateTyped,
+        },
+      );
       return;
     }
-
-    const mainDoc = localStorage.getItem(`klivcore-workflow-document`) ?? ``;
-    localStorage.setItem(`${localStorageKey}-RETURN`, mainDoc);
-    localStorage.setItem(`klivcore-workflow-document`, doc);
-    window.location.reload();
+    workflowTreeStore$.actions.openSubflow(s);
   };
   const handleCreatePress = () => {
     const newUrl = urlInput$.peek();
@@ -470,6 +473,12 @@ export const SubflowInstanceComponent = (
             className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
           >
             Create
+          </button>
+          <button
+            onClick={handleOpenPress}
+            className="mt-2 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded"
+          >
+            Open
           </button>
         </div>
       </div>

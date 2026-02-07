@@ -830,6 +830,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
   };
 
   const store$: Observable<WorkflowRuntimeStore> = observable({
+    _instanceId: `WorkflowRuntimeStore_${WorkflowBrandedTypes.now()}`,
     nodeTypes: {} as Record<
       WorkflowNodeTypeName,
       WorkflowRuntimeNodeTypeDefinition

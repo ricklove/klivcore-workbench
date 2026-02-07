@@ -26,9 +26,14 @@ import { NodeSelectionMenu } from './node-selection-menu';
 import { optimizationStore } from './optimization-store';
 import { useReactFlowStore } from './store-fast/create-react-flow-store';
 import { demo_observeBatched } from './store-fast/observe-batched';
-import { WorkflowBrandedTypes, type WorkflowNodeId } from './types';
+import {
+  WorkflowBrandedTypes,
+  type WorkflowNodeId,
+  type WorkflowRuntimeStore,
+} from './types';
 import { workflowTreeStore$ } from './workflow-tree';
-import { useValue } from '@legendapp/state/react';
+import { Memo, useValue } from '@legendapp/state/react';
+import type { Observable } from '@legendapp/state';
 
 enableReactTracking({
   warnMissingUse: true,
@@ -39,14 +44,30 @@ const edgeTypes = {
 };
 
 export const WorkflowView = () => {
+  const { runtimeStore$ } = useValue(() => workflowTreeStore$.active.get());
+
+  if (!runtimeStore$) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-white">
+        No active workflow
+      </div>
+    );
+  }
+
   return (
     <ReactFlowProvider>
-      <WorkflowViewInner />
+      <WorkflowViewInner
+        runtimeStore$={runtimeStore$}
+        key={runtimeStore$._instanceId.peek()}
+      />
     </ReactFlowProvider>
   );
 };
-const WorkflowViewInner = () => {
-  const { runtimeStore$ } = useValue(() => workflowTreeStore$.active.get());
+const WorkflowViewInner = ({
+  runtimeStore$,
+}: {
+  runtimeStore$: Observable<WorkflowRuntimeStore>;
+}) => {
   // const storeEngine = useValue(() => runtimeStore$.engine.get());
 
   // const runtimeStore = useMemo(() => createWorkflowStoreFromDocument(exampleWorkflowDocument), []);
@@ -328,6 +349,9 @@ const WorkflowViewInner = () => {
 
   const isEngineRunning = useValue(() => engineController$.running.get());
   const tickSpeed = useValue(() => engineController$.tickSpeed.get());
+  const workflowTreeActivePathSegments = useValue(() =>
+    workflowTreeStore$.activePathSegments.get(),
+  );
 
   return (
     <div className="w-full h-full bg-slate-900 text-white">
@@ -457,6 +481,35 @@ const WorkflowViewInner = () => {
               }}
             />
             <div>{tickSpeed}</div>
+            <div className="flex flex-row items-center gap-1 flex-wrap">
+              {workflowTreeActivePathSegments.map((segment, i) =>
+                i === workflowTreeActivePathSegments.length - 1 ? (
+                  <div
+                    key={segment.instanceId}
+                    className="font-bold text-blue-400"
+                  >
+                    {segment.name}
+                  </div>
+                ) : (
+                  <div
+                    key={segment.instanceId}
+                    className="flex flex-row items-center gap-1"
+                  >
+                    <button
+                      className="hover:text-blue-400 cursor-pointer"
+                      onClick={() => {
+                        workflowTreeStore$.actions.popSubflow(
+                          segment.instanceId,
+                        );
+                      }}
+                    >
+                      {segment.name}
+                    </button>
+                    <span className="text-gray-400">{`/`}</span>
+                  </div>
+                ),
+              )}
+            </div>
           </div>
         </Panel>
       </ReactFlow>
