@@ -117,13 +117,56 @@ export const run = async (): Promise<string> => {
         // --- ROUTE: GET /load ---
         if (pathname === `/load` && method === `GET`) {
           const file = Bun.file(absolutePath!);
+          const fileSize = file.size;
+
           if (!(await file.exists())) {
             return Response.json(
               { error: 'Not Found' },
               { status: 404, headers: COMMON_HEADERS },
             );
           }
-          return new Response(file, { headers: COMMON_HEADERS }); // Bun serves the file efficiently
+
+          const range = request.headers.get('range');
+
+          // If there's no range header, serve the whole file as usual
+          if (!range) {
+            return new Response(file, {
+              headers: {
+                ...COMMON_HEADERS,
+                'Accept-Ranges': 'bytes',
+                'Content-Type': file.type,
+              },
+            });
+          }
+
+          // Parse Range Header: "bytes=start-end"
+          const parts = range.replace(/bytes=/, '').split('-');
+          const start = parseInt(parts[0], 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+          // Validate range
+          if (start >= fileSize || end >= fileSize) {
+            return new Response(null, {
+              status: 416, // Range Not Satisfiable
+              headers: {
+                ...COMMON_HEADERS,
+                'Content-Range': `bytes */${fileSize}`,
+              },
+            });
+          }
+
+          const chunk = file.slice(start, end + 1);
+
+          return new Response(chunk, {
+            status: 206, // Partial Content
+            headers: {
+              ...COMMON_HEADERS,
+              'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+              'Accept-Ranges': 'bytes',
+              'Content-Length': (end - start + 1).toString(),
+              'Content-Type': file.type,
+            },
+          });
         }
 
         // --- ROUTE: GET /thumbnail ---
