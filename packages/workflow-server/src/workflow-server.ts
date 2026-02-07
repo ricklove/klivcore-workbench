@@ -129,6 +129,7 @@ export const run = async (): Promise<string> => {
         // --- ROUTE: GET /thumbnail ---
         if (pathname === `/thumbnail` && method === `GET`) {
           const width = Number(url.searchParams.get(`w`)) || 200;
+          const reqTime = url.searchParams.get(`time`);
 
           if (!absolutePath)
             return Response.json(
@@ -137,11 +138,12 @@ export const run = async (): Promise<string> => {
             );
 
           try {
-            const thumb = await getThumbnail(
-              absolutePath,
-              THUMB_CACHE_DIR,
+            const thumb = await getThumbnail({
+              source: absolutePath,
+              cacheDir: THUMB_CACHE_DIR,
               width,
-            );
+              timeRatio: reqTime ? Number(reqTime) : 0,
+            });
             return new Response(thumb, {
               headers: {
                 ...COMMON_HEADERS,
