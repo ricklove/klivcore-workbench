@@ -4,6 +4,7 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
+  Position,
   useReactFlow,
 } from '@xyflow/react';
 import { memo, useCallback, useMemo, useState } from 'react';
@@ -76,6 +77,8 @@ const CustomEdgeInner = memo(
         sourceY: props.sourceY,
         targetX: props.targetX,
         targetY: props.targetY,
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
       });
 
       const offset = 5;
