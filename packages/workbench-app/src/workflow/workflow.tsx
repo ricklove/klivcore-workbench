@@ -467,16 +467,30 @@ const WorkflowViewInner = ({
               </button>
               <input
                 type="range"
-                min="-1000"
-                max="2000"
-                step="10"
-                value={tickSpeed}
+                min="-10"
+                max="12"
+                step="1"
+                value={
+                  tickSpeed === `fast`
+                    ? -10
+                    : tickSpeed === `normal`
+                      ? -6
+                      : tickSpeed === `slow`
+                        ? 0
+                        : Math.log2(tickSpeed)
+                }
                 title={tickSpeed.toString()}
                 className="ml-4"
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   const tickSpeed =
-                    val < -500 ? `fast` : val < 0 ? `normal` : val;
+                    val <= -7
+                      ? `fast`
+                      : val <= -2
+                        ? `normal`
+                        : val <= 0
+                          ? 0
+                          : 2 ** val;
                   engineController$.tickSpeed.set(tickSpeed);
                   console.log(
                     `[WorkflowView] Set engine tick speed to ${val}ms`,
