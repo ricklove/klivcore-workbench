@@ -151,16 +151,15 @@ export const workflowTreeStore$ = observable({
     popSubflow(instanceId?: string) {
       let a = workflowTreeStore$.active.peek();
 
-      if (instanceId === a.runtimeStore$._instanceId.get()) {
+      if (instanceId === a.runtimeStore$._instanceId.peek()) {
         return;
       }
 
-      const parent = workflowTreeStore$.active.peek().parent;
-      while (parent) {
-        if (a.runtimeStore$._instanceId.get() === instanceId) {
+      while (a.parent) {
+        if (instanceId === a.runtimeStore$._instanceId.peek()) {
           break;
         }
-        a = parent;
+        a = a.parent;
       }
 
       workflowTreeStore$.active.set(ObservableHint.opaque(a));

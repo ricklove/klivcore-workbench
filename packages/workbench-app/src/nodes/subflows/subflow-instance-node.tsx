@@ -407,11 +407,14 @@ export const SubflowInstanceComponent = (
 ) => {
   const { node$, data } = props.data;
   const data$ = data.asObservable();
-  const isLoaded = useValue(data$.isLoaded) ?? false;
 
   const runtimeStateTyped = useValue(
     () => node$.runtimeState.get().getDirectValue() as RuntimeStateType,
   );
+  const isLoaded =
+    useValue(
+      () => data$.isLoaded.get() && runtimeStateTyped.runtimeStore$?.get(),
+    ) ?? false;
 
   const urlInput$ = useObservable(data$.url.peek());
   const urlInput = useValue(urlInput$) ?? '';
