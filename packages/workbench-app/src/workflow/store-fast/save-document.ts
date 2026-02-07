@@ -10,7 +10,7 @@ import { observeBatched } from './observe-batched';
 
 export const persistStoreToDocument = (
   store$: Observable<WorkflowRuntimeStore>,
-): Observable<WorkflowDocumentData | undefined> => {
+): Observable<undefined | WorkflowDocumentData> => {
   const document$ = observable<WorkflowDocumentData>();
 
   const SYNC_TIMEOUT = 3000;

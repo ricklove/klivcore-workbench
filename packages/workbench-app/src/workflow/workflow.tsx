@@ -12,7 +12,6 @@ import {
   type XYPosition,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { observe } from '@legendapp/state';
 import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
 import {
   useCallback,
@@ -23,19 +22,13 @@ import {
 } from 'react';
 import { CustomEdge } from './edge';
 import { engineController$ } from './engine-controller';
-import { createExampleWorkflowDocumentChain } from './example-document';
 import { NodeSelectionMenu } from './node-selection-menu';
 import { optimizationStore } from './optimization-store';
 import { useReactFlowStore } from './store-fast/create-react-flow-store';
-import { createWorkflowStoreFromDocument } from './store-fast/create-runtime-store';
-import { createWorkflowEngine as createWorkflowEngine_direct } from './store-fast/engine-direct';
 import { demo_observeBatched } from './store-fast/observe-batched';
-import { persistStoreToDocument } from './store-fast/save-document';
-import {
-  WorkflowBrandedTypes,
-  type WorkflowDocumentData,
-  type WorkflowNodeId,
-} from './types';
+import { WorkflowBrandedTypes, type WorkflowNodeId } from './types';
+import { workflowTreeStore$ } from './workflow-tree';
+import { useValue } from '@legendapp/state/react';
 
 enableReactTracking({
   warnMissingUse: true,
@@ -45,25 +38,6 @@ const edgeTypes = {
   custom: CustomEdge,
 };
 
-const runtimeStore$ = createWorkflowStoreFromDocument(
-  (() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem(`klivcore-workflow-document`) || ``,
-      ) as WorkflowDocumentData;
-    } catch (err) {
-      console.error(`[WorkflowView] Error parsing stored workflow document`, {
-        err,
-      });
-    }
-
-    return createExampleWorkflowDocumentChain(16);
-  })(),
-);
-const storePersistance$ = persistStoreToDocument(runtimeStore$);
-
-const storeEngine = createWorkflowEngine_direct(runtimeStore$);
-
 export const WorkflowView = () => {
   return (
     <ReactFlowProvider>
@@ -72,33 +46,12 @@ export const WorkflowView = () => {
   );
 };
 const WorkflowViewInner = () => {
-  // const store = reactStore;
+  const { runtimeStore$ } = useValue(() => workflowTreeStore$.active.get());
+  // const storeEngine = useValue(() => runtimeStore$.engine.get());
 
   // const runtimeStore = useMemo(() => createWorkflowStoreFromDocument(exampleWorkflowDocument), []);
   const reactFlowStore = useReactFlowStore(runtimeStore$);
   const store = reactFlowStore;
-
-  useEffect(() => {
-    const unsubscribe = observe(() => {
-      const x = storePersistance$.get();
-      if (!x?.nodes.length) {
-        console.warn(
-          `[WorkflowView] Persisted document is empty, skipping save.`,
-        );
-        return;
-      }
-
-      console.log(`[WorkflowView] Persisted document:`, {
-        doc: x,
-        runtimeStore$,
-      });
-      localStorage.setItem(`klivcore-workflow-document`, JSON.stringify(x));
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
 
   // console.log(`[WorkflowView:RENDER] reactFlowStore`, {
   //   reactFlowStore,
@@ -163,11 +116,6 @@ const WorkflowViewInner = () => {
       setCenter(position.x, position.y, { zoom: 1, duration: 250 });
     },
     [setCenter],
-  );
-
-  const [, setEngineRunning] = useState(storeEngine.running);
-  const [tickSpeed, setTickSpeed] = useState(
-    typeof storeEngine.tickSpeed === 'number' ? storeEngine.tickSpeed : 1000,
   );
 
   useLayoutEffect(() => {
@@ -294,7 +242,7 @@ const WorkflowViewInner = () => {
 
       setAutoSelectNodeId(newId);
     },
-    [],
+    [runtimeStore$],
   );
 
   useEffect(() => {
@@ -377,6 +325,9 @@ const WorkflowViewInner = () => {
     //   handleId: connectionState.handleId,
     // });
   }, []);
+
+  const isEngineRunning = useValue(() => engineController$.running.get());
+  const tickSpeed = useValue(() => engineController$.tickSpeed.get());
 
   return (
     <div className="w-full h-full bg-slate-900 text-white">
@@ -480,19 +431,14 @@ const WorkflowViewInner = () => {
               {`test`}
             </button>
             <button
-              className={`px-2 py-1 rounded ${storeEngine.running ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+              className={`px-2 py-1 rounded ${isEngineRunning ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
               onClick={() => {
-                if (storeEngine.running) {
-                  storeEngine.stop({ shouldAbort: true });
-                  engineController$.running.set(false);
-                } else {
-                  storeEngine.start();
-                  engineController$.running.set(true);
-                }
-                setEngineRunning(storeEngine.running);
+                engineController$.running.set(
+                  !engineController$.running.peek(),
+                );
               }}
             >
-              {storeEngine.running ? `⏹ Stop` : `▶ Run`}
+              {isEngineRunning ? `⏹ Stop` : `▶ Run`}
             </button>
             <input
               type="range"
@@ -500,18 +446,17 @@ const WorkflowViewInner = () => {
               max="2000"
               step="10"
               value={tickSpeed}
-              title={storeEngine.tickSpeed.toString()}
+              title={tickSpeed.toString()}
               className="ml-4"
               onChange={(e) => {
                 const val = Number(e.target.value);
-                storeEngine.tickSpeed =
+                const tickSpeed =
                   val < -500 ? `fast` : val < 0 ? `normal` : val;
-                engineController$.tickSpeed.set(storeEngine.tickSpeed);
-                setTickSpeed(val);
+                engineController$.tickSpeed.set(tickSpeed);
                 console.log(`[WorkflowView] Set engine tick speed to ${val}ms`);
               }}
             />
-            <div>{storeEngine.tickSpeed}</div>
+            <div>{tickSpeed}</div>
           </div>
         </Panel>
       </ReactFlow>

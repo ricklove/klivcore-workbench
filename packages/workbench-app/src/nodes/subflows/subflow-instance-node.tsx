@@ -1,9 +1,6 @@
 import { type Observable, observe } from '@legendapp/state';
 import { useObservable, useValue } from '@legendapp/state/react';
-import { engineController$ } from '../../workflow/engine-controller';
 import { NodeStandardContainer } from '../../workflow/node-types-wrapper';
-import { createWorkflowStoreFromDocument } from '../../workflow/store-fast/create-runtime-store';
-import { createWorkflowEngine } from '../../workflow/store-fast/engine-direct';
 import {
   WorkflowBrandedTypes,
   type WorkflowComponentSimplePropsTyped,
@@ -19,7 +16,7 @@ import type {
   SubflowInputsData,
   SubflowInputsRuntimeData,
 } from './subflow-inputs-node';
-import { storageStore$ } from '../storage/_storage-store';
+import { workflowTreeStore$ } from '../../workflow/workflow-tree';
 
 type SubflowInstanceData = {
   url: string;
@@ -226,37 +223,17 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         },
       };
 
-      console.log(`[subflowInstanceNodeType.load] 02b checking url protocol`, {
-        url,
-      });
-
-      // setup subflow store and engine
-      const storageProvider = storageStore$.getProviderWithPath(url);
-      if (!storageProvider) {
-        console.error(
-          `[subflowInstanceNodeType.load] No storage provider found for URL: ${url}`,
-        );
-        return;
-      }
-
-      console.log(
-        `[subflowInstanceNodeType.load] 03 setup subflow store from ${url}`,
-      );
-
-      const doc = await storageProvider.provider?.load<WorkflowDocumentData>(
-        storageProvider.path,
-      );
-
       console.log(
         `[subflowInstanceNodeType.load] 04 creating store from document: `,
         {},
       );
 
-      runtimeStateTyped.runtimeStore$ = createWorkflowStoreFromDocument(
-        doc ?? {
-          nodes: [],
-        },
-      );
+      const workflowStoreAndEngine = workflowTreeStore$.actions.createSubflow({
+        documentUrl: url,
+      });
+      unsubs.addUnsubFun = workflowStoreAndEngine.unsubscribe;
+
+      runtimeStateTyped.runtimeStore$ = workflowStoreAndEngine.runtimeStore$;
       console.log(
         `[subflowInstanceNodeType.load] 05 created store from document: `,
         {
@@ -270,46 +247,6 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
       console.log(`[subflowInstanceNodeType.load] 06 updatedInputsAndOutputs`, {
         runtimeStore$: runtimeStateTyped.runtimeStore$.peek(),
-      });
-
-      const storeEngine = createWorkflowEngine(runtimeStateTyped.runtimeStore$);
-      runtimeStateTyped.storeEngine = storeEngine;
-
-      // no persistance for now (workflow is not being edited here)
-      // const storePersistance$ = persistStoreToDocument(runtimeStore$);
-      // runtimeStateTyped.storePersistance$ = storePersistance$;
-      // observe(() => {
-      //   const doc = storePersistance$.get();
-      //   if (!doc) {
-      //     return;
-      //   }
-      //   localStorage.setItem(localStorageKey, JSON.stringify(doc));
-      // });
-
-      console.log(
-        `[subflowInstanceNodeType.load] 07 created subflow runtime engine: `,
-        {
-          storeEngine,
-        },
-      );
-
-      unsubs.addUnsubFun = observe(() => {
-        const running = engineController$.running.get();
-        const tickSpeed = engineController$.tickSpeed.get();
-        if (!runtimeStateTyped.storeEngine) {
-          return;
-        }
-        if (running && !runtimeStateTyped.storeEngine.running) {
-          runtimeStateTyped.storeEngine.start();
-        } else if (!running && runtimeStateTyped.storeEngine.running) {
-          runtimeStateTyped.storeEngine.stop({ shouldAbort: true });
-        }
-        runtimeStateTyped.storeEngine.tickSpeed = tickSpeed;
-      });
-
-      console.log(`[subflowInstanceNodeType.load] 08 setup engine controls: `, {
-        runtimeStore$: runtimeStateTyped.runtimeStore$.peek(),
-        storeEngine,
       });
 
       // setup output subscriptions
