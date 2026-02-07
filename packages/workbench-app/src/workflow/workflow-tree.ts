@@ -30,6 +30,8 @@ export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
         doc,
       );
       runtimeStore$.set(createWorkflowStoreFromDocument(doc));
+      const [host, ...rest] = documentUrl.split('/');
+      runtimeStore$.name.set(rest.join(`/`));
     })
     .catch((err) => {
       console.error(
@@ -102,13 +104,13 @@ export const workflowTreeStore$ = observable({
       instanceId: string;
     }[];
     paths.push({
-      name: a.runtimeStore$._instanceId.peek(),
+      name: a.runtimeStore$.name.peek(),
       instanceId: a.runtimeStore$._instanceId.peek(),
     });
     while (a.parent) {
       a = a.parent;
       paths.push({
-        name: a.runtimeStore$._instanceId.peek(),
+        name: a.runtimeStore$.name.peek(),
         instanceId: a.runtimeStore$._instanceId.peek(),
       });
     }

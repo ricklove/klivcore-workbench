@@ -375,6 +375,7 @@ export type WorkflowRuntimeValue<TBase = unknown> = OpaqueObject<{
 }>;
 export interface WorkflowRuntimeStore {
   _instanceId: string;
+  name: string;
   nodeTypes: Record<WorkflowNodeTypeName, WorkflowRuntimeNodeTypeDefinition>;
   nodes: Record<WorkflowNodeId, WorkflowRuntimeNode>;
   edges: Record<WorkflowEdgeId, WorkflowRuntimeEdge>;
