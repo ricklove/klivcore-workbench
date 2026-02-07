@@ -27,6 +27,7 @@ type SubflowInstanceData = {
 type RuntimeStateType = {
   shouldLoad?: boolean;
   subflowUrl?: string;
+  dataTrigger?: number;
   runtimeStore$?: Observable<WorkflowRuntimeStore>;
   storeEngine?: WorkflowRuntimeEngine;
   unsubs: Array<() => void>;
@@ -84,7 +85,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       const dataValue =
         data.getObservableBox() as Observable<SubflowInstanceData>;
       const autoLoad = dataValue.autoLoad.get();
-      dataValue.trigger.get();
+      const dataTrigger = dataValue.trigger.get();
 
       const runtimeStateTyped = runtimeState as RuntimeStateType;
 
@@ -189,7 +190,10 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         return undefined;
       }
 
-      if (runtimeStateTyped.subflowUrl === url) {
+      if (
+        runtimeStateTyped.subflowUrl === url &&
+        dataTrigger === runtimeStateTyped.dataTrigger
+      ) {
         console.warn(`[subflowInstanceNodeType.load] subflow URL unchanged`, {
           nodeId: node$.id.peek(),
           url,
@@ -210,6 +214,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         runtimeStateTyped.subflowUrl = undefined;
       }
       runtimeStateTyped.subflowUrl = url;
+      runtimeStateTyped.dataTrigger = dataTrigger;
 
       console.log(`[subflowInstanceNodeType.load] 02 preparing unsubs`);
 
@@ -409,9 +414,8 @@ export const SubflowInstanceComponent = (
 
   const handleLoadPress = () => {
     const newUrl = urlInput$.peek();
-    node$.data.get().setValue({
-      url: newUrl,
-    });
+    data$.url.set(newUrl);
+    data$.trigger.set(Math.random());
   };
   const handleOpenPress = () => {
     const s = runtimeStateTyped.runtimeStore$?.peek();
