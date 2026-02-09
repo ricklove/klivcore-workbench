@@ -89,8 +89,9 @@ export const run = async (): Promise<string> => {
         return new Response(null, { status: 204, headers: COMMON_HEADERS });
       }
 
-      const reqPath = url.searchParams.get(`path`);
+      const reqPath = url.searchParams.get(`path`) || '';
       const absolutePath = safeResolvePath(reqPath);
+      console.log(`Resolved path:`, { reqPath, absolutePath });
 
       try {
         // --- ROUTE: GET /list ---
@@ -100,7 +101,7 @@ export const run = async (): Promise<string> => {
         }
 
         // Paths below require a valid 'path' param
-        if (!absolutePath && pathname !== '/') {
+        if (!absolutePath) {
           return Response.json(
             { error: 'Invalid path' },
             { status: 400, headers: COMMON_HEADERS },
@@ -110,13 +111,13 @@ export const run = async (): Promise<string> => {
         // --- ROUTE: GET /open ---
         if (pathname === `/open` && method === `GET`) {
           console.log(`Opening in editor: ${absolutePath}`);
-          Bun.spawn({ cmd: [`code`, absolutePath!] });
+          Bun.spawn({ cmd: [`code`, absolutePath] });
           return new Response(null, { status: 200, headers: COMMON_HEADERS });
         }
 
         // --- ROUTE: GET /load ---
         if (pathname === `/load` && method === `GET`) {
-          const file = Bun.file(absolutePath!);
+          const file = Bun.file(absolutePath);
           const fileSize = file.size;
 
           if (!(await file.exists())) {
@@ -205,16 +206,16 @@ export const run = async (): Promise<string> => {
         // --- ROUTE: POST /save ---
         if (pathname === `/save` && method === `POST`) {
           const body = await request.text();
-          await mkdir(path.dirname(absolutePath!), { recursive: true });
-          await Bun.write(absolutePath!, body);
+          await mkdir(path.dirname(absolutePath), { recursive: true });
+          await Bun.write(absolutePath, body);
           return Response.json({ message: 'OK' }, { headers: COMMON_HEADERS });
         }
 
         // --- ROUTE: DELETE /delete ---
         if (pathname === `/delete` && method === `DELETE`) {
-          const file = Bun.file(absolutePath!);
+          const file = Bun.file(absolutePath);
           if (await file.exists()) {
-            await unlink(absolutePath!);
+            await unlink(absolutePath);
           }
           return new Response(null, { status: 204, headers: COMMON_HEADERS });
         }

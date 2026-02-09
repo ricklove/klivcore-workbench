@@ -4,6 +4,7 @@ import { ObservableHint, observable, type PlainObject } from '@legendapp/state';
 export const storageStore$ = observable({
   providers: [] as PlainObject<{
     prefix: string;
+    getUrl?: (path: string) => string;
     save: <T>(path: string, value: T) => Promise<void>;
     load: <T>(path: string) => Promise<T>;
     delete: (path: string) => Promise<void>;

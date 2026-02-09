@@ -21,6 +21,7 @@ type FileServerRuntimeState = {
 
 type StorageProvider = {
   prefix: string;
+  getUrl: (path: string) => string;
   save: <T>(path: string, value: T) => Promise<void>;
   load: <T>(path: string) => Promise<T>;
   delete: (path: string) => Promise<void>;
@@ -57,6 +58,8 @@ export const fileServerNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
       const provider: StorageProvider = {
         prefix,
+        getUrl: (filePath: string) =>
+          `${url}/load?path=${encodeURIComponent(filePath)}`,
         save: async <T,>(filePath: string, value: T): Promise<void> => {
           const fullUrl = `${url}/save?path=${encodeURIComponent(filePath)}`;
           const response = await fetch(fullUrl, {
