@@ -99,6 +99,7 @@ export const NodeSelectionMenu: React.FC<NodeSelectionMenuProps> = ({
           value={searchTerm}
           onChange={(e) => changeSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
+          autoFocus
         />
       </div>
       <ul className="max-h-60 overflow-y-auto">

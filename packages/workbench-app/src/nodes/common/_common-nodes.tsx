@@ -7,10 +7,10 @@ import { stringInputNodeType } from './string-input-node';
 
 const commonNodeTypesList = [
   //
+  rerouteNodeType,
   stringInputNodeType,
   jsonInputNodeType,
   numberInputNodeType,
-  rerouteNodeType,
   cloneNodeType,
   // TODO: move to debug tools
   engineSpyNodeType,
