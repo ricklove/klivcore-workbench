@@ -24,17 +24,12 @@ import type { SubflowInputsData } from './subflow-inputs-node';
 type SubflowInstanceData = {
   url: string;
   autoLoad?: boolean;
-  isLoaded?: boolean;
-  shouldLoad?: boolean;
 };
 
 type RuntimeStateType = {
-  shouldLoad?: boolean;
-  subflowUrl?: string;
-  dataTrigger?: number;
   runtimeStore$?: Observable<WorkflowRuntimeStore>;
-  storeEngine?: WorkflowRuntimeEngine;
-  unsubs: Array<() => void>;
+  isLoaded$: Observable<boolean>;
+  shouldLoad$: Observable<boolean>;
 };
 
 export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
@@ -45,6 +40,8 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
   inputs: [],
   outputs: [],
   execute: async ({ runtimeState, data, inputs, node }) => {
+    const runtimeStateTyped = runtimeState as RuntimeStateType;
+
     if (data?.autoLoad) {
       console.log(
         `[${node.id}.subflowInstanceNodeType.execute] autoLoad is enabled, skipping execute`,
@@ -58,7 +55,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       );
       return;
     }
-    if (runtimeState.shouldLoad) {
+    if (runtimeStateTyped.shouldLoad$.peek()) {
       console.log(
         `[${node.id}.subflowInstanceNodeType.execute] subflow is already marked to load, skipping execute`,
       );
@@ -69,22 +66,19 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       `[${node.id}.subflowInstanceNodeType.execute] marking subflow to load`,
     );
 
-    runtimeState.shouldLoad = true;
+    runtimeStateTyped.shouldLoad$.set(true);
     return {
       outputs: {},
-      data: {
-        ...data,
-        trigger: Math.random(),
-        shouldLoad: true,
-      },
     };
   },
-  load: async ({ runtimeState, controller, store$, node$ }) => {
+  load: async ({ runtimeState, store$, node$ }) => {
+    const runtimeStateTyped = runtimeState as RuntimeStateType;
+    runtimeStateTyped.isLoaded$ = observable(false);
+    runtimeStateTyped.shouldLoad$ = observable(false);
+
     const data = node$.data.peek() as WorkflowRuntimeValue<SubflowInstanceData>;
     const dataValue$ =
       data.getObservableBox() as Observable<SubflowInstanceData>;
-    dataValue$.isLoaded.set(false);
-    dataValue$.shouldLoad.set(false);
 
     const structure$ = observable({
       subflowStoreAndEngine$: undefined as
@@ -98,7 +92,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     const subflowStoreSub = observe(async (e) => {
       const autoLoad = dataValue$.autoLoad.get();
-      const shouldLoad = dataValue$.shouldLoad.get();
+      const shouldLoad = runtimeStateTyped.shouldLoad$.get();
       if (!autoLoad && !shouldLoad) {
         console.log(
           `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowStoreSub] not auto loading subflow (autoLoad: ${autoLoad}, shouldLoad: ${shouldLoad})`,
@@ -126,7 +120,6 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
             documentUrl: url,
           },
         );
-        const runtimeStateTyped = runtimeState as RuntimeStateType;
         runtimeStateTyped.runtimeStore$ = workflowStoreAndEngine.runtimeStore$;
         structure$.subflowStoreAndEngine$.set(
           ObservableHint.opaque(workflowStoreAndEngine),
@@ -258,7 +251,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
             nodeInputs: node$.inputs.peek(),
           },
         );
-        dataValue$.isLoaded.set(true);
+        runtimeStateTyped.isLoaded$.set(true);
       });
 
       // value subscriptions
@@ -442,7 +435,9 @@ export const SubflowInstanceComponent = (
   );
   const isLoaded =
     useValue(
-      () => data$.isLoaded.get() && runtimeStateTyped.runtimeStore$?.get(),
+      () =>
+        runtimeStateTyped.isLoaded$.get() &&
+        runtimeStateTyped.runtimeStore$?.get(),
     ) ?? false;
 
   const urlInput$ = useObservable(data$.url.peek());
@@ -452,8 +447,10 @@ export const SubflowInstanceComponent = (
 
   const handleLoadPress = () => {
     const newUrl = urlInput$.peek();
-    data$.url.set(newUrl);
-    data$.shouldLoad.set(true);
+    if (data$.url.peek() !== newUrl) {
+      data$.url.set(newUrl);
+    }
+    runtimeStateTyped.shouldLoad$.set(true);
   };
   const handleOpenPress = () => {
     const s = runtimeStateTyped.runtimeStore$?.peek();

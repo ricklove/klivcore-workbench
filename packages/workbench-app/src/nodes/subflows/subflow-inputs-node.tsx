@@ -61,18 +61,30 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  execute: async ({ inputs }) => {
-    return {
-      outputs: Object.fromEntries(
-        Object.entries(inputs).map(([key, value]) => [
-          key.replace(
-            /^default_/,
-            '',
-          ) /* remove default_ prefix to get the actual field name */,
-          value,
-        ]),
-      ),
-    };
+  execute: async ({ inputs, node }) => {
+    // if(node.outputs[0]?.value.)
+    return undefined;
+
+    // biome-ignore lint/correctness/noUnreachable: <TODO: handle default inputs>
+    console.warn(
+      `[subflowInputsNodeType.execute] Default input handling not implemented yet.`,
+      {
+        inputs,
+        node,
+      },
+    );
+
+    // return {
+    //   outputs: Object.fromEntries(
+    //     Object.entries(inputs).map(([key, value]) => [
+    //       key.replace(
+    //         /^default_/,
+    //         '',
+    //       ) /* remove default_ prefix to get the actual field name */,
+    //       value,
+    //     ]),
+    //   ),
+    // };
   },
 };
 

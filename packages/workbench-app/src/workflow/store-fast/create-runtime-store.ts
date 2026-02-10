@@ -756,6 +756,15 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         return newInput && newInput.type !== input.type;
       });
 
+      if (
+        !addedInputs.length &&
+        !removedInputs.length &&
+        !changedInputs.length
+      ) {
+        console.log(`[updateInputs] No changes detected for node ${nodeId}`);
+        return;
+      }
+
       for (const item of addedInputs) {
         node$.inputs.push({
           name: item.name,
@@ -809,6 +818,15 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         return newOutput && newOutput.type !== output.type;
       });
 
+      if (
+        !addedOutputs.length &&
+        !removedOutputs.length &&
+        !changedOutputs.length
+      ) {
+        console.log(`[updateOutputs] No changes detected for node ${nodeId}`);
+        return;
+      }
+
       for (const item of addedOutputs) {
         node$.outputs.push({
           name: item.name,
@@ -841,7 +859,7 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
   };
 
   const store$: Observable<WorkflowRuntimeStore> = observable({
-    _instanceId: `WorkflowRuntimeStore_${WorkflowBrandedTypes.now()}`,
+    _instanceId: `WorkflowRuntimeStore_${Math.floor(Math.random() * 9999)}_${WorkflowBrandedTypes.now()}`,
     name: `New`,
     nodeTypes: {} as Record<
       WorkflowNodeTypeName,

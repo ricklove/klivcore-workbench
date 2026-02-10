@@ -18,7 +18,7 @@ export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
   console.log(`[createWorkflowSet] setup subflow store from ${documentUrl}`);
 
   const runtimeStore$ = createWorkflowStoreFromDocument({ nodes: [] });
-  const storePersistence$ = persistStoreToDocument(runtimeStore$);
+
   const storeEngine = createWorkflowEngine(runtimeStore$);
   runtimeStore$.engine.set(storeEngine);
 
@@ -40,13 +40,20 @@ export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
       );
     });
 
+  let isAfterFirstLoad = false;
+  const storePersistence$ = persistStoreToDocument(runtimeStore$);
   const unsubPersistence = observe(() => {
     const x = storePersistence$.get();
     if (!x?.nodes.length) {
-      console.warn(
-        `[WorkflowView] Persisted document is empty, skipping save.`,
-        { documentUrl },
-      );
+      // console.warn(
+      //   `[WorkflowView] Persisted document is empty, skipping save.`,
+      //   { documentUrl },
+      // );
+      return;
+    }
+
+    if (!isAfterFirstLoad) {
+      isAfterFirstLoad = true;
       return;
     }
 
