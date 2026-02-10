@@ -9,12 +9,12 @@ import {
 import { FieldDisplay, FieldEditor } from './components/field-editor';
 
 export type SubflowInputsRuntimeData = {
-  injectedInputs?: Record<string, { value: unknown; changeCounter: number }>;
-  lastInputs?: Record<string, { value: unknown; changeCounter: number }>;
+  // injectedInputs$?: Observable<
+  //   Record<string, { value: unknown; changeCounter: number }>
+  // >;
 };
 export type SubflowInputsData = {
   fields: Array<{ name: string; type: string }>;
-  _trigger?: number;
 };
 
 export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
@@ -71,35 +71,42 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
       return;
     }
 
-    const runtimeStateTyped = runtimeState as SubflowInputsRuntimeData;
+    // for inputs as subflow, they are actually set directly as outputs and bypass execution
 
-    const outputValues = Object.fromEntries(
-      fields
-        .filter(
-          (f) =>
-            runtimeStateTyped.lastInputs?.[f.name]?.changeCounter !==
-            runtimeStateTyped.injectedInputs?.[f.name]?.changeCounter,
-        )
-        .map((field) => [
-          field.name,
-          runtimeStateTyped.injectedInputs?.[field.name] ??
-            (inputs[
-              WorkflowBrandedTypes.inputName(`default_${field.name}`)
-            ] as unknown),
-        ]),
-    );
-
-    runtimeStateTyped.lastInputs = { ...runtimeStateTyped.injectedInputs };
-
-    console.log(`[SubflowInputs.execute] Executing with outputs:`, {
-      outputValues,
-    });
-
+    // for default inputs, we just pass them through as outputs
     return {
-      outputs: {
-        ...outputValues,
-      },
+      outputs: inputs,
     };
+
+    // const runtimeStateTyped = runtimeState as SubflowInputsRuntimeData;
+
+    // const outputValues = Object.fromEntries(
+    //   fields
+    //     .filter(
+    //       (f) =>
+    //         runtimeStateTyped.lastInputs?.[f.name]?.changeCounter !==
+    //         runtimeStateTyped.injectedInputs?.[f.name]?.changeCounter,
+    //     )
+    //     .map((field) => [
+    //       field.name,
+    //       runtimeStateTyped.injectedInputs?.[field.name] ??
+    //         (inputs[
+    //           WorkflowBrandedTypes.inputName(`default_${field.name}`)
+    //         ] as unknown),
+    //     ]),
+    // );
+
+    // runtimeStateTyped.lastInputs = { ...runtimeStateTyped.injectedInputs };
+
+    // console.log(`[SubflowInputs.execute] Executing with outputs:`, {
+    //   outputValues,
+    // });
+
+    // return {
+    //   outputs: {
+    //     ...outputValues,
+    //   },
+    // };
   },
 };
 

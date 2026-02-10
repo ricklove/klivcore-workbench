@@ -222,8 +222,8 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
       // value subscriptions
       const directSubs = [] as Array<() => void>;
-      const internalRuntimeState =
-        inputsNode$.runtimeState.peek() as SubflowInputsRuntimeData;
+      // const internalRuntimeState =
+      //   inputsNode$.runtimeState.peek() as SubflowInputsRuntimeData;
       // const internalNodeData$ = inputsNode$?.data?.peek()?.getObservableBox() as
       //   | undefined
       //   | Observable<SubflowInputsData>;
@@ -246,24 +246,24 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           continue;
         }
 
-        const internalInputRuntimeValue = inputsNode$
-          .peek()
-          ?.inputs.find((x) => x.name === inputField.name)?.value;
-        if (!internalInputRuntimeValue) {
-          console.error(
-            `[subflowInstanceNodeType.load.instanceInputsSub] 02a No internal input runtime value found for field ${inputField.name}`,
-            {
-              inputsNode$: inputsNode$,
-              inputField,
-            },
-          );
-          continue;
-        }
+        // const internalInputRuntimeValue = inputsNode$
+        //   .peek()
+        //   ?.inputs.find((x) => x.name === inputField.name)?.value;
+        // if (!internalInputRuntimeValue) {
+        //   console.error(
+        //     `[subflowInstanceNodeType.load.instanceInputsSub] 02a No internal input runtime value found for field ${inputField.name}`,
+        //     {
+        //       inputsNode$: inputsNode$,
+        //       inputField,
+        //     },
+        //   );
+        //   continue;
+        // }
 
-        if (!internalRuntimeState.injectedInputs) {
-          internalRuntimeState.injectedInputs = {};
-        }
-        const injectedInputs = internalRuntimeState.injectedInputs;
+        // if (!internalRuntimeState.injectedInputs) {
+        //   internalRuntimeState.injectedInputs = {};
+        // }
+        // const injectedInputs = internalRuntimeState.injectedInputs;
 
         directSubs.push(
           externalInput.value.subscribeDirect((v) => {
@@ -272,11 +272,13 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
               { v },
             );
 
-            injectedInputs[inputField.name] = {
-              changeCounter: externalInput.value.getImmediateChangeCounter(),
-              value: v,
-            };
-            internalInputRuntimeValue.setValue(v);
+            inputField.runtimeValue.setValue(v);
+
+            // injectedInputs[inputField.name] = {
+            //   changeCounter: externalInput.value.getImmediateChangeCounter(),
+            //   value: v,
+            // };
+            // internalInputRuntimeValue.setValue(v);
             // inputsNode$.inputs
             // // TEMP
             // setTimeout(() => {
