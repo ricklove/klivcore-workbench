@@ -6,6 +6,11 @@ import {
   type WorkflowRuntimeNodeTypeDefinition,
 } from '../../workflow/types';
 import { FieldDisplay, FieldEditor } from './components/field-editor';
+import { observe, type Observable } from '@legendapp/state';
+
+export type SubflowOutputsData = {
+  fields: Array<{ name: string; type: string }>;
+};
 
 export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   type: WorkflowBrandedTypes.typeName(`subflow-outputs`),
@@ -14,30 +19,32 @@ export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async ({ data, node, store, inputs, runtimeState }) => {
-    const { fields } =
-      (data as { fields: Array<{ name: string; type: string }> }) ?? {};
-    if (!fields) {
-      return;
-    }
+  load: async ({ node$, store$ }) => {
+    const unsub = observe(() => {
+      const data = node$.data.get();
+      const dataValue$ = data.getObservableBox() as Observable<
+        SubflowOutputsData | undefined
+      >;
+      const fields = dataValue$?.fields.get() ?? [];
+      if (!fields) {
+        return;
+      }
 
-    const runtimeStateTyped = runtimeState as {
-      fields: Array<{ name: string; type: string }>;
-    };
-    if (
-      runtimeStateTyped.fields !== fields &&
-      JSON.stringify(
-        node.inputs.map((x) => ({ name: x.name, type: x.type })),
-      ) !== JSON.stringify(fields)
-    ) {
-      runtimeStateTyped.fields = fields;
-      // the subflow outputs come into the subflow node as inputs of this node
+      const store = store$.peek();
+      const node = node$.peek();
+
       store.actions.updateInputs(
         node.id,
         fields.map((field) => ({
           name: WorkflowBrandedTypes.inputName(field.name),
           type: WorkflowBrandedTypes.valueType(field.type),
         })),
+
+        // TODO: add input upon attach edge
+        // {
+        //   name: WorkflowBrandedTypes.inputName(`add`),
+        //   type: WorkflowBrandedTypes.valueType(`unknown`),
+        // },
       );
 
       store.actions.updateOutputs(
@@ -47,22 +54,25 @@ export const subflowOutputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
           type: WorkflowBrandedTypes.valueType(field.type),
         })),
       );
-    }
-
-    console.log(`[subflowOutputsNodeType.execute] inputs: `, { inputs });
+    });
     return {
-      outputs: {
-        ...Object.fromEntries(
-          Object.entries(inputs).map(([key, value]) => [`ext_${key}`, value]),
-        ),
+      unsubscribe: () => {
+        unsub();
       },
+    };
+  },
+  execute: async ({ inputs }) => {
+    return {
+      outputs: Object.fromEntries(
+        Object.entries(inputs).map(([key, value]) => [`ext_${key}`, value]),
+      ),
     };
   },
 };
 
 export const SubflowOutputsComponent = (
   props: WorkflowComponentSimplePropsTyped<
-    { fields: Array<{ name: string; type: string }> },
+    SubflowOutputsData,
     Record<string, never>,
     Record<string, never>
   >,

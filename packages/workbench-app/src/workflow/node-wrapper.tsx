@@ -90,6 +90,10 @@ const WrapperHeader = memo(
         return;
       }
 
+      if (value === node$.id.peek()) {
+        return;
+      }
+
       const hasConflict = Object.values(store$.nodes.get()).some((n) => {
         if (n.id === nodeIdRaw) {
           return false;
@@ -104,7 +108,7 @@ const WrapperHeader = memo(
 
       setNodeIdWarning(undefined);
       store$.actions.renameNode({ oldId: nodeIdRaw, newId: value });
-    }, [nodeId, nodeIdRaw, store$.actions.renameNode, store$.nodes.get]);
+    }, [nodeId, nodeIdRaw, store$.actions.renameNode, store$.nodes, node$]);
 
     const handleDeleteNode = () => {
       console.log(`[NodeWrapper] handleDeleteNode`, { nodeId });

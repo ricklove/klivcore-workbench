@@ -740,6 +740,11 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         return;
       }
 
+      console.log(`[updateInputs] Updating inputs with id ${nodeId}`, {
+        inputs,
+        node: node$.peek(),
+      });
+
       const addedInputs = inputs.filter(
         (input) => !node.inputs.find((i) => i.name === input.name),
       );
@@ -787,6 +792,11 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         console.warn(`[updateOutputs] Node with id ${nodeId} does not exist`);
         return;
       }
+
+      console.log(`[updateOutputs] Updating outputs with id ${nodeId}`, {
+        outputs,
+        node: node$.peek(),
+      });
 
       const addedOutputs = outputs.filter(
         (output) => !node.outputs.find((o) => o.name === output.name),

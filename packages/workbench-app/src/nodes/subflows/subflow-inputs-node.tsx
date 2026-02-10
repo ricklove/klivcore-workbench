@@ -8,11 +8,7 @@ import {
 } from '../../workflow/types';
 import { FieldDisplay, FieldEditor } from './components/field-editor';
 
-export type SubflowInputsRuntimeData = {
-  // injectedInputs$?: Observable<
-  //   Record<string, { value: unknown; changeCounter: number }>
-  // >;
-};
+export type SubflowInputsRuntimeData = {};
 export type SubflowInputsData = {
   fields: Array<{ name: string; type: string }>;
 };
@@ -65,48 +61,18 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  execute: async ({ data, inputs, runtimeState }) => {
-    const { fields } = (data as SubflowInputsData) ?? {};
-    if (!fields) {
-      return;
-    }
-
-    // for inputs as subflow, they are actually set directly as outputs and bypass execution
-
-    // for default inputs, we just pass them through as outputs
+  execute: async ({ inputs }) => {
     return {
-      outputs: inputs,
+      outputs: Object.fromEntries(
+        Object.entries(inputs).map(([key, value]) => [
+          key.replace(
+            /^default_/,
+            '',
+          ) /* remove default_ prefix to get the actual field name */,
+          value,
+        ]),
+      ),
     };
-
-    // const runtimeStateTyped = runtimeState as SubflowInputsRuntimeData;
-
-    // const outputValues = Object.fromEntries(
-    //   fields
-    //     .filter(
-    //       (f) =>
-    //         runtimeStateTyped.lastInputs?.[f.name]?.changeCounter !==
-    //         runtimeStateTyped.injectedInputs?.[f.name]?.changeCounter,
-    //     )
-    //     .map((field) => [
-    //       field.name,
-    //       runtimeStateTyped.injectedInputs?.[field.name] ??
-    //         (inputs[
-    //           WorkflowBrandedTypes.inputName(`default_${field.name}`)
-    //         ] as unknown),
-    //     ]),
-    // );
-
-    // runtimeStateTyped.lastInputs = { ...runtimeStateTyped.injectedInputs };
-
-    // console.log(`[SubflowInputs.execute] Executing with outputs:`, {
-    //   outputValues,
-    // });
-
-    // return {
-    //   outputs: {
-    //     ...outputValues,
-    //   },
-    // };
   },
 };
 

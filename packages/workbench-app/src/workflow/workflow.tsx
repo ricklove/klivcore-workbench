@@ -189,7 +189,9 @@ const WorkflowViewInner = ({
       if (!nodeType) {
         throw new Error(`Unknown node type: ${typeName}`);
       }
-      const newId = WorkflowBrandedTypes.nodeId(`n-${typeName}-${Date.now()}`);
+      const newId = WorkflowBrandedTypes.nodeId(
+        `n-${typeName}-${Math.floor(Math.random() * 9999)}-${Date.now()}`,
+      );
 
       const inputEdge = (() => {
         const { nodeId, handleId } = connectionParams ?? {};

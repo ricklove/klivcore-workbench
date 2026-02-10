@@ -17,11 +17,9 @@ import {
   type WorkflowRuntimeStore,
   type WorkflowRuntimeValue,
 } from '../../workflow/types';
-import type {
-  SubflowInputsData,
-  SubflowInputsRuntimeData,
-} from './subflow-inputs-node';
 import { workflowTreeStore$ } from '../../workflow/workflow-tree';
+import type { SubflowOutputsData } from './subflow-outputs-node';
+import type { SubflowInputsData } from './subflow-inputs-node';
 
 type SubflowInstanceData = {
   url: string;
@@ -46,28 +44,30 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
   }),
   inputs: [],
   outputs: [],
-  execute: async ({ runtimeState, data, inputs }) => {
+  execute: async ({ runtimeState, data, inputs, node }) => {
     if (data?.autoLoad) {
       console.log(
-        `[subflowInstanceNodeType.execute] autoLoad is enabled, skipping execute`,
+        `[${node.id}.subflowInstanceNodeType.execute] autoLoad is enabled, skipping execute`,
       );
 
       return;
     }
     if (inputs.loadTrigger == null) {
       console.log(
-        `[subflowInstanceNodeType.execute] loadTrigger is not active, skipping execute`,
+        `[${node.id}.subflowInstanceNodeType.execute] loadTrigger is not active, skipping execute`,
       );
       return;
     }
     if (runtimeState.shouldLoad) {
       console.log(
-        `[subflowInstanceNodeType.execute] subflow is already marked to load, skipping execute`,
+        `[${node.id}.subflowInstanceNodeType.execute] subflow is already marked to load, skipping execute`,
       );
       return;
     }
 
-    console.log(`[subflowInstanceNodeType.execute] marking subflow to load`);
+    console.log(
+      `[${node.id}.subflowInstanceNodeType.execute] marking subflow to load`,
+    );
 
     runtimeState.shouldLoad = true;
     return {
@@ -84,6 +84,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
     const dataValue$ =
       data.getObservableBox() as Observable<SubflowInstanceData>;
     dataValue$.isLoaded.set(false);
+    dataValue$.shouldLoad.set(false);
 
     const structure$ = observable({
       subflowStoreAndEngine$: undefined as
@@ -100,27 +101,21 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       const shouldLoad = dataValue$.shouldLoad.get();
       if (!autoLoad && !shouldLoad) {
         console.log(
-          `[subflowInstanceNodeType.load.structureSub] not auto loading subflow (autoLoad: ${autoLoad}, shouldLoad: ${shouldLoad})`,
+          `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowStoreSub] not auto loading subflow (autoLoad: ${autoLoad}, shouldLoad: ${shouldLoad})`,
         );
         return;
       }
       const url = dataValue$.url.get();
       if (!url) {
         console.warn(
-          `[subflowInstanceNodeType.load.structureSub] no subflow URL defined`,
+          `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowStoreSub] no subflow URL defined`,
         );
         structure$.subflowStoreAndEngine$.set(undefined);
         return;
       }
 
-      console.log(`[subflowInstanceNodeType.load.subflowStoreSub] 00`, {
-        event: e,
-      });
-
-      dataValue$.isLoaded.set(true);
-
       console.log(
-        `[subflowInstanceNodeType.load.structureSub] loading (autoLoad: ${autoLoad}, shouldLoad: ${shouldLoad})`,
+        `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowStoreSub] 00 loading (autoLoad: ${autoLoad}, shouldLoad: ${shouldLoad})`,
         { e, url, nodeId: node$.peek().id },
       );
 
@@ -136,6 +131,15 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
         structure$.subflowStoreAndEngine$.set(
           ObservableHint.opaque(workflowStoreAndEngine),
         );
+
+        console.log(
+          `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowStoreSub] 01 loaded subflow store and engine`,
+          {
+            workflowStoreAndEngine,
+            runtimeStateTyped,
+          },
+        );
+
         unsubStore = () => workflowStoreAndEngine.unsubscribe();
       });
 
@@ -145,18 +149,31 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
     });
 
     const subflowNodesSub = observe((e) => {
-      const subflowStore = structure$.subflowStoreAndEngine$
-        .get()
-        ?.runtimeStore$.get();
+      const subflowStore$ =
+        structure$.subflowStoreAndEngine$.get()?.runtimeStore$;
+
+      const subflowStore = subflowStore$?.peek();
+      const _storeInstanceId = subflowStore$?._instanceId.get();
+
       if (!subflowStore || !Object.values(subflowStore.nodes).length) {
         structure$.subflowInputsNode$.set(undefined);
         structure$.subflowOutputsNode$.set(undefined);
         return;
       }
 
-      console.log(`[subflowInstanceNodeType.load.subflowNodesSub] 01`, {
-        event: e,
-      });
+      // if (
+      //   structure$.subflowInputsNode$.peek() &&
+      //   structure$.subflowOutputsNode$.peek()
+      // ) {
+      //   return;
+      // }
+
+      console.log(
+        `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowNodesSub] 01`,
+        {
+          event: e,
+        },
+      );
 
       const inputsNode = Object.values(subflowStore.nodes).find(
         (n) => n.type === WorkflowBrandedTypes.typeName(`subflow-inputs`),
@@ -168,43 +185,59 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       structure$.subflowInputsNode$.set(inputsNode);
       structure$.subflowOutputsNode$.set(outputsNode);
 
-      console.log(`[subflowInstanceNodeType.load.subflowNodesSub] 01 DONE`, {
-        event: e,
-        subflowStore,
-        inputsNode,
-        outputsNode,
-        inputsNode$: structure$.subflowInputsNode$.peek(),
-        outputsNode$: structure$.subflowOutputsNode$.peek(),
-      });
+      console.log(
+        `[${node$.id.peek()}.subflowInstanceNodeType.load.subflowNodesSub] 01 DONE`,
+        {
+          event: e,
+          subflowStore,
+          inputsNode,
+          outputsNode,
+          inputsNode$: structure$.subflowInputsNode$.peek(),
+          outputsNode$: structure$.subflowOutputsNode$.peek(),
+        },
+      );
     });
 
     const instanceInputsSub = observe(async (e) => {
       const inputsNode$ = structure$.subflowInputsNode$;
       const inputsNodeId = inputsNode$?.id.get();
-      if (!inputsNode$ || !inputsNodeId) {
+      if (!inputsNode$ || !inputsNodeId || !inputsNode$.get()) {
+        console.log(
+          `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceInputsSub] !02a no inputs node found, skipping instance inputs subscription`,
+          {
+            event: e,
+          },
+        );
         return;
       }
 
-      const store = structure$.subflowStoreAndEngine$
+      const subflowStore = structure$.subflowStoreAndEngine$
         .peek()
         ?.runtimeStore$.peek();
-      if (!store) {
+      if (!subflowStore) {
         return;
       }
 
-      console.log(`[subflowInstanceNodeType.load.instanceInputsSub] 02a`, {
-        event: e,
-      });
+      console.log(
+        `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceInputsSub] 02a`,
+        {
+          event: e,
+        },
+      );
 
-      const internalInputs =
-        inputsNode$.outputs.map((field) => ({
-          name: WorkflowBrandedTypes.inputName(field.name.get()),
-          type: field.type.get(),
-          runtimeValue: field.value.get(),
-        })) ?? [];
+      const internalInputFields = (
+        inputsNode$.data
+          .peek()
+          ?.getObservableBox() as Observable<SubflowInputsData>
+      ).fields
+        .get()
+        .map((field) => ({
+          name: WorkflowBrandedTypes.inputName(field.name),
+          type: WorkflowBrandedTypes.valueType(field.type),
+        }));
 
       setTimeout(() => {
-        store.actions.updateInputs(inputsNodeId, [
+        store$.actions.updateInputs(node$.id.peek(), [
           ...(data.getDirectValue()?.autoLoad
             ? []
             : [
@@ -213,11 +246,19 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
                   type: WorkflowBrandedTypes.valueType(`unknown`),
                 },
               ]),
-          ...(internalInputs.map((f) => ({
+          ...(internalInputFields.map((f) => ({
             name: f.name,
             type: f.type,
           })) ?? node$.inputs.peek().filter((x) => x.name !== 'loadTrigger')),
         ]);
+        console.log(
+          `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceInputsSub.updateInputs] updated instance inputs on node with internal inputs:`,
+          {
+            internalInputFields,
+            nodeInputs: node$.inputs.peek(),
+          },
+        );
+        dataValue$.isLoaded.set(true);
       });
 
       // value subscriptions
@@ -230,7 +271,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
       // if (!internalNodeData$) {
       //   console.error(
-      //     `[subflowInstanceNodeType.load.instanceInputsSub] 02a No internal node data observable found`,
+      //     `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceInputsSub] 02a No internal node data observable found`,
       //     {
       //       inputsNode$: inputsNode$,
       //     },
@@ -238,7 +279,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       //   return;
       // }
 
-      for (const inputField of internalInputs) {
+      for (const inputField of internalInputFields) {
         const externalInput = node$.inputs
           .peek()
           ?.find((x) => x.name === inputField.name);
@@ -246,46 +287,31 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           continue;
         }
 
-        // const internalInputRuntimeValue = inputsNode$
-        //   .peek()
-        //   ?.inputs.find((x) => x.name === inputField.name)?.value;
-        // if (!internalInputRuntimeValue) {
-        //   console.error(
-        //     `[subflowInstanceNodeType.load.instanceInputsSub] 02a No internal input runtime value found for field ${inputField.name}`,
-        //     {
-        //       inputsNode$: inputsNode$,
-        //       inputField,
-        //     },
-        //   );
-        //   continue;
-        // }
-
-        // if (!internalRuntimeState.injectedInputs) {
-        //   internalRuntimeState.injectedInputs = {};
-        // }
-        // const injectedInputs = internalRuntimeState.injectedInputs;
+        // actually set inputs` output values
+        const internalInputRuntimeValue = inputsNode$
+          .peek()
+          ?.outputs.find(
+            (x) => x.name === WorkflowBrandedTypes.outputName(inputField.name),
+          )?.value;
+        if (!internalInputRuntimeValue) {
+          console.error(
+            `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceInputsSub] 02a No internal input runtime value found for field ${inputField.name}`,
+            {
+              inputsNode$: inputsNode$,
+              inputField,
+            },
+          );
+          continue;
+        }
 
         directSubs.push(
           externalInput.value.subscribeDirect((v) => {
             console.log(
-              `[subflowInstanceNodeType.load.instanceInputsSub] setting injected input value for field ${inputField.name}`,
+              `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceInputsSub] setting injected input value for field ${inputField.name}`,
               { v },
             );
 
-            inputField.runtimeValue.setValue(v);
-
-            // injectedInputs[inputField.name] = {
-            //   changeCounter: externalInput.value.getImmediateChangeCounter(),
-            //   value: v,
-            // };
-            // internalInputRuntimeValue.setValue(v);
-            // inputsNode$.inputs
-            // // TEMP
-            // setTimeout(() => {
-            //   internalNodeData$._trigger.set(
-            //     (internalNodeData$._trigger.get() ?? 0) + 1,
-            //   );
-            // });
+            internalInputRuntimeValue.setValue(v);
           }),
         );
       }
@@ -300,32 +326,46 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
     const instanceOutputsSub = observe(async (e) => {
       const outputsNode$ = structure$.subflowOutputsNode$;
       const outputsNodeId = outputsNode$?.id.get();
-      if (!outputsNode$ || !outputsNodeId) {
+      if (!outputsNode$ || !outputsNodeId || !outputsNode$.get()) {
+        console.log(
+          `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceOutputsSub] !02b no outputs node found, skipping instance outputs subscription`,
+          {
+            event: e,
+          },
+        );
         return;
       }
 
-      const store = structure$.subflowStoreAndEngine$
+      const subflowStore = structure$.subflowStoreAndEngine$
         .peek()
         ?.runtimeStore$.peek();
-      if (!store) {
+      if (!subflowStore) {
         return;
       }
 
-      console.log(`[subflowInstanceNodeType.load.instanceOutputsSub] 02b`, {
-        event: e,
-      });
+      console.log(
+        `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceOutputsSub] 02b`,
+        {
+          event: e,
+        },
+      );
 
-      const internalOutputs = outputsNode$.inputs.map((field) => ({
-        name: WorkflowBrandedTypes.outputName(field.name.get()),
-        type: field.type.get(),
-        runtimeValue: field.value.get(),
-      }));
+      const internalOutputFields = (
+        outputsNode$.data
+          .peek()
+          ?.getObservableBox() as Observable<SubflowOutputsData>
+      ).fields
+        .get()
+        .map((field) => ({
+          name: WorkflowBrandedTypes.outputName(field.name),
+          type: WorkflowBrandedTypes.valueType(field.type),
+        }));
 
       setTimeout(() => {
-        store.actions.updateOutputs(outputsNodeId, [
-          ...(outputsNode$?.outputs.map((field) => ({
-            name: field.name.get(),
-            type: field.type.get(),
+        store$.actions.updateOutputs(node$.id.peek(), [
+          ...(internalOutputFields.map((field) => ({
+            name: field.name,
+            type: field.type,
           })) ?? node$.outputs.peek()),
         ]);
       });
@@ -333,7 +373,7 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
       // value subscriptions
       const directSubs = [] as Array<() => void>;
 
-      for (const outputField of internalOutputs) {
+      for (const outputField of internalOutputFields) {
         const externalOutput = node$.outputs
           .peek()
           ?.find((x) => x.name === outputField.name);
@@ -341,10 +381,26 @@ export const subflowInstanceNodeType: WorkflowRuntimeNodeTypeDefinition = {
           continue;
         }
 
+        const internalOutputRuntimeValue = outputsNode$
+          .peek()
+          ?.inputs.find(
+            (x) => x.name === WorkflowBrandedTypes.inputName(outputField.name),
+          )?.value;
+        if (!internalOutputRuntimeValue) {
+          console.error(
+            `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceOutputsSub] 02b No internal output runtime value found for field ${outputField.name}`,
+            {
+              outputsNode$: outputsNode$,
+              outputField,
+            },
+          );
+          continue;
+        }
+
         directSubs.push(
-          outputField.runtimeValue.subscribeDirect((v) => {
+          internalOutputRuntimeValue.subscribeDirect((v) => {
             console.log(
-              `[subflowInstanceNodeType.load.instanceOutputsSub] setting external output value for field ${outputField.name}`,
+              `[${node$.id.peek()}.subflowInstanceNodeType.load.instanceOutputsSub] setting external output value for field ${outputField.name}`,
               { v },
             );
 
