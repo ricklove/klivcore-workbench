@@ -50,6 +50,14 @@ export const jsonInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       outputs: { value: obj },
     };
   },
+  generateFunction: async ({ data, functionName }) => {
+    const dataTyped = data as undefined | { value: undefined | string };
+    const dataValueCode = `${dataTyped?.value ?? `undefined`}`;
+
+    return {
+      typescript: `const ${functionName} = <T extends undefined | Record<string, unknown>>(inputs: { value?: T }) => ({ value: inputs?.value ?? ${dataValueCode} });`,
+    };
+  },
 };
 
 export const JsonInputComponent = (

@@ -36,6 +36,14 @@ export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
+  generateFunction: async ({ data, functionName }) => {
+    const dataTyped = data as undefined | { value?: number };
+    const dataValueCode = `${dataTyped?.value ?? `undefined`}`;
+
+    return {
+      typescript: `const ${functionName} = (inputs: { value?: number }) => ({ value: inputs?.value ?? ${dataValueCode} });`,
+    };
+  },
 };
 
 export const NumberInputComponent = (

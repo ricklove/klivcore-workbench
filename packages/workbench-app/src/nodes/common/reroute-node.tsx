@@ -34,6 +34,12 @@ export const rerouteNodeType: WorkflowRuntimeNodeTypeDefinition = {
       outputs: { value: inputsTyped.value },
     };
   },
+  generateFunction: async ({ functionName }) => {
+    return {
+      passthrough: true,
+      typescript: `const ${functionName} = <T>(x: T) => x;`,
+    };
+  },
 };
 
 export const RerouteComponent = (

@@ -34,6 +34,9 @@ export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     return undefined;
   },
+  generateFunction: async () => {
+    return undefined;
+  },
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

@@ -460,6 +460,17 @@ export interface WorkflowRuntimeNodeTypeDefinition {
    */
   execute: (args: WorkflowExecutionArgs) => Promise<WorkflowExecutionResult>;
 
+  generateFunction?: (
+    args: WorkflowExecutionArgs & { functionName: string },
+  ) => Promise<
+    | undefined
+    | {
+        passthrough?: boolean;
+        inputs?: WorkflowInputName[];
+        typescript: string;
+      }
+  >;
+
   // TODO: node lifecycle methods (to replace automatic population of inputs/outputs)
   // loadNodeType?: (store: WorkflowRuntimeStore) => void;
   // unloadNodeType?: (store: WorkflowRuntimeStore) => void;

@@ -43,6 +43,24 @@ export const stringInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
+  generateFunction: async ({ data, functionName }) => {
+    const dataTyped = data as
+      | undefined
+      | { value: undefined | string; overrideInput?: boolean };
+
+    const dataValueCode = `\`${dataTyped?.value?.replaceAll('`', '\\`') ?? ``}\``;
+
+    if (dataTyped?.overrideInput && dataTyped?.value) {
+      return {
+        inputs: [],
+        typescript: `const ${functionName} = () => ({ value: ${dataValueCode} });`,
+      };
+    }
+
+    return {
+      typescript: `const ${functionName} = (inputs: { value?: string }) => ({ value: inputs?.value ?? ${dataValueCode} });`,
+    };
+  },
 };
 
 export const StringInputComponent = (
