@@ -40,7 +40,7 @@ export const engineSpyNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  generateFunction: async () => {
+  generateCode: async () => {
     return undefined;
   },
 };

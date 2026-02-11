@@ -460,13 +460,13 @@ export interface WorkflowRuntimeNodeTypeDefinition {
    */
   execute: (args: WorkflowExecutionArgs) => Promise<WorkflowExecutionResult>;
 
-  generateFunction?: (
-    args: WorkflowExecutionArgs & { functionName: string },
-  ) => Promise<
+  generateCode?: (args: {
+    data: undefined | WorkflowJsonObject;
+    inputNames: Record<WorkflowInputName, string>;
+  }) => Promise<
     | undefined
     | {
-        passthrough?: boolean;
-        inputs?: WorkflowInputName[];
+        kind?: undefined | `expression` | `passthrough`;
         typescript: string;
       }
   >;

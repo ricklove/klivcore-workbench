@@ -43,7 +43,7 @@ export const stringInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  generateFunction: async ({ data, functionName }) => {
+  generateCode: async ({ data, inputNames }) => {
     const dataTyped = data as
       | undefined
       | { value: undefined | string; overrideInput?: boolean };
@@ -52,13 +52,12 @@ export const stringInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     if (dataTyped?.overrideInput && dataTyped?.value) {
       return {
-        inputs: [],
-        typescript: `const ${functionName} = () => ({ value: ${dataValueCode} });`,
+        typescript: `${dataValueCode}`,
       };
     }
 
     return {
-      typescript: `const ${functionName} = (inputs: { value?: string }) => ({ value: inputs?.value ?? ${dataValueCode} });`,
+      typescript: `${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataValueCode}`,
     };
   },
 };

@@ -36,12 +36,10 @@ export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  generateFunction: async ({ data, functionName }) => {
+  generateCode: async ({ data, inputNames }) => {
     const dataTyped = data as undefined | { value?: number };
-    const dataValueCode = `${dataTyped?.value ?? `undefined`}`;
-
     return {
-      typescript: `const ${functionName} = (inputs: { value?: number }) => ({ value: inputs?.value ?? ${dataValueCode} });`,
+      typescript: `${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataTyped?.value ?? `undefined`}`,
     };
   },
 };

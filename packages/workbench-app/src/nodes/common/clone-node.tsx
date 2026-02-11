@@ -34,7 +34,7 @@ export const cloneNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     return undefined;
   },
-  generateFunction: async () => {
+  generateCode: async () => {
     return undefined;
   },
 };
