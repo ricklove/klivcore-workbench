@@ -23,14 +23,14 @@ export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
   runtimeStore$.engine.set(storeEngine);
 
   storageProvider.provider
-    ?.load<WorkflowDocumentData>(storageProvider.path)
+    ?.load(storageProvider.path)
     ?.then((doc) => {
-      console.log(
-        `[createWorkflowSet] Loaded document for ${documentUrl}:`,
+      console.log(`[createWorkflowSet] Loaded document for ${documentUrl}:`, {
         doc,
-      );
-      runtimeStore$.set(createWorkflowStoreFromDocument(doc));
-      const [host, ...rest] = documentUrl.split('/');
+      });
+      const parsedDoc = JSON.parse(doc) as WorkflowDocumentData;
+      runtimeStore$.set(createWorkflowStoreFromDocument(parsedDoc));
+      const [, ...rest] = documentUrl.split('/');
       runtimeStore$.name.set(rest.join(`/`));
     })
     .catch((err) => {
@@ -63,12 +63,14 @@ export const createWorkflowSet = ({ documentUrl }: { documentUrl: string }) => {
       runtimeStore$,
     });
 
-    storageProvider.provider?.save(storageProvider.path, x).catch((err) => {
-      console.error(
-        `[WorkflowView] Failed to save document for ${documentUrl}:`,
-        err,
-      );
-    });
+    storageProvider.provider
+      ?.save(storageProvider.path, JSON.stringify(x, null, 2))
+      .catch((err) => {
+        console.error(
+          `[WorkflowView] Failed to save document for ${documentUrl}:`,
+          err,
+        );
+      });
   });
 
   const unsubEngine = observe(() => {

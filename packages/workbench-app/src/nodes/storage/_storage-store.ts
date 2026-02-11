@@ -5,8 +5,8 @@ export const storageStore$ = observable({
   providers: [] as PlainObject<{
     prefix: string;
     getUrl?: (path: string) => string;
-    save: <T>(path: string, value: T) => Promise<void>;
-    load: <T>(path: string) => Promise<T>;
+    save: (path: string, value: string) => Promise<void>;
+    load: (path: string) => Promise<string>;
     delete: (path: string) => Promise<void>;
     list: () => Promise<{ path: string }[]>;
   }>[],
@@ -25,8 +25,8 @@ export const storageStore$ = observable({
   actions: ObservableHint.plain({
     registerProvider: (provider: {
       prefix: string;
-      save: <T>(path: string, value: T) => Promise<void>;
-      load: <T>(path: string) => Promise<T>;
+      save: (path: string, value: string) => Promise<void>;
+      load: (path: string) => Promise<string>;
       delete: (path: string) => Promise<void>;
       list: () => Promise<{ path: string }[]>;
     }) => {
@@ -51,13 +51,13 @@ const shouldRegisterLocalStorage = true;
 if (shouldRegisterLocalStorage) {
   storageStore$.actions.registerProvider({
     prefix: 'localStorage',
-    save: async <T>(path: string, value: T) => {
-      localStorage.setItem(path, JSON.stringify(value));
+    save: async (path: string, value: string) => {
+      localStorage.setItem(path, value);
     },
-    load: async <T>(path: string) => {
+    load: async (path: string) => {
       const item = localStorage.getItem(path);
       if (!item) throw new Error('Not Found');
-      return JSON.parse(item) as T;
+      return item;
     },
     delete: async (path: string) => {
       localStorage.removeItem(path);

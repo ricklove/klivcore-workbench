@@ -46,7 +46,7 @@ export const textFileNodeType: WorkflowRuntimeNodeTypeDefinition = {
     },
   ],
   execute: async () => {
-    return { outputs: {} };
+    return undefined;
   },
 };
 
@@ -213,7 +213,7 @@ const TextFileComponent = (
       try {
         const contents = await providerResult.provider
           .peek()
-          .load<string>(providerResult.path);
+          .load(providerResult.path);
 
         localState$.loadedFileContents.set(contents);
         localState$.lastKnownAttachedContents.set(contents);
@@ -284,7 +284,7 @@ const TextFileComponent = (
           try {
             const currentFileContents = await providerResult.provider
               .peek()
-              .load<string>(providerResult.path);
+              .load(providerResult.path);
             const currentLoaded = localState$.loadedFileContents.peek();
             if (
               currentLoaded !== undefined &&
@@ -384,7 +384,7 @@ const TextFileComponent = (
     try {
       const fileContents = await providerResult.provider
         .peek()
-        .load<string>(providerResult.path);
+        .load(providerResult.path);
 
       // Store what's on disk
       localState$.loadedFileContents.set(fileContents);

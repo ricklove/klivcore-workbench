@@ -22,8 +22,8 @@ type FileServerRuntimeState = {
 type StorageProvider = {
   prefix: string;
   getUrl: (path: string) => string;
-  save: <T>(path: string, value: T) => Promise<void>;
-  load: <T>(path: string) => Promise<T>;
+  save: (path: string, value: string) => Promise<void>;
+  load: (path: string) => Promise<string>;
   delete: (path: string) => Promise<void>;
   list: () => Promise<{ path: string }[]>;
 };
@@ -60,14 +60,11 @@ export const fileServerNodeType: WorkflowRuntimeNodeTypeDefinition = {
         prefix,
         getUrl: (filePath: string) =>
           `${url}/load?path=${encodeURIComponent(filePath)}`,
-        save: async <T,>(filePath: string, value: T): Promise<void> => {
+        save: async (filePath: string, value: string): Promise<void> => {
           const fullUrl = `${url}/save?path=${encodeURIComponent(filePath)}`;
           const response = await fetch(fullUrl, {
             method: 'POST',
-            body:
-              typeof value === 'string'
-                ? value
-                : JSON.stringify(value, null, 2),
+            body: value,
           });
           if (!response.ok) {
             const errorText = await response
@@ -76,7 +73,7 @@ export const fileServerNodeType: WorkflowRuntimeNodeTypeDefinition = {
             throw new Error(`${response.status}: ${errorText}`);
           }
         },
-        load: async <T,>(filePath: string): Promise<T> => {
+        load: async (filePath: string): Promise<string> => {
           const fullUrl = `${url}/load?path=${encodeURIComponent(filePath)}`;
           const response = await fetch(fullUrl, { method: 'GET' });
           if (!response.ok) {
@@ -86,12 +83,7 @@ export const fileServerNodeType: WorkflowRuntimeNodeTypeDefinition = {
             throw new Error(`${response.status}: ${errorText}`);
           }
           const text = await response.text();
-          // Try to parse as JSON, otherwise return as string
-          try {
-            return JSON.parse(text) as T;
-          } catch {
-            return text as T;
-          }
+          return text;
         },
         delete: async (filePath: string): Promise<void> => {
           const fullUrl = `${url}/delete?path=${encodeURIComponent(filePath)}`;
