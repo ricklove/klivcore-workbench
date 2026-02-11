@@ -53,7 +53,7 @@ const WorkflowNodeWrapper = ({
 };
 
 const expandedInfoByNode$ = observable(
-  {} as Record<WorkflowNodeId, false | `data` | `document`>,
+  {} as Record<WorkflowNodeId, false | `data` | `document` | `code`>,
 );
 
 const WrapperHeader = memo(
@@ -116,7 +116,7 @@ const WrapperHeader = memo(
     };
 
     const expandInfoRaw = useValue(() => expandedInfoByNode$[nodeIdRaw]?.get());
-    const setExpandInfo = (value: false | `data` | `document`) => {
+    const setExpandInfo = (value: false | `data` | `document` | `code`) => {
       expandedInfoByNode$[nodeIdRaw]?.set(value);
     };
 
@@ -155,41 +155,75 @@ const WrapperHeader = memo(
                     {() => (
                       <textarea
                         className="flex-1 resize-none bg-black p-1 text-[8px]"
-                        value={JSON.stringify(
-                          expandInfo === `data`
-                            ? {
-                                data: {
-                                  changeCounter: dataReactFlow.node$.data
-                                    .get()
-                                    .uiChangeCounter$.get(),
-                                  value: dataReactFlow.node$.data
-                                    .get()
-                                    .getUiValue(),
-                                },
-                                inputs: dataReactFlow.node$.inputs
-                                  .get()
-                                  .map((x) => ({
-                                    name: x.name,
-                                    changeCounter:
-                                      x.value.uiChangeCounter$.get(),
-                                    value: x.value.getUiValue(),
-                                    edgeid: x.edgeId,
-                                  })),
+                        value={
+                          expandInfo === `code`
+                            ? (() => {
+                                const typeName = node$.type.peek();
+                                const type = store$.nodeTypes[typeName]?.peek();
+                                if (!type) {
+                                  return `Unknown node type '${typeName}'`;
+                                }
+                                if (!type.generateCode) {
+                                  return `Node type '${typeName}' does not support code generation`;
+                                }
+                                try {
+                                  const generated = type.generateCode({
+                                    data:
+                                      node$.data.peek().getDirectValue() ??
+                                      undefined,
+                                    inputNames: Object.fromEntries(
+                                      node$.inputs
+                                        .peek()
+                                        .map((x) => [x.name, x.name]),
+                                    ),
+                                  });
+                                  if (!generated) {
+                                    return `Code generation returned no output`;
+                                  }
+                                  if (generated.kind === 'passthrough') {
+                                    return `// Passthrough\n${generated.typescript}`;
+                                  }
+                                  return generated.typescript;
+                                } catch (e) {
+                                  return `Error during code generation: ${(e as Error).message}`;
+                                }
+                              })()
+                            : JSON.stringify(
+                                expandInfo === `data`
+                                  ? {
+                                      data: {
+                                        changeCounter: dataReactFlow.node$.data
+                                          .get()
+                                          .uiChangeCounter$.get(),
+                                        value: dataReactFlow.node$.data
+                                          .get()
+                                          .getUiValue(),
+                                      },
+                                      inputs: dataReactFlow.node$.inputs
+                                        .get()
+                                        .map((x) => ({
+                                          name: x.name,
+                                          changeCounter:
+                                            x.value.uiChangeCounter$.get(),
+                                          value: x.value.getUiValue(),
+                                          edgeid: x.edgeId,
+                                        })),
 
-                                outputs: dataReactFlow.node$.outputs
-                                  .get()
-                                  .map((x) => ({
-                                    name: x.name,
-                                    changeCounter:
-                                      x.value.uiChangeCounter$.get(),
-                                    value: x.value.getUiValue(),
-                                    edgeIds: x.edgeIds,
-                                  })),
-                              }
-                            : node$.get(),
-                          null,
-                          2,
-                        )}
+                                      outputs: dataReactFlow.node$.outputs
+                                        .get()
+                                        .map((x) => ({
+                                          name: x.name,
+                                          changeCounter:
+                                            x.value.uiChangeCounter$.get(),
+                                          value: x.value.getUiValue(),
+                                          edgeIds: x.edgeIds,
+                                        })),
+                                    }
+                                  : node$.get(),
+                                null,
+                                2,
+                              )
+                        }
                         readOnly
                       />
                     )}
@@ -214,6 +248,17 @@ const WrapperHeader = memo(
                   {`▶️`}
                 </div>
               )} */}
+                      <div
+                        className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
+                        onClick={() => {
+                          setExpandInfo(
+                            expandInfoRaw === `code` ? false : `code`,
+                          );
+                          console.log(`dataReactFlow ${nodeId}`, dataReactFlow);
+                        }}
+                      >
+                        {`📜`}
+                      </div>
                       <div
                         className={`flex h-4 w-4 cursor-help flex-row items-center justify-center rounded border border-white p-1 text-white`}
                         onClick={() => {

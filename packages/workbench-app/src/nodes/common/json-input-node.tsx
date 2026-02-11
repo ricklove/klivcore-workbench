@@ -50,7 +50,7 @@ export const jsonInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       outputs: { value: obj },
     };
   },
-  generateCode: async ({ data, inputNames }) => {
+  generateCode: ({ data, inputNames }) => {
     const dataTyped = data as undefined | { value: undefined | string };
     return {
       typescript: `${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataTyped?.value ?? `undefined`}`,

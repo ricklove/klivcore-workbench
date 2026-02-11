@@ -43,7 +43,7 @@ export const stringInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
       },
     };
   },
-  generateCode: async ({ data, inputNames }) => {
+  generateCode: ({ data, inputNames }) => {
     const dataTyped = data as
       | undefined
       | { value: undefined | string; overrideInput?: boolean };

@@ -463,13 +463,12 @@ export interface WorkflowRuntimeNodeTypeDefinition {
   generateCode?: (args: {
     data: undefined | WorkflowJsonObject;
     inputNames: Record<WorkflowInputName, string>;
-  }) => Promise<
+  }) =>
     | undefined
     | {
         kind?: undefined | `expression` | `passthrough`;
         typescript: string;
-      }
-  >;
+      };
 
   // TODO: node lifecycle methods (to replace automatic population of inputs/outputs)
   // loadNodeType?: (store: WorkflowRuntimeStore) => void;
