@@ -174,7 +174,8 @@ const WrapperHeader = memo(
                                     inputNames: Object.fromEntries(
                                       node$.inputs
                                         .peek()
-                                        .map((x) => [x.name, x.name]),
+                                        .filter((x) => !!x.edgeId)
+                                        .map((x) => [x.name, `${x.name}_arg`]),
                                     ),
                                   });
                                   if (!generated) {

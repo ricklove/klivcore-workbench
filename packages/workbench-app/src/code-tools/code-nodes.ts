@@ -72,11 +72,9 @@ export const codeBuiltinNodeTypes: Record<
         .filter((line) => !!line);
       const formattedCode = code.startsWith(`return`)
         ? code
-        : code.startsWith(`const `)
-          ? `${code}; return main(${argNames.join(',')});`
-          : codeLines[0]?.includes(`=>`)
-            ? `const main = ${code}; return main(${argNames.join(',')});`
-            : `return (${code});`;
+        : codeLines[0]?.includes(`=>`)
+          ? `const main = ${code}; return main(${argNames.join(',')});`
+          : `return (${code});`;
       if (rs.formattedCode !== formattedCode) {
         rs.formattedCode = formattedCode;
         rs.fun = undefined;
@@ -113,6 +111,39 @@ export const codeBuiltinNodeTypes: Record<
 
       return {
         outputs: { value: funResult ?? undefined },
+      };
+    },
+    generateCode: ({ data, inputNames }) => {
+      if (`value` in inputNames) {
+        return undefined;
+      }
+
+      const dataTyped = data as undefined | { value: undefined };
+      const code = dataTyped?.value ?? ``;
+
+      const argNames = [`x`, `y`, `z`];
+      const codeLines = code
+        .split(`\n`)
+        .map((line) => line.trim())
+        .filter((line) => !!line);
+      const formattedCode = code.startsWith(`return`)
+        ? `{${code}}`
+        : codeLines[0]?.includes(`=>`)
+          ? `(${code})()`
+          : `(${code})`;
+
+      const xName = inputNames[WorkflowBrandedTypes.inputName(`x`)];
+      const yName = inputNames[WorkflowBrandedTypes.inputName(`y`)];
+      const zName = inputNames[WorkflowBrandedTypes.inputName(`z`)];
+      const xPhrase = xName === `x` ? xName : xName ? `${xName}:x` : '';
+      const yPhrase = yName === `y` ? yName : yName ? `${yName}:y` : '';
+      const zPhrase = zName === `z` ? zName : zName ? `${zName}:z` : '';
+      const argsPhrase = [xPhrase, yPhrase, zPhrase]
+        .filter((s) => !!s)
+        .join(',');
+
+      return {
+        typescript: `(({${argsPhrase}}) => ${formattedCode})()`,
       };
     },
   },
