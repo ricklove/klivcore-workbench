@@ -766,13 +766,14 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
       }
 
       for (const item of addedInputs) {
+        const store = store$.peek();
         node$.inputs.push({
           name: item.name,
           type: item.type,
           value: createRuntimeValue({ data: undefined }),
           edgeId: undefined,
           getEdge() {
-            return getters.node.inputs.getEdge(store$.get(), this);
+            return getters.node.inputs.getEdge(store, this);
           },
         });
       }
