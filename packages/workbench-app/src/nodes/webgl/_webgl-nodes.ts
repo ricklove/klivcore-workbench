@@ -200,6 +200,23 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
 
         return { outputs: { mesh: ObservableHint.opaque(box(mesh)) } };
       },
+      generateCode: ({ inputNames }) => {
+        const textureName =
+          inputNames[WorkflowBrandedTypes.inputName(`texture`)];
+        const width = 5;
+        const height = 5;
+        return {
+          typescript: `
+((texture, width, height) => {
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+  });
+  const geometry = new THREE.PlaneGeometry(width, height);
+  const mesh = new THREE.Mesh(geometry, material);
+  return { mesh };
+})(${textureName}, ${width}, ${height})`.trim(),
+        };
+      },
     },
     threeAddToScene: {
       type: WorkflowBrandedTypes.typeName(`threeAddToScene`),
@@ -264,6 +281,14 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         };
 
         return { outputs: { success: `added ${obj.uuid} at ${Date.now()}` } };
+      },
+      generateCode: ({ inputNames }) => {
+        const sceneName = inputNames[WorkflowBrandedTypes.inputName(`scene`)];
+        const objName = inputNames[WorkflowBrandedTypes.inputName(`object`)];
+        return {
+          typescript:
+            `((scene, obj) => { scene.add(obj); return { success: 'success' }; })(${sceneName}, ${objName})`.trim(),
+        };
       },
     },
     ...Object.fromEntries(otherWebglNodeTypes.map((nt) => [nt.type, nt])),

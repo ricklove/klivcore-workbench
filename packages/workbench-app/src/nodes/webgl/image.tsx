@@ -168,6 +168,31 @@ const threeLoadImageTexture: WorkflowRuntimeNodeTypeDefinition = {
 
     return { outputs: { texture: ObservableHint.opaque(box(texture)) } };
   },
+  generateCode: ({ inputNames }) => {
+    return {
+      typescript: `
+await (async (url)=>{
+  const loader = new THREE.TextureLoader();
+  const texture = await new Promise<THREE.Texture<HTMLImageElement>>(
+    (resolve, reject) => {
+      loader.load(
+        url,
+        (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          resolve(texture);
+        },
+        undefined,
+        (err) => {
+          console.error('Error loading texture', { err });
+          reject(err);
+        },
+      );
+    },
+  );
+  return { texture: box(texture) };
+})(${inputNames[WorkflowBrandedTypes.inputName(`url`)]})`.trim(),
+    };
+  },
 };
 
 export const ImageUrlPreviewComponent = (

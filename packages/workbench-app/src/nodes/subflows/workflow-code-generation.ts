@@ -146,7 +146,29 @@ export const generateCodeForWorkflow = ({
         return undefined;
       }
 
-      //   if(genCode.kind === `passthrough`){}
+      if (genCode.kind === `passthrough`) {
+        for (const output of node.outputs) {
+          const outVariable = variableNames.find(
+            (v) =>
+              v.sourceNodeId === node.id && v.sourceOutputName === output.name,
+          );
+          const input = node.inputs.find(
+            (i) => (i.name as string) === output.name,
+          );
+          const inVariable = variableNames.find(
+            (v) =>
+              v.sourceNodeId === input?.source?.nodeId &&
+              v.sourceOutputName === input?.source?.name,
+          );
+
+          if (!outVariable || !inVariable) {
+            continue;
+          }
+
+          outVariable.variableName = inVariable.variableName;
+        }
+        return undefined;
+      }
 
       const outputArgs = node.outputs
         .map((output) => {
