@@ -138,7 +138,7 @@ export const codeBuiltinNodeTypes: Record<
 
       return {
         kind: `value`,
-        typescript: `(${formattedCode})`,
+        typescript: formattedCode,
       };
     },
   },

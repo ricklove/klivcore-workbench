@@ -77,7 +77,7 @@ export const generateCodeForWorkflow = ({
     let counter = 1;
     while (usedNames.has(varName)) {
       counter++;
-      varName = `${v.sourceOutputName}_${counter}`;
+      varName = `${v.sourceOutputName}${counter.toString().padStart(2, '0')}`;
     }
 
     v.variableName = varName;
