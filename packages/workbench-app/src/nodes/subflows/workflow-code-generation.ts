@@ -154,11 +154,15 @@ export const generateCodeForWorkflow = ({
             (v) =>
               v.sourceNodeId === node.id && v.sourceOutputName === output.name,
           );
-          return `${variable?.variableName ?? output.name}`;
+          if ((variable?.variableName ?? output.name) === output.name) {
+            return `${output.name}`;
+          }
+
+          return `${output.name}: ${variable?.variableName ?? output.name}`;
         })
         .join(', ');
 
-      return `const {${outputArgs}} = ${genCode.typescript}`;
+      return `const { ${outputArgs} } = ${genCode.typescript}`;
     })
     .filter((x) => !!x)
     .join('\n\n');

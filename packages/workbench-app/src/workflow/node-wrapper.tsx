@@ -181,9 +181,13 @@ const WrapperHeader = memo(
                                   if (!generated) {
                                     return `Code generation returned no output`;
                                   }
+                                  if (generated.kind === 'none') {
+                                    return `// none`;
+                                  }
                                   if (generated.kind === 'passthrough') {
                                     return `// Passthrough\n${generated.typescript}`;
                                   }
+
                                   return generated.typescript;
                                 } catch (e) {
                                   return `Error during code generation: ${(e as Error).message}`;

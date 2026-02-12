@@ -121,7 +121,11 @@ export const codeBuiltinNodeTypes: Record<
       const dataTyped = data as undefined | { value: undefined };
       const code = dataTyped?.value ?? ``;
 
-      const argNames = [`x`, `y`, `z`];
+      const xName = inputNames[WorkflowBrandedTypes.inputName(`x`)];
+      const yName = inputNames[WorkflowBrandedTypes.inputName(`y`)];
+      const zName = inputNames[WorkflowBrandedTypes.inputName(`z`)];
+      const paramsPhrase = [xName, yName, zName].filter((s) => !!s).join(', ');
+
       const codeLines = code
         .split(`\n`)
         .map((line) => line.trim())
@@ -129,21 +133,11 @@ export const codeBuiltinNodeTypes: Record<
       const formattedCode = code.startsWith(`return`)
         ? `{${code}}`
         : codeLines[0]?.includes(`=>`)
-          ? `(${code})()`
+          ? `(${code})(${paramsPhrase})`
           : `(${code})`;
 
-      const xName = inputNames[WorkflowBrandedTypes.inputName(`x`)];
-      const yName = inputNames[WorkflowBrandedTypes.inputName(`y`)];
-      const zName = inputNames[WorkflowBrandedTypes.inputName(`z`)];
-      const xPhrase = xName === `x` ? xName : xName ? `${xName}:x` : '';
-      const yPhrase = yName === `y` ? yName : yName ? `${yName}:y` : '';
-      const zPhrase = zName === `z` ? zName : zName ? `${zName}:z` : '';
-      const argsPhrase = [xPhrase, yPhrase, zPhrase]
-        .filter((s) => !!s)
-        .join(',');
-
       return {
-        typescript: `(({${argsPhrase}}) => ${formattedCode})()`,
+        typescript: `{ value: (${formattedCode}) }`,
       };
     },
   },

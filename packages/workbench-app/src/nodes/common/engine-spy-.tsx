@@ -41,6 +41,6 @@ export const engineSpyNodeType: WorkflowRuntimeNodeTypeDefinition = {
     };
   },
   generateCode: () => {
-    return undefined;
+    return { kind: `none` };
   },
 };

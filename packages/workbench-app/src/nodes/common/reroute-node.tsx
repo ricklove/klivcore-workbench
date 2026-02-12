@@ -37,7 +37,7 @@ export const rerouteNodeType: WorkflowRuntimeNodeTypeDefinition = {
   generateCode: ({ inputNames }) => {
     return {
       kind: 'passthrough',
-      typescript: `${inputNames[WorkflowBrandedTypes.inputName(`value`)]}`,
+      typescript: `{ value: ${inputNames[WorkflowBrandedTypes.inputName(`value`)]} }`,
     };
   },
 };
