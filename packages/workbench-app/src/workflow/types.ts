@@ -467,7 +467,7 @@ export interface WorkflowRuntimeNodeTypeDefinition {
     | undefined
     | { kind: `none` }
     | {
-        kind?: undefined | `expression` | `passthrough`;
+        kind?: undefined | `expression` | `passthrough` | `value` | `void`;
         typescript: string;
       };
 

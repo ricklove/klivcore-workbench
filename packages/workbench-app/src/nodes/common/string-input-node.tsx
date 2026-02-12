@@ -52,13 +52,14 @@ export const stringInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
 
     if (dataTyped?.overrideInput && dataTyped?.value) {
       return {
-        typescript: `{ value: ${dataValueCode} }`,
+        kind: `value`,
+        typescript: `${dataValueCode}`,
       };
     }
 
     return {
-      kind: !dataTyped?.value ? `passthrough` : undefined,
-      typescript: `{ value: ${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataValueCode} }`,
+      kind: !dataTyped?.value ? `passthrough` : `value`,
+      typescript: `${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataValueCode}`,
     };
   },
 };

@@ -286,8 +286,8 @@ export const webglNodeTypes: Record<string, WorkflowRuntimeNodeTypeDefinition> =
         const sceneName = inputNames[WorkflowBrandedTypes.inputName(`scene`)];
         const objName = inputNames[WorkflowBrandedTypes.inputName(`object`)];
         return {
-          typescript:
-            `((scene, obj) => { scene.add(obj); return { success: 'success' }; })(${sceneName}, ${objName})`.trim(),
+          kind: `void`,
+          typescript: `${sceneName}.add(${objName})`,
         };
       },
     },

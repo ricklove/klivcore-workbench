@@ -170,6 +170,26 @@ export const generateCodeForWorkflow = ({
         return undefined;
       }
 
+      if (genCode.kind === `void`) {
+        return `${genCode.typescript}`;
+      }
+
+      if (genCode.kind === `value` && node.outputs.length === 1) {
+        const outputArgs = node.outputs.map((output) => {
+          const variable = variableNames.find(
+            (v) =>
+              v.sourceNodeId === node.id && v.sourceOutputName === output.name,
+          );
+          if ((variable?.variableName ?? output.name) === output.name) {
+            return `${output.name}`;
+          }
+
+          return `${variable?.variableName ?? output.name}`;
+        })[0];
+
+        return `const ${outputArgs} = ${genCode.typescript}`;
+      }
+
       const outputArgs = node.outputs
         .map((output) => {
           const variable = variableNames.find(
