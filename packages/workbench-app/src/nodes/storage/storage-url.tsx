@@ -57,7 +57,7 @@ export const storageUrlNodeType: WorkflowRuntimeNodeTypeDefinition = {
     storageStore$.getProviderWithPath(${inputNames[WorkflowBrandedTypes.inputName(`value`)]}) ?? {};
   const provider = provider$?.peek();
   if (!path || !provider || !provider.getUrl) {
-    return undefined;
+    throw new Error('Invalid storage provider or path');
   }
   return provider.getUrl(path);
 })()`.trim(),

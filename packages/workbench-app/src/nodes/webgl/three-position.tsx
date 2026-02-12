@@ -44,10 +44,6 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
         type: WorkflowBrandedTypes.valueType(`Vector3Array`),
       },
       {
-        name: WorkflowBrandedTypes.outputName(`vector`),
-        type: WorkflowBrandedTypes.valueType(`Box<THREE.Vector3>`),
-      },
-      {
         name: WorkflowBrandedTypes.outputName(`dataset`),
         type: WorkflowBrandedTypes.valueType(
           `{id: string; position: Vector3Array; rotation: Vector3Array}`,
@@ -76,7 +72,6 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
         obj?: THREE.Object3D;
         position?: Vector3Array;
         rotation?: Vector3Array;
-        rotationVec?: THREE.Vector3;
         lastDatasetId?: number;
       };
 
@@ -116,15 +111,12 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
       if (rs.obj !== obj) rs.obj = obj;
       rs.position = [...pos];
       rs.rotation = [...rot];
-      rs.rotationVec = rs.rotationVec || new THREE.Vector3();
-      rs.rotationVec.set(rot[0], rot[1], rot[2]);
 
       obj.position.set(pos[0], pos[1], pos[2]);
-      obj.rotation.setFromVector3(rs.rotationVec);
+      obj.rotation.set(rot[0], rot[1], rot[2]);
 
       return {
         outputs: {
-          vector: box(obj.position),
           position: [...pos],
           rotation: [...rot],
           dataset: { position: [...pos], rotation: [...rot] },
@@ -132,6 +124,27 @@ export const threePositionControllerNodeType: WorkflowRuntimeNodeTypeDefinition 
         ...(!position
           ? { data: { position: [...pos], rotation: [...rot] } }
           : {}),
+      };
+    },
+    generateCode: ({ data, inputNames }) => {
+      if (!inputNames[WorkflowBrandedTypes.inputName(`dataset`)]) {
+        return {
+          kind: `none`,
+        };
+      }
+
+      return {
+        typescript:
+          `
+((obj, pos, rot) => {
+  obj.position.set(pos[0], pos[1], pos[2]);
+  obj.rotation.set(rot[0], rot[1], rot[2]);
+  return { position: pos, rotation: rot, dataset: { position: pos, rotation: rot } };
+})(` +
+          `${inputNames[WorkflowBrandedTypes.inputName(`object`)]}, ` +
+          `${inputNames[WorkflowBrandedTypes.inputName(`dataset`)]}?.position ?? ${data?.position ? JSON.stringify(data.position) : 'undefined'}, ` +
+          `${inputNames[WorkflowBrandedTypes.inputName(`dataset`)]}?.rotation ?? ${data?.rotation ? JSON.stringify(data.rotation) : 'undefined'}` +
+          `)`.trim(),
       };
     },
   };

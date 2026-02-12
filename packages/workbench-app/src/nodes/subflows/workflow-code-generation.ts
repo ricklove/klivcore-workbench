@@ -231,7 +231,7 @@ export const generateCodeForWorkflow = ({
   const body = nodeCode.trim();
 
   const fun = `
-function subflow({
+async function subflow({
   ${inputs?.map((i) => `${i.name}`).join(',\n  ')}
 }:{
   ${inputs?.map((i) => `${i.name}: ${i.type}`).join(',\n  ')}
