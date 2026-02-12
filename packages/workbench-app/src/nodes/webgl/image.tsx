@@ -189,7 +189,7 @@ await (async (url)=>{
       );
     },
   );
-  return { texture: box(texture) };
+  return { texture };
 })(${inputNames[WorkflowBrandedTypes.inputName(`url`)]})`.trim(),
     };
   },

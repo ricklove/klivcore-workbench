@@ -55,8 +55,11 @@ export const storageUrlNodeType: WorkflowRuntimeNodeTypeDefinition = {
   const { provider: provider$, path } =
     storageStore$.getProviderWithPath(${inputNames[WorkflowBrandedTypes.inputName(`value`)]}) ?? {};
   const provider = provider$?.peek();
+  if (!path || !provider || !provider.getUrl) {
+    return { value: undefined };
+  }
   return {
-    value: provider?.getUrl(path),
+    value: provider.getUrl(path),
   };
 })()`.trim(),
     };

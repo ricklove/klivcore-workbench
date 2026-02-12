@@ -57,6 +57,7 @@ export const stringInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
     }
 
     return {
+      kind: !dataTyped?.value ? `passthrough` : undefined,
       typescript: `{ value: ${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataValueCode} }`,
     };
   },

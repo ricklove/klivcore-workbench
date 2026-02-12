@@ -39,6 +39,7 @@ export const numberInputNodeType: WorkflowRuntimeNodeTypeDefinition = {
   generateCode: ({ data, inputNames }) => {
     const dataTyped = data as undefined | { value?: number };
     return {
+      kind: !dataTyped?.value ? `passthrough` : undefined,
       typescript: `{ value: ${inputNames[WorkflowBrandedTypes.inputName(`value`)]} ?? ${dataTyped?.value ?? `undefined`} }`,
     };
   },
