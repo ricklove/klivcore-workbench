@@ -465,6 +465,7 @@ export interface WorkflowRuntimeNodeTypeDefinition {
     inputNames: Record<WorkflowInputName, string>;
   }) =>
     | undefined
+    | { kind: `none` }
     | {
         kind?: undefined | `expression` | `passthrough`;
         typescript: string;

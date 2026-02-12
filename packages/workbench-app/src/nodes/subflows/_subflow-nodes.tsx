@@ -1,3 +1,4 @@
+import { subflowCodeGenerationNodeType } from './subflow-code-generation-node';
 import { subflowInputsNodeType } from './subflow-inputs-node';
 import { subflowInstanceNodeType } from './subflow-instance-node';
 import { subflowOutputsNodeType } from './subflow-outputs-node';
@@ -9,6 +10,7 @@ const subflowNodeTypesList = [
   subflowOutputsNodeType,
   subflowUiNodeType,
   subflowInstanceNodeType,
+  subflowCodeGenerationNodeType,
 ];
 
 export const subflowNodeTypes = Object.fromEntries(
