@@ -28,8 +28,21 @@ export const subflowInputsNodeType: WorkflowRuntimeNodeTypeDefinition = {
       >;
       const fields = dataValue$?.fields.get() ?? [];
       if (!fields) {
+        console.log(
+          '[subflowInputsNodeType.load] no fields defined for subflow inputs node, skipping input/output update',
+          {
+            fields,
+          },
+        );
         return;
       }
+
+      console.log(
+        '[subflowInputsNodeType.load] updating inputs/outputs for subflow inputs node with fields:',
+        {
+          fields,
+        },
+      );
 
       const store = store$.peek();
       const node = node$.peek();

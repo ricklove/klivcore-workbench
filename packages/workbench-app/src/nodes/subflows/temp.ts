@@ -6,11 +6,19 @@ export async function subflow({
   data,
   scene,
 }: {
-  data: { url: string };
+  data: {
+    url: string;
+    position: [number, number, number];
+    rotation: [number, number, number];
+  };
   scene: Scene;
 }): Promise<{
   obj: Object3D;
-  data: { url: string };
+  data: {
+    url: string;
+    position: [number, number, number];
+    rotation: [number, number, number];
+  };
 }> {
   const value = ((x) => x.url)(data);
 

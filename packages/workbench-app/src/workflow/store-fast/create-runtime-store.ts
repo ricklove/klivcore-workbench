@@ -765,11 +765,11 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         return;
       }
 
-      for (const item of addedInputs) {
+      for (const newItem of addedInputs) {
         const store = store$.peek();
         node$.inputs.push({
-          name: item.name,
-          type: item.type,
+          name: newItem.name,
+          type: newItem.type,
           value: createRuntimeValue({ data: undefined }),
           edgeId: undefined,
           getEdge() {
@@ -778,8 +778,8 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         });
       }
 
-      for (const item of removedInputs) {
-        const input$ = node$.inputs.find((i) => i.name.peek() === item.name);
+      for (const oldItem of removedInputs) {
+        const input$ = node$.inputs.find((i) => i.name.peek() === oldItem.name);
         const edgeId = input$?.edgeId.peek();
         if (edgeId) {
           store$.actions.deleteEdge(edgeId);
@@ -787,13 +787,33 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         input$?.delete();
       }
 
-      for (const item of changedInputs) {
-        const input$ = node$.inputs.find((i) => i.name.peek() === item.name);
-        if (!input$) {
+      for (const oldItem of changedInputs) {
+        const newItem = inputs.find((i) => i.name === oldItem.name);
+        if (!newItem) {
+          console.warn(`[updateInputs] new input not found ${nodeId}`, {
+            inputs,
+            node: node$.peek(),
+          });
           continue;
         }
-        input$.type.set(item.type);
+        const input$ = node$.inputs.find((i) => i.name.peek() === oldItem.name);
+        if (!input$) {
+          console.warn(`[updateInputs] old input not found ${nodeId}`, {
+            inputs,
+            node: node$.peek(),
+          });
+          continue;
+        }
+        input$.type.set(newItem.type);
       }
+
+      console.log(`[updateInputs] Updated inputs with id ${nodeId}`, {
+        inputs,
+        changedInputs,
+        addedInputs,
+        removedInputs,
+        node: node$.peek(),
+      });
     },
     updateOutputs: (nodeId, outputs) => {
       const node$ = store$.nodes[nodeId];
@@ -828,10 +848,10 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         return;
       }
 
-      for (const item of addedOutputs) {
+      for (const newItem of addedOutputs) {
         node$.outputs.push({
-          name: item.name,
-          type: item.type,
+          name: newItem.name,
+          type: newItem.type,
           value: createRuntimeValue({ data: undefined }),
           edgeIds: undefined,
           getEdges() {
@@ -840,8 +860,10 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         });
       }
 
-      for (const item of removedOutputs) {
-        const output$ = node$.outputs.find((o) => o.name.peek() === item.name);
+      for (const oldItem of removedOutputs) {
+        const output$ = node$.outputs.find(
+          (o) => o.name.peek() === oldItem.name,
+        );
         const edgeIds = output$?.edgeIds.peek() || [];
         for (const edgeId of edgeIds) {
           store$.actions.deleteEdge(edgeId);
@@ -849,13 +871,35 @@ const createEmptyStore = (): Observable<WorkflowRuntimeStore> => {
         output$?.delete();
       }
 
-      for (const item of changedOutputs) {
-        const output$ = node$.outputs.find((o) => o.name.peek() === item.name);
-        if (!output$) {
+      for (const oldItem of changedOutputs) {
+        const newItem = outputs.find((i) => i.name === oldItem.name);
+        if (!newItem) {
+          console.warn(`[updateOutputs] new output not found ${nodeId}`, {
+            outputs,
+            node: node$.peek(),
+          });
           continue;
         }
-        output$.type.set(item.type);
+        const output$ = node$.outputs.find(
+          (i) => i.name.peek() === oldItem.name,
+        );
+        if (!output$) {
+          console.warn(`[updateOutputs] old output not found ${nodeId}`, {
+            outputs,
+            node: node$.peek(),
+          });
+          continue;
+        }
+        output$.type.set(newItem.type);
       }
+
+      console.log(`[updateOutputs] Updated outputs with id ${nodeId}`, {
+        outputs,
+        changedOutputs,
+        addedOutputs,
+        removedOutputs,
+        node: node$.peek(),
+      });
     },
   };
 
